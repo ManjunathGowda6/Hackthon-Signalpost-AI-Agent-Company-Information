@@ -67,7 +67,7 @@ async def main():
         for nr in all_companies:
             f.write(json.dumps({"organisasjonsnummer": nr}) + "\n")
 
-    print(f"\n  ✓ Wrote {len(all_companies)} org numbers to {output}")
+    print(f"\n  [OK] Wrote {len(all_companies)} org numbers to {output}")
 
 
 if __name__ == "__main__":
