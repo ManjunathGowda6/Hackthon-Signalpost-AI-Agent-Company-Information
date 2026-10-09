@@ -4,7 +4,7 @@
 
 ## Quick Start
 
-`ash
+```bash
 # Clone and install
 git clone https://github.com/ManjunathGowda6/Hackthon-Signalpost-AI-Agent-Company-Information.git
 cd Hackthon-Signalpost-AI-Agent-Company-Information
@@ -22,13 +22,13 @@ signalpost run --input companies.jsonl --output out/results.json
 
 # Run 100-company smoke test
 signalpost smoke-test --output out/smoke_test_report.json
-`
+```
 
 ## One Command to Run
 
-`ash
+```bash
 signalpost run --input <input_file.jsonl> --output <output_file.json>
-`
+```
 
 ## Model / API Details
 
@@ -41,14 +41,14 @@ signalpost run --input <input_file.jsonl> --output <output_file.json>
 
 | Resource | Per Company | Per 1,000 Batch |
 |:---|:---|:---|
-| Claude API | ~.005 | ~.00 |
-| Total external APIs | ~.008 | ~.00 |
+| Claude API | ~$0.005 | ~$5.00 |
+| Total external APIs | ~$0.008 | ~$8.00 |
 
-**Well under the /batch budget.**
+**Well under the $10/batch budget.**
 
 ## Architecture
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the full system design.
+See the architecture document for the full system design.
 
 ### Data Sources (Source Ladder)
 
@@ -63,7 +63,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full system design.
 
 ## Project Structure
 
-`
+```
 signalpost/               # Main package
   identity/                # Layer 1: Identity Resolution (Brreg client)
   collectors/              # Layer 2: Data Collection (source ladder)
@@ -75,7 +75,7 @@ signalpost/               # Main package
   utils/                   # HTTP client, budgets, logging
 tests/                     # Test suite
 scripts/                   # Utility scripts
-`
+```
 
 ## Submission Checklist
 
@@ -84,17 +84,18 @@ scripts/                   # Utility scripts
 - [ ] Exact commit hash: (will be filled at submission)
 - [x] One command to run: `signalpost run --input companies.jsonl --output out/results.json`
 - [x] Model/API details: Claude 3.5 Haiku + Brreg Free API
-- [x] Expected run costs: ~/batch
+- [x] Expected run costs: ~$8/batch
 
 ## Git Auto-Sync
 
-To enable automatic git push on file changes:
-`ash
+Watches for file changes and **instantly** commits & pushes to GitHub:
+
+```bash
 pip install watchdog
-python git_auto_sync.py             # Watch mode (auto-commits every 30s)
+python git_auto_sync.py             # Instant watch mode (pushes on every change)
 python git_auto_sync.py --once      # One-time commit & push
 python git_auto_sync.py --status    # Check git status
-`
+```
 
 ## License
 
