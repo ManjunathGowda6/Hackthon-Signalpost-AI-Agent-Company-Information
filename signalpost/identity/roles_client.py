@@ -1,4 +1,4 @@
-"""Roles client for extracting leadership, board of directors, and auditor data."""
+"""Roles client: fetches and normalizes leadership data from Brreg."""
 from __future__ import annotations
 
 from typing import Any, Optional
@@ -10,6 +10,17 @@ def utc_now() -> str:
 
 
 class RolesClient:
+    """Extracts board, CEO, auditor from Brreg roller endpoint."""
+
+    def __init__(self, brreg_client):
+        self.brreg = brreg_client
+
+    async def get_leadership(self, org_number: str) -> list[dict[str, Any]]:
+        resp = await self.brreg.get_roles(org_number)
+        if not resp.ok:
+            return []
+        return self.normalize_roles(resp.data, org_number)
+
     @staticmethod
     def normalize_roles(body: Any, org_number: str) -> list[dict[str, Any]]:
         if not isinstance(body, dict):

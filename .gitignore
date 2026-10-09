@@ -1,17 +1,16 @@
 # Python
 __pycache__/
 *.py[cod]
-*.class
-*.so
+*$py.class
 *.egg-info/
 dist/
 build/
-*.egg
+.eggs/
 
-# Virtual environments
+# Virtual environment
 .venv/
 venv/
-env/
+ENV/
 
 # IDE
 .vscode/
@@ -21,26 +20,15 @@ env/
 
 # Environment
 .env
-.env.local
 
-# Data (large files - not tracked)
+# Data (keep structure, skip large files)
 data/snapshots/
 data/cache/
-data/profiles/
+*.db
 
-# Output (regenerated)
-out/
+# Output
+out/*.json
 
 # OS
 .DS_Store
 Thumbs.db
-
-# Logs
-*.log
-git_auto_sync.log
-
-# Testing
-.pytest_cache/
-.mypy_cache/
-.coverage
-htmlcov/
