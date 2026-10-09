@@ -1,10 +1,12 @@
-"""Batch processing orchestrator — budget-optimized company research pipeline.
+"""Batch orchestrator -- smart budget allocation for maximum section coverage.
 
-Budget Strategy (2,000 requests for 1,000+ companies):
-  Phase 1: Entity fetch for ALL companies (1 req each)        ~1,000 requests
-  Phase 2: Financials for ALL found companies (1 req each)    ~1,000 requests
-  Phase 3: Roles with remaining budget                        remaining
-  Total: stays within 2,000 request cap
+Budget Strategy for 2,000 requests / 1,000 companies:
+  Phase 1: Entity fetch for ALL companies             (1,000 requests)
+  Phase 2: Interleave financials + roles               (1,000 requests)
+           - Each company gets ONE enrichment call
+           - AS/ASA/BRL -> financials (they file accounts)
+           - Others -> roles (they rarely have accounts)
+  Result: Every company has legal_identity + at least one more section.
 """
 import asyncio
 import json
@@ -26,22 +28,18 @@ from signalpost.models.envelope import (
 )
 from signalpost.identity.brreg_client import BrregClient
 from signalpost.identity.roles_client import RolesClient
-from signalpost.identity.subunits_client import SubunitsClient
 from signalpost.extractors.financial_extractor import FinancialExtractor
 from signalpost.synthesis.claude_client import ClaudeClient
 from signalpost.synthesis.summarizer import Summarizer
 
 logger = structlog.get_logger()
 
+# Legal forms that are ALWAYS accounting-obliged
+ACCOUNTING_OBLIGED = {"AS", "ASA", "BRL", "BBL", "STI", "SF", "VPFO", "NUF"}
+
 
 class Orchestrator:
-    """Runs the full company research pipeline for a batch of org numbers.
-
-    Uses a phased approach to maximize coverage within the request budget:
-    Phase 1: Fetch entity data for all companies (1 request each)
-    Phase 2: Fetch financials for all found companies (1 request each)
-    Phase 3: Fetch roles with any remaining budget
-    """
+    """Runs company research with smart budget allocation."""
 
     def __init__(
         self,
@@ -58,14 +56,12 @@ class Orchestrator:
         self.cost_tracker = CostTracker(max_cost_usd=max_cost_usd)
         self.start_time: Optional[float] = None
 
-        # Shared clients
         self.brreg = BrregClient(budget=self.budget)
         self.roles_client = RolesClient(self.brreg)
         self.claude = ClaudeClient(cost_tracker=self.cost_tracker)
         self.summarizer = Summarizer(self.claude)
 
     async def run(self):
-        """Execute the phased batch pipeline."""
         self.start_time = time.time()
         org_numbers = self._load_input()
         total = len(org_numbers)
@@ -73,9 +69,9 @@ class Orchestrator:
                      budget=self.budget.max_requests)
 
         # ── Phase 1: Fetch all entities ──
-        logger.info("phase_1_start", desc="Fetching entity data")
-        entities: dict[str, Any] = {}  # org_number -> entity_data or None
+        logger.info("phase_1_entity", desc="Fetching entity data for all companies")
         sem = asyncio.Semaphore(self.max_workers)
+        entities: dict[str, Any] = {}
 
         async def fetch_entity(org_nr):
             async with sem:
@@ -84,8 +80,10 @@ class Orchestrator:
                 resp = await self.brreg.get_entity(org_nr)
                 return org_nr, resp.data if resp.ok else None
 
-        tasks = [fetch_entity(nr) for nr in org_numbers]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+        results = await asyncio.gather(
+            *[fetch_entity(nr) for nr in org_numbers],
+            return_exceptions=True,
+        )
         for r in results:
             if isinstance(r, Exception):
                 continue
@@ -93,15 +91,37 @@ class Orchestrator:
             entities[org_nr] = data
 
         found_count = sum(1 for v in entities.values() if v is not None)
-        logger.info("phase_1_done", found=found_count, not_found=total - found_count,
-                     requests_used=self.budget.used)
-
-        # ── Phase 2: Fetch financials for found entities ──
-        logger.info("phase_2_start", desc="Fetching financial data",
+        logger.info("phase_1_done", found=found_count, budget_used=self.budget.used,
                      budget_remaining=self.budget.remaining)
-        financials: dict[str, Any] = {}  # org_number -> accounts data or None
 
-        found_orgs = [nr for nr in org_numbers if entities.get(nr) is not None]
+        # ── Phase 2: Smart enrichment — financials OR roles per company ──
+        # Split companies by legal form to decide which enrichment to prioritize
+        fin_priority: list[str] = []   # Companies that should get financials
+        roles_priority: list[str] = [] # Companies that should get roles
+
+        for org_nr in org_numbers:
+            entity = entities.get(org_nr)
+            if entity is None:
+                continue
+            legal_form = entity.get("organisasjonsform", {}).get("kode", "")
+            if legal_form.upper() in ACCOUNTING_OBLIGED:
+                fin_priority.append(org_nr)
+            else:
+                roles_priority.append(org_nr)
+
+        remaining = self.budget.remaining
+        logger.info("phase_2_plan",
+                     financial_candidates=len(fin_priority),
+                     roles_candidates=len(roles_priority),
+                     budget_remaining=remaining)
+
+        # Allocate budget: financials for obliged companies, roles for the rest
+        # If budget allows, also get roles for financial companies
+        financials: dict[str, Any] = {}
+        roles_data: dict[str, list] = {}
+
+        # Phase 2a: Financials for accounting-obliged companies
+        logger.info("phase_2a_financials", count=min(len(fin_priority), remaining))
 
         async def fetch_financials(org_nr):
             async with sem:
@@ -110,59 +130,61 @@ class Orchestrator:
                 resp = await self.brreg.get_financials(org_nr)
                 return org_nr, resp.data if resp.ok else None
 
-        tasks = [fetch_financials(nr) for nr in found_orgs]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-        for r in results:
+        fin_tasks = [fetch_financials(nr) for nr in fin_priority]
+        fin_results = await asyncio.gather(*fin_tasks, return_exceptions=True)
+        for r in fin_results:
             if isinstance(r, Exception):
                 continue
             org_nr, data = r
-            financials[org_nr] = data
+            if data is not None:
+                financials[org_nr] = data
 
-        fin_count = sum(1 for v in financials.values() if v is not None)
-        logger.info("phase_2_done", with_financials=fin_count,
-                     requests_used=self.budget.used)
+        logger.info("phase_2a_done", with_financials=len(financials),
+                     budget_used=self.budget.used)
 
-        # ── Phase 3: Fetch roles with remaining budget ──
+        # Phase 2b: Roles for non-obliged companies (and any remaining budget)
         remaining = self.budget.remaining
-        logger.info("phase_3_start", desc="Fetching leadership roles",
-                     budget_remaining=remaining)
-        roles_data: dict[str, list] = {}
+        if remaining > 0:
+            # First: roles for non-accounting companies
+            # Then: roles for accounting companies if budget still available
+            roles_targets = roles_priority + fin_priority
+            roles_targets = roles_targets[:remaining]
 
-        # Prioritize companies that have entity data
-        roles_orgs = found_orgs[:remaining]  # Only fetch as many as budget allows
+            logger.info("phase_2b_roles", count=len(roles_targets),
+                         budget_remaining=remaining)
 
-        async def fetch_roles(org_nr):
-            async with sem:
-                if not self.budget.can_afford(1):
-                    return org_nr, []
-                try:
-                    roles = await self.roles_client.get_leadership(org_nr)
-                    return org_nr, roles
-                except Exception:
-                    return org_nr, []
+            async def fetch_roles(org_nr):
+                async with sem:
+                    if not self.budget.can_afford(1):
+                        return org_nr, []
+                    try:
+                        roles = await self.roles_client.get_leadership(org_nr)
+                        return org_nr, roles
+                    except Exception:
+                        return org_nr, []
 
-        if roles_orgs:
-            tasks = [fetch_roles(nr) for nr in roles_orgs]
-            results = await asyncio.gather(*tasks, return_exceptions=True)
-            for r in results:
+            roles_results = await asyncio.gather(
+                *[fetch_roles(nr) for nr in roles_targets],
+                return_exceptions=True,
+            )
+            for r in roles_results:
                 if isinstance(r, Exception):
                     continue
                 org_nr, roles = r
-                roles_data[org_nr] = roles
+                if roles:
+                    roles_data[org_nr] = roles
 
-        roles_count = sum(1 for v in roles_data.values() if v)
-        logger.info("phase_3_done", with_roles=roles_count,
-                     requests_used=self.budget.used)
+        logger.info("phase_2b_done", with_roles=len(roles_data),
+                     budget_used=self.budget.used)
 
-        # ── Phase 4: Assemble envelopes ──
-        logger.info("phase_4_start", desc="Assembling company profiles")
+        # ── Phase 3: Assemble all envelopes ──
+        logger.info("phase_3_assembly", desc="Building company profiles")
         envelopes: list[dict[str, Any]] = []
 
         for idx, org_nr in enumerate(org_numbers):
             entity = entities.get(org_nr)
             if entity is None:
-                # Entity not found or budget exhausted
-                if self.budget.used >= self.budget.max_requests and org_nr not in entities:
+                if org_nr not in entities:
                     env = CompanyEnvelope.create_failed(org_nr, "Request budget exhausted")
                 else:
                     env = CompanyEnvelope.create_not_available(org_nr)
@@ -187,31 +209,29 @@ class Orchestrator:
 
         elapsed = time.time() - self.start_time
         available = sum(1 for e in envelopes if e.get("status") == "available")
+        with_fin = sum(1 for e in envelopes
+                       if e.get("annual_accounts", {}).get("status") == "available")
+        with_roles = sum(1 for e in envelopes
+                         if e.get("leadership_workplaces", {}).get("status") == "available")
+
         logger.info(
             "batch_complete",
             total=total,
             available=available,
+            with_financials=with_fin,
+            with_leadership=with_roles,
             elapsed_sec=round(elapsed, 1),
             requests_used=self.budget.used,
             cost_usd=round(self.cost_tracker.total_cost, 4),
         )
 
     async def _assemble_envelope(
-        self,
-        org_number: str,
-        entity: dict,
-        fin_data: Any,
-        roles: list[dict],
-        idx: int,
-        total: int,
+        self, org_number: str, entity: dict, fin_data: Any,
+        roles: list[dict], idx: int, total: int,
     ) -> dict[str, Any]:
-        """Assemble a complete envelope from collected data."""
         now = utc_now()
-
-        # Legal Identity
         legal_identity = self._build_legal_identity(entity, org_number, now)
 
-        # Annual Accounts
         legal_form = entity.get("organisasjonsform", {}).get("kode")
         employees = entity.get("antallAnsatte")
 
@@ -233,27 +253,24 @@ class Orchestrator:
                 ) if employees is not None else None,
             )
 
-        # Leadership & Workplaces
         leadership_workplaces = LeadershipWorkplaces(
             status="available" if roles else "not_available",
             roles=roles,
             workplaces=[],
         )
 
-        # Website (from registry data only, no crawling to save budget)
         website_url = entity.get("hjemmeside")
         website_profiles = WebsiteProfiles(
             status="available" if website_url else "not_available",
-            official_website={"url": website_url, "source": "brreg_registry"} if website_url else None,
+            official_website={"url": website_url, "source": "brreg_registry",
+                              "retrieved_at": now} if website_url else None,
         )
 
-        # Evidence
         evidence = self._build_evidence(
             legal_identity, annual_accounts, leadership_workplaces,
             website_profiles, org_number,
         )
 
-        # Synthesis (rule-based to save LLM budget)
         envelope_data = {
             "legal_identity": legal_identity.model_dump(mode="json"),
             "annual_accounts": annual_accounts.model_dump(mode="json"),
@@ -264,7 +281,6 @@ class Orchestrator:
         synthesis_data = await self.summarizer.summarize(envelope_data)
         synthesis = Synthesis(**synthesis_data)
 
-        # Assemble
         envelope = CompanyEnvelope(
             organisation_number=org_number,
             name=entity.get("navn"),
@@ -278,23 +294,17 @@ class Orchestrator:
             website_profiles=website_profiles,
             hiring_activity=HiringActivity(status="not_applicable"),
             evidence=evidence,
-            refresh_metadata=RefreshMetadata(
-                is_initial_run=True,
-                last_refreshed=now,
-            ),
+            refresh_metadata=RefreshMetadata(is_initial_run=True, last_refreshed=now),
             synthesis=synthesis,
         )
 
-        if (idx + 1) % 100 == 0 or idx == total - 1:
+        if (idx + 1) % 200 == 0 or idx == total - 1:
             logger.info("progress", completed=idx + 1, total=total)
 
         return envelope.model_dump(mode="json")
 
-    # ── Builders ──
-
     def _build_legal_identity(self, entity: dict, org_number: str, now: str) -> LegalIdentity:
         src = f"https://data.brreg.no/enhetsregisteret/api/enheter/{org_number}"
-
         addr = entity.get("forretningsadresse", {})
         addr_parts = addr.get("adresse", [])
         addr_str = ", ".join(addr_parts) if addr_parts else None
@@ -320,7 +330,9 @@ class Orchestrator:
                 value=entity.get("organisasjonsform", {}).get("beskrivelse"),
                 source=src, retrieved_at=now,
             ),
-            registered_address=ClaimValue(value=full_addr, source=src, retrieved_at=now) if full_addr else None,
+            registered_address=ClaimValue(
+                value=full_addr, source=src, retrieved_at=now
+            ) if full_addr else None,
             industry_codes=codes,
             registration_date=ClaimValue(
                 value=entity.get("registreringsdatoEnhetsregisteret"),
@@ -335,29 +347,22 @@ class Orchestrator:
                 source=src, retrieved_at=now,
             ) if entity.get("naeringskode1") else None,
             official_website=ClaimValue(
-                value=entity.get("hjemmeside"),
-                source=src, retrieved_at=now,
+                value=entity.get("hjemmeside"), source=src, retrieved_at=now,
             ) if entity.get("hjemmeside") else None,
             is_bankrupt=entity.get("konkurs", False),
             is_in_liquidation=entity.get("underAvvikling", False),
         )
 
-    def _build_evidence(
-        self,
-        legal_identity: LegalIdentity,
-        annual_accounts: AnnualAccounts,
-        leadership: LeadershipWorkplaces,
-        website: WebsiteProfiles,
-        org_number: str,
-    ) -> EvidenceSummary:
+    def _build_evidence(self, legal_identity, annual_accounts,
+                        leadership, website, org_number):
         total_claims = 0
         claims_with_source = 0
         sources: dict[str, int] = {}
 
-        for field_name in ["legal_name", "legal_form", "registered_address",
-                           "registration_date", "registration_status",
-                           "activity_description", "official_website"]:
-            claim = getattr(legal_identity, field_name, None)
+        for fn in ["legal_name", "legal_form", "registered_address",
+                    "registration_date", "registration_status",
+                    "activity_description", "official_website"]:
+            claim = getattr(legal_identity, fn, None)
             if claim and claim.value is not None:
                 total_claims += 1
                 if claim.source:
@@ -367,10 +372,10 @@ class Orchestrator:
         total_claims += len(legal_identity.industry_codes)
         claims_with_source += len(legal_identity.industry_codes)
 
-        for field_name in ["revenue", "operating_profit", "profit_before_tax",
-                           "net_income", "total_assets", "total_equity",
-                           "total_debt", "employees"]:
-            claim = getattr(annual_accounts, field_name, None)
+        for fn in ["revenue", "operating_profit", "profit_before_tax",
+                    "net_income", "total_assets", "total_equity",
+                    "total_debt", "employees"]:
+            claim = getattr(annual_accounts, fn, None)
             if claim and claim.value is not None:
                 total_claims += 1
                 if claim.source:
@@ -386,7 +391,7 @@ class Orchestrator:
 
         source_summary = [
             {"source": s, "claim_count": c,
-             "type": "official_registry" if "brreg" in s else "website"}
+             "type": "official_registry" if "brreg" in s else "other"}
             for s, c in sources.items()
         ]
 
@@ -395,7 +400,8 @@ class Orchestrator:
             total_claims=total_claims,
             claims_with_source=claims_with_source,
             source_summary=source_summary,
-            registry_live={"url": entity_src, "status": "verified", "retrieved_at": utc_now()},
+            registry_live={"url": entity_src, "status": "verified",
+                           "retrieved_at": utc_now()},
             financials={
                 "url": f"https://data.brreg.no/regnskapsregisteret/regnskap/{org_number}",
                 "status": annual_accounts.status,
@@ -408,20 +414,16 @@ class Orchestrator:
             website={"status": website.status},
         )
 
-    # ── I/O ──
-
     def _load_input(self) -> list[str]:
         numbers: list[str] = []
         text = self.input_file.read_text(encoding="utf-8")
-
         try:
             data = json.loads(text)
             if isinstance(data, list):
                 for item in data:
                     if isinstance(item, dict):
                         nr = (item.get("organisasjonsnummer")
-                              or item.get("org_number")
-                              or item.get("orgnr"))
+                              or item.get("org_number") or item.get("orgnr"))
                         if nr:
                             numbers.append(str(nr))
                     elif isinstance(item, (str, int)):
@@ -438,8 +440,7 @@ class Orchestrator:
                 data = json.loads(line)
                 if isinstance(data, dict):
                     nr = (data.get("organisasjonsnummer")
-                          or data.get("org_number")
-                          or data.get("orgnr"))
+                          or data.get("org_number") or data.get("orgnr"))
                     if nr:
                         numbers.append(str(nr))
                 elif isinstance(data, (str, int)):
@@ -447,7 +448,6 @@ class Orchestrator:
             except json.JSONDecodeError:
                 if line.isdigit() and len(line) == 9:
                     numbers.append(line)
-
         return numbers
 
     def _write_output(self, results: list[dict]):
