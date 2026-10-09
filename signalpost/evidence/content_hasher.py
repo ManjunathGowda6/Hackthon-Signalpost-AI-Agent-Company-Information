@@ -1,4 +1,4 @@
-﻿"""Content hashing for deduplication and verification."""
+"""Content hashing for deduplication and verification."""
 import hashlib
 
 

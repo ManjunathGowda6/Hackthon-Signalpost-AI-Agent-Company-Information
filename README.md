@@ -1,4 +1,4 @@
-﻿# Signalpost — AI Agent for Norwegian Company Intelligence
+# Signalpost — AI Agent for Norwegian Company Intelligence
 
 > Build an autonomous agent that researches Norwegian companies using public sources and returns verified company profiles with evidence-backed facts.
 

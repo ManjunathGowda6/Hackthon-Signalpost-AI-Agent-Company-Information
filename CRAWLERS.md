@@ -1,4 +1,4 @@
-﻿# Signalpost Crawlers
+# Signalpost Crawlers
 
 ## Connectors
 | Connector | Tier | Auth | Rate Limit |

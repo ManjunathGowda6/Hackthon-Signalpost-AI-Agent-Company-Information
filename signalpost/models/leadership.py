@@ -1,4 +1,4 @@
-﻿"""Leadership and organizational role models."""
+"""Leadership and organizational role models."""
 from typing import Optional
 from pydantic import BaseModel, Field
 

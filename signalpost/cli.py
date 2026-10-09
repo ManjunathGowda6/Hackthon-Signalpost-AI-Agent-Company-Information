@@ -1,4 +1,4 @@
-﻿"""Signalpost CLI - One command to run the agent."""
+"""Signalpost CLI - One command to run the agent."""
 import json
 import sys
 import time

@@ -1,4 +1,4 @@
-﻿"""Signalpost configuration and environment settings."""
+"""Signalpost configuration and environment settings."""
 import os
 from pathlib import Path
 from dotenv import load_dotenv

@@ -1,4 +1,4 @@
-﻿# Signalpost Data Schema
+# Signalpost Data Schema
 
 ## Company Envelope
 Every company produces exactly ONE envelope with 7 required sections:

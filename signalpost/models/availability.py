@@ -1,4 +1,4 @@
-﻿"""Availability states for company data fields."""
+"""Availability states for company data fields."""
 from enum import Enum
 
 

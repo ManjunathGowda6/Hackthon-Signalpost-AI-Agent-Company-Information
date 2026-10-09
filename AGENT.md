@@ -1,4 +1,4 @@
-﻿# Signalpost Agent Policy
+# Signalpost Agent Policy
 
 ## Research Policy
 - Every fact must have a source URL and retrieval timestamp

@@ -1,4 +1,4 @@
-﻿"""Claim models - individual facts with evidence."""
+"""Claim models - individual facts with evidence."""
 from datetime import datetime
 from typing import Any, Optional
 from pydantic import BaseModel, Field
