@@ -40,7 +40,7 @@ def run(input_file, output_file, workers, max_requests, max_cost):
     from signalpost.orchestrator import Orchestrator
 
     click.echo(f"\n{'='*60}")
-    click.echo(f"  Signalpost — Company Research Agent v1.0.0")
+    click.echo(f"  Signalpost -- Company Research Agent v1.0.0")
     click.echo(f"  Input:   {input_file}")
     click.echo(f"  Output:  {output_file}")
     click.echo(f"  Workers: {workers}  |  Max Requests: {max_requests}")
@@ -60,7 +60,7 @@ def run(input_file, output_file, workers, max_requests, max_cost):
     elapsed = time.time() - start
 
     click.echo(f"\n{'='*60}")
-    click.echo(f"  ✓ Completed in {elapsed:.1f}s")
+    click.echo(f"  [OK] Completed in {elapsed:.1f}s")
     click.echo(f"  Requests used: {orchestrator.budget.used}")
     click.echo(f"  API cost:      ${orchestrator.cost_tracker.total_cost:.4f}")
     click.echo(f"  Results:       {output_file}")
@@ -117,11 +117,11 @@ def smoke_test(count, output_file):
     na = sum(1 for r in results if r.get("status") == "not_available")
 
     click.echo(f"\n  Smoke Test Results ({elapsed:.1f}s):")
-    click.echo(f"  ✓ Available: {available}")
-    click.echo(f"  ✗ Failed:    {failed}")
-    click.echo(f"  - N/A:       {na}")
-    click.echo(f"  Requests:    {orchestrator.budget.used}")
-    click.echo(f"  Cost:        ${orchestrator.cost_tracker.total_cost:.4f}\n")
+    click.echo(f"  [+] Available: {available}")
+    click.echo(f"  [-] Failed:    {failed}")
+    click.echo(f"  [?] N/A:       {na}")
+    click.echo(f"  Requests:      {orchestrator.budget.used}")
+    click.echo(f"  Cost:          ${orchestrator.cost_tracker.total_cost:.4f}\n")
 
     # Cleanup temp file
     temp_input.unlink(missing_ok=True)
@@ -136,7 +136,7 @@ def refresh(profiles, output_file):
     """Refresh existing company profiles for changes."""
     click.echo(f"Refreshing profiles from: {profiles}")
     click.echo(f"Output: {output_file}")
-    click.echo("Refresh command coming soon — use 'run' for initial profiles.")
+    click.echo("Refresh command coming soon -- use 'run' for initial profiles.")
 
 
 if __name__ == "__main__":
