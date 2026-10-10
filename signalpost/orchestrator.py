@@ -228,9 +228,9 @@ class Orchestrator:
         elapsed = time.time() - self.start_time
         available = sum(1 for e in envelopes if e.get("status") == "available")
         with_fin = sum(1 for e in envelopes
-                       if e.get("annual_accounts", {}).get("status") == "available")
+                       if (e.get("annual_accounts") or {}).get("status") == "available")
         with_roles = sum(1 for e in envelopes
-                         if e.get("leadership_workplaces", {}).get("status") == "available")
+                         if (e.get("leadership_workplaces") or {}).get("status") == "available")
 
         logger.info(
             "batch_complete",
