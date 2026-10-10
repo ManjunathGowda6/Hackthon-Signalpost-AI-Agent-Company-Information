@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Search{% endblock %}
+{% block content %}
+<div class="search-hero">
+    <h1>Search Companies</h1>
+    <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Search by name, org number, or municipality..." autofocus>
+        <button class="btn btn-primary" onclick="doSearch()">Search</button>
+    </div>
+    <div class="filter-row">
+        <select id="form-filter" onchange="doSearch()">
+            <option value="">All Legal Forms</option>
+            <option value="AS">AS</option><option value="ENK">ENK</option>
+            <option value="NUF">NUF</option><option value="ANS">ANS</option>
+            <option value="DA">DA</option><option value="STI">STI</option>
+        </select>
+    </div>
+</div>
+
+<div class="results-info" id="results-info"></div>
+<div class="table-wrap">
+    <table class="data-table">
+        <thead><tr>
+            <th>Org Number</th><th>Name</th><th>Form</th><th>Municipality</th>
+            <th>Financials</th><th>Roles</th><th>Claims</th>
+        </tr></thead>
+        <tbody id="results-tbody"></tbody>
+    </table>
+</div>
+<div class="pagination" id="pagination"></div>
+
+<script>
+let currentPage = 1;
+const input = document.getElementById('search-input');
+input.addEventListener('keyup', (e) => { if(e.key==='Enter') doSearch(); });
+
+async function doSearch(page=1) {
+    currentPage = page;
+    const q = input.value.trim();
+    const form = document.getElementById('form-filter').value;
+    const url = `/api/profiles?q=${encodeURIComponent(q)}&form=${form}&page=${page}&per_page=50`;
+    const data = await fetch(url).then(r => r.json());
+    document.getElementById('results-info').textContent = `${data.total} results found`;
+    const tbody = document.getElementById('results-tbody');
+    tbody.innerHTML = '';
+    (data.items || []).forEach(p => {
+        tbody.innerHTML += `<tr onclick="location.href='/company/${p.organisation_number}'" class="clickable-row">
+            <td><code>${p.organisation_number}</code></td>
+            <td>${p.name || '-'}</td>
+            <td><span class="badge">${p.legal_form || '-'}</span></td>
+            <td>${p.municipality || '-'}</td>
+            <td>${p.has_financials ? '<span class=tag-yes>Yes</span>' : '<span class=tag-no>No</span>'}</td>
+            <td>${p.has_roles ? '<span class=tag-yes>Yes</span>' : '<span class=tag-no>No</span>'}</td>
+            <td>${p.total_claims}</td>
+        </tr>`;
+    });
+    const pages = Math.ceil(data.total / data.per_page);
+    const pag = document.getElementById('pagination');
+    pag.innerHTML = '';
+    for(let i=1; i<=Math.min(pages,10); i++) {
+        pag.innerHTML += `<button class="page-btn ${i===page?'active':''}" onclick="doSearch(${i})">${i}</button>`;
+    }
+}
+doSearch();
+</script>
+{% endblock %}

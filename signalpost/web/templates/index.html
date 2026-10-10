@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="hero">
+    <h1 class="hero-title">Norwegian Company Intelligence</h1>
+    <p class="hero-subtitle">{{ total }} company profiles researched from public sources with evidence-backed facts</p>
+    <div class="hero-actions">
+        <a href="/search" class="btn btn-primary">Search Companies</a>
+    </div>
+</div>
+
+<div class="stats-grid" id="stats-grid">
+    <div class="stat-card" id="stat-total"><div class="stat-number">-</div><div class="stat-label">Total Profiles</div></div>
+    <div class="stat-card" id="stat-available"><div class="stat-number">-</div><div class="stat-label">Available</div></div>
+    <div class="stat-card" id="stat-financials"><div class="stat-number">-</div><div class="stat-label">With Financials</div></div>
+    <div class="stat-card" id="stat-roles"><div class="stat-number">-</div><div class="stat-label">With Leadership</div></div>
+    <div class="stat-card" id="stat-claims"><div class="stat-number">-</div><div class="stat-label">Evidence Claims</div></div>
+    <div class="stat-card" id="stat-sourced"><div class="stat-number">-</div><div class="stat-label">Claims Sourced</div></div>
+</div>
+
+<div class="section">
+    <h2 class="section-title">Top Municipalities</h2>
+    <div class="chart-bars" id="muni-chart"></div>
+</div>
+
+<div class="section">
+    <h2 class="section-title">Recent Profiles</h2>
+    <div class="table-wrap">
+        <table class="data-table" id="recent-table">
+            <thead><tr>
+                <th>Org Number</th><th>Name</th><th>Form</th><th>Municipality</th>
+                <th>Financials</th><th>Roles</th><th>Claims</th>
+            </tr></thead>
+            <tbody id="recent-tbody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const stats = await fetch('/api/stats').then(r => r.json());
+    document.querySelector('#stat-total .stat-number').textContent = stats.total?.toLocaleString() || '0';
+    document.querySelector('#stat-available .stat-number').textContent = stats.available?.toLocaleString() || '0';
+    document.querySelector('#stat-financials .stat-number').textContent = stats.with_financials?.toLocaleString() || '0';
+    document.querySelector('#stat-roles .stat-number').textContent = stats.with_roles?.toLocaleString() || '0';
+    document.querySelector('#stat-claims .stat-number').textContent = stats.total_claims?.toLocaleString() || '0';
+    document.querySelector('#stat-sourced .stat-number').textContent = (stats.claims_sourced ? '100%' : '0%');
+
+    // Municipality chart
+    const chart = document.getElementById('muni-chart');
+    const maxVal = stats.top_municipalities?.[0]?.[1] || 1;
+    (stats.top_municipalities || []).forEach(([name, count]) => {
+        const pct = Math.round(count / maxVal * 100);
+        chart.innerHTML += `<div class="bar-row"><span class="bar-label">${name}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><span class="bar-value">${count}</span></div>`;
+    });
+
+    // Recent profiles
+    const data = await fetch('/api/profiles?per_page=20').then(r => r.json());
+    const tbody = document.getElementById('recent-tbody');
+    (data.items || []).forEach(p => {
+        tbody.innerHTML += `<tr onclick="location.href='/company/${p.organisation_number}'" class="clickable-row">
+            <td><code>${p.organisation_number}</code></td>
+            <td>${p.name || '-'}</td>
+            <td><span class="badge">${p.legal_form || '-'}</span></td>
+            <td>${p.municipality || '-'}</td>
+            <td>${p.has_financials ? '<span class=tag-yes>Yes</span>' : '<span class=tag-no>No</span>'}</td>
+            <td>${p.has_roles ? '<span class=tag-yes>Yes</span>' : '<span class=tag-no>No</span>'}</td>
+            <td>${p.total_claims}</td>
+        </tr>`;
+    });
+});
+</script>
+{% endblock %}

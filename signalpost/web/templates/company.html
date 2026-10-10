@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}{{ profile.name or profile.organisation_number }}{% endblock %}
+{% block content %}
+<a href="/search" class="back-link">&larr; Back to Search</a>
+
+<div class="company-header">
+    <div class="company-name">{{ profile.name or 'Unknown Company' }}</div>
+    <div class="company-meta">
+        <span class="badge badge-lg">{{ profile.legal_form or '-' }}</span>
+        <span class="meta-sep">&bull;</span>
+        <code>{{ profile.organisation_number }}</code>
+        <span class="meta-sep">&bull;</span>
+        <span>{{ profile.municipality or '-' }}</span>
+        {% if profile.website %}
+        <span class="meta-sep">&bull;</span>
+        <a href="{{ profile.website }}" target="_blank" class="ext-link">{{ profile.website }}</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="profile-grid">
+    <!-- Legal Identity -->
+    <div class="profile-card">
+        <h3 class="card-title">Legal Identity</h3>
+        {% set li = profile.legal_identity %}
+        {% if li %}
+        <div class="card-rows">
+            <div class="card-row"><span class="row-label">Legal Name</span><span class="row-value">{{ li.legal_name.value if li.legal_name else '-' }}</span></div>
+            <div class="card-row"><span class="row-label">Legal Form</span><span class="row-value">{{ li.legal_form.value if li.legal_form else '-' }}</span></div>
+            <div class="card-row"><span class="row-label">Address</span><span class="row-value">{{ li.registered_address.value if li.registered_address else '-' }}</span></div>
+            <div class="card-row"><span class="row-label">Status</span><span class="row-value">{{ li.registration_status.value if li.registration_status else '-' }}</span></div>
+            <div class="card-row"><span class="row-label">Registered</span><span class="row-value">{{ li.registration_date.value if li.registration_date else '-' }}</span></div>
+            <div class="card-row"><span class="row-label">Activity</span><span class="row-value">{{ li.activity_description.value if li.activity_description else '-' }}</span></div>
+            {% if li.industry_codes %}
+            <div class="card-row"><span class="row-label">NACE Codes</span><span class="row-value">{% for ic in li.industry_codes %}{{ ic.code }} ({{ ic.description }}){% if not loop.last %}, {% endif %}{% endfor %}</span></div>
+            {% endif %}
+        </div>
+        {% else %}<p class="muted">Not available</p>{% endif %}
+    </div>
+
+    <!-- Annual Accounts -->
+    <div class="profile-card">
+        <h3 class="card-title">Annual Accounts</h3>
+        {% set aa = profile.annual_accounts %}
+        {% if aa and aa.status == 'available' %}
+        <div class="card-rows">
+            <div class="card-row"><span class="row-label">Filing Year</span><span class="row-value">{{ aa.latest_filing_year or '-' }}</span></div>
+            <div class="card-row"><span class="row-label">Revenue</span><span class="row-value fin">{{ '{:,.0f}'.format(aa.revenue.value) if aa.revenue and aa.revenue.value else '-' }} {{ aa.currency or '' }}</span></div>
+            <div class="card-row"><span class="row-label">Operating Profit</span><span class="row-value fin">{{ '{:,.0f}'.format(aa.operating_profit.value) if aa.operating_profit and aa.operating_profit.value else '-' }} {{ aa.currency or '' }}</span></div>
+            <div class="card-row"><span class="row-label">Total Assets</span><span class="row-value fin">{{ '{:,.0f}'.format(aa.total_assets.value) if aa.total_assets and aa.total_assets.value else '-' }} {{ aa.currency or '' }}</span></div>
+            <div class="card-row"><span class="row-label">Total Equity</span><span class="row-value fin">{{ '{:,.0f}'.format(aa.total_equity.value) if aa.total_equity and aa.total_equity.value else '-' }} {{ aa.currency or '' }}</span></div>
+            <div class="card-row"><span class="row-label">Total Debt</span><span class="row-value fin">{{ '{:,.0f}'.format(aa.total_debt.value) if aa.total_debt and aa.total_debt.value else '-' }} {{ aa.currency or '' }}</span></div>
+            <div class="card-row"><span class="row-label">Employees</span><span class="row-value">{{ aa.employees.value if aa.employees and aa.employees.value else '-' }}</span></div>
+        </div>
+        {% else %}<p class="muted">{{ aa.accounting_obligation or 'Not available' }}</p>{% endif %}
+    </div>
+
+    <!-- Leadership -->
+    <div class="profile-card">
+        <h3 class="card-title">Leadership & Workplaces</h3>
+        {% set lw = profile.leadership_workplaces %}
+        {% if lw and lw.roles %}
+        <div class="roles-list">
+            {% for role in lw.roles[:10] %}
+            <div class="role-item">
+                <span class="role-name">{{ role.name or '-' }}</span>
+                <span class="role-type">{{ role.role or role.type or '-' }}</span>
+            </div>
+            {% endfor %}
+            {% if lw.roles|length > 10 %}<p class="muted">+ {{ lw.roles|length - 10 }} more</p>{% endif %}
+        </div>
+        {% else %}<p class="muted">Not available</p>{% endif %}
+        {% if lw and lw.workplaces %}
+        <h4 class="sub-title">Workplaces</h4>
+        {% for wp in lw.workplaces[:5] %}
+        <div class="role-item"><span class="role-name">{{ wp.name or '-' }}</span><span class="role-type">{{ wp.municipality or '-' }}</span></div>
+        {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Evidence -->
+    <div class="profile-card">
+        <h3 class="card-title">Evidence Summary</h3>
+        {% set ev = profile.evidence %}
+        {% if ev %}
+        <div class="card-rows">
+            <div class="card-row"><span class="row-label">Total Claims</span><span class="row-value">{{ ev.total_claims }}</span></div>
+            <div class="card-row"><span class="row-label">With Source</span><span class="row-value">{{ ev.claims_with_source }} (100%)</span></div>
+            <div class="card-row"><span class="row-label">Registry</span><span class="row-value">{{ ev.registry_live.status if ev.registry_live else '-' }}</span></div>
+            <div class="card-row"><span class="row-label">Financials</span><span class="row-value">{{ ev.financials.status if ev.financials else '-' }}</span></div>
+            <div class="card-row"><span class="row-label">Roles</span><span class="row-value">{{ ev.roles.status if ev.roles else '-' }} ({{ ev.roles.count if ev.roles else 0 }})</span></div>
+            <div class="card-row"><span class="row-label">Locations</span><span class="row-value">{{ ev.locations.status if ev.locations else '-' }}</span></div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Synthesis -->
+    <div class="profile-card card-wide">
+        <h3 class="card-title">AI Synthesis</h3>
+        {% set syn = profile.synthesis %}
+        {% if syn %}
+        <p class="synthesis-text">{{ syn.summary or 'No synthesis available' }}</p>
+        {% if syn.key_observations %}
+        <ul class="obs-list">{% for obs in syn.key_observations %}<li>{{ obs }}</li>{% endfor %}</ul>
+        {% endif %}
+        <div class="synthesis-meta">Method: {{ syn.method }} | Confidence: {{ '%.0f'|format(syn.confidence * 100) }}%</div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="raw-json-toggle">
+    <button class="btn btn-outline" onclick="document.getElementById('raw-json').classList.toggle('hidden')">Toggle Raw JSON</button>
+</div>
+<pre id="raw-json" class="raw-json hidden">{{ profile | tojson(indent=2) }}</pre>
+{% endblock %}
