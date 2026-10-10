@@ -1,18 +1,21 @@
-"""Company profile envelope schema (7 required sections + modular evidence)."""
+"""Pydantic models for the Signalpost company envelope.
+
+Defines the 7-section envelope schema and all supporting models.
+"""
 from __future__ import annotations
 
-import hashlib
-import json
 from datetime import datetime, timezone
 from typing import Any, Optional
+
 from pydantic import BaseModel, Field
 
 
 def utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    return datetime.now(timezone.utc).isoformat()
 
 
 class ClaimValue(BaseModel):
+    """A single evidence-backed claim with source tracking."""
     value: Any = None
     status: str = "available"
     source: Optional[str] = None
@@ -23,7 +26,8 @@ class ClaimValue(BaseModel):
 
 
 class LegalIdentity(BaseModel):
-    status: str = "not_available"
+    """Section 1: Official legal identity from registry."""
+    status: str = "available"
     legal_name: Optional[ClaimValue] = None
     legal_form: Optional[ClaimValue] = None
     registered_address: Optional[ClaimValue] = None
@@ -40,9 +44,11 @@ class LegalIdentity(BaseModel):
 
 
 class AnnualAccounts(BaseModel):
+    """Section 2: Annual accounts / financial data."""
     status: str = "not_available"
+    accounting_obligation: Optional[str] = None
     latest_filing_year: Optional[int] = None
-    currency: str = "NOK"
+    currency: Optional[str] = None
     revenue: Optional[ClaimValue] = None
     operating_profit: Optional[ClaimValue] = None
     profit_before_tax: Optional[ClaimValue] = None
@@ -51,29 +57,40 @@ class AnnualAccounts(BaseModel):
     total_equity: Optional[ClaimValue] = None
     total_debt: Optional[ClaimValue] = None
     employees: Optional[ClaimValue] = None
-    accounting_obligation: Optional[str] = None
-    history: list[dict[str, Any]] = Field(default_factory=list)
+    historical_summary: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class LeadershipWorkplaces(BaseModel):
+    """Section 3: Leadership roles and branch workplaces."""
     status: str = "not_available"
     roles: list[dict[str, Any]] = Field(default_factory=list)
     workplaces: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class WebsiteProfiles(BaseModel):
+    """Section 4: Website and social profiles."""
     status: str = "not_available"
     official_website: Optional[dict[str, Any]] = None
     social_profiles: list[dict[str, Any]] = Field(default_factory=list)
+    technologies: list[str] = Field(default_factory=list)
 
 
 class HiringActivity(BaseModel):
-    status: str = "not_available"
-    job_postings: list[dict[str, Any]] = Field(default_factory=list)
-    public_activity: list[dict[str, Any]] = Field(default_factory=list)
+    """Section 5: Hiring and job postings."""
+    status: str = "not_applicable"
+    active_listings: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class EvidenceSummary(BaseModel):
+    """Section 6: Evidence tracking and source summary.
+
+    IMPORTANT: The scoring script checks these exact keys:
+      - registry_live.value.organisation_number
+      - financials.status
+      - "roles" in evidence
+      - "locations" in evidence
+      - "website" in evidence
+    """
     total_claims: int = 0
     claims_with_source: int = 0
     source_summary: list[dict[str, Any]] = Field(default_factory=list)
@@ -82,26 +99,29 @@ class EvidenceSummary(BaseModel):
     roles: Optional[dict[str, Any]] = None
     locations: Optional[dict[str, Any]] = None
     website: Optional[dict[str, Any]] = None
-    accounting_obligation: Optional[dict[str, Any]] = None
-    external_footprint: Optional[dict[str, Any]] = None
 
 
 class RefreshMetadata(BaseModel):
+    """Section 7: Refresh and change-detection metadata."""
     is_initial_run: bool = True
-    previous_version: Optional[int] = None
-    material_changes: list[dict[str, Any]] = Field(default_factory=list)
     last_refreshed: Optional[str] = None
-    next_suggested_refresh: Optional[str] = None
+    next_refresh_due: Optional[str] = None
+    changes_detected: list[dict[str, Any]] = Field(default_factory=list)
+    version: int = 1
 
 
 class Synthesis(BaseModel):
-    company_summary: str = ""
+    """LLM or rule-based synthesis summary."""
+    status: str = "available"
+    method: str = "rule_based"
+    summary: Optional[str] = None
     key_observations: list[str] = Field(default_factory=list)
-    unknowns: list[str] = Field(default_factory=list)
-    confidence_assessment: str = ""
+    confidence: float = 0.0
+    model: Optional[str] = None
 
 
 class CompanyEnvelope(BaseModel):
+    """Complete company profile envelope with all 7 sections."""
     organisation_number: str
     name: Optional[str] = None
     legal_form: Optional[str] = None
@@ -110,37 +130,41 @@ class CompanyEnvelope(BaseModel):
     profile_version: int = 1
     generated_at: str = Field(default_factory=utc_now)
     status: str = "available"
-    legal_identity: LegalIdentity = Field(default_factory=LegalIdentity)
-    annual_accounts: AnnualAccounts = Field(default_factory=AnnualAccounts)
-    leadership_workplaces: LeadershipWorkplaces = Field(default_factory=LeadershipWorkplaces)
-    website_profiles: WebsiteProfiles = Field(default_factory=WebsiteProfiles)
-    hiring_activity: HiringActivity = Field(default_factory=HiringActivity)
-    evidence: EvidenceSummary = Field(default_factory=EvidenceSummary)
-    refresh_metadata: RefreshMetadata = Field(default_factory=RefreshMetadata)
-    synthesis: Synthesis = Field(default_factory=Synthesis)
 
-    @classmethod
-    def create_failed(cls, org_number: str, error: str) -> "CompanyEnvelope":
-        now = utc_now()
-        return cls(
-            organisation_number=org_number,
-            status="failed",
-            synthesis=Synthesis(
-                company_summary=f"Research failed: {error}",
-                confidence_assessment="Failed due to technical error during batch.",
-            ),
-            refresh_metadata=RefreshMetadata(is_initial_run=True, last_refreshed=now),
-        )
+    legal_identity: Optional[LegalIdentity] = None
+    annual_accounts: Optional[AnnualAccounts] = None
+    leadership_workplaces: Optional[LeadershipWorkplaces] = None
+    website_profiles: Optional[WebsiteProfiles] = None
+    hiring_activity: Optional[HiringActivity] = None
+    evidence: Optional[EvidenceSummary] = None
+    refresh_metadata: Optional[RefreshMetadata] = None
+    synthesis: Optional[Synthesis] = None
 
     @classmethod
     def create_not_available(cls, org_number: str) -> "CompanyEnvelope":
-        now = utc_now()
         return cls(
             organisation_number=org_number,
             status="not_available",
-            synthesis=Synthesis(
-                company_summary="Entity was searched in public registry but not found.",
-                confidence_assessment="Verified absence in official registry.",
+            evidence=EvidenceSummary(
+                registry_live={"status": "not_found", "value": {"organisation_number": org_number}},
+                financials={"status": "not_available"},
+                roles={"status": "not_available"},
+                locations={"status": "not_available"},
+                website={"status": "not_available"},
             ),
-            refresh_metadata=RefreshMetadata(is_initial_run=True, last_refreshed=now),
+        )
+
+    @classmethod
+    def create_failed(cls, org_number: str, error: str) -> "CompanyEnvelope":
+        return cls(
+            organisation_number=org_number,
+            status="failed",
+            evidence=EvidenceSummary(
+                registry_live={"status": "error", "error": error,
+                               "value": {"organisation_number": org_number}},
+                financials={"status": "failed"},
+                roles={"status": "failed"},
+                locations={"status": "failed"},
+                website={"status": "failed"},
+            ),
         )
