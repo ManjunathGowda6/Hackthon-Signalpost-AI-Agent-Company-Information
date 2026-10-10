@@ -1,7 +1,4 @@
-"""Pydantic models for the Signalpost company envelope.
-
-Defines the 7-section envelope schema and all supporting models.
-"""
+"""Pydantic models for the Signalpost company envelope."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -26,7 +23,6 @@ class ClaimValue(BaseModel):
 
 
 class LegalIdentity(BaseModel):
-    """Section 1: Official legal identity from registry."""
     status: str = "available"
     legal_name: Optional[ClaimValue] = None
     legal_form: Optional[ClaimValue] = None
@@ -44,7 +40,6 @@ class LegalIdentity(BaseModel):
 
 
 class AnnualAccounts(BaseModel):
-    """Section 2: Annual accounts / financial data."""
     status: str = "not_available"
     accounting_obligation: Optional[str] = None
     latest_filing_year: Optional[int] = None
@@ -61,14 +56,12 @@ class AnnualAccounts(BaseModel):
 
 
 class LeadershipWorkplaces(BaseModel):
-    """Section 3: Leadership roles and branch workplaces."""
     status: str = "not_available"
     roles: list[dict[str, Any]] = Field(default_factory=list)
     workplaces: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class WebsiteProfiles(BaseModel):
-    """Section 4: Website and social profiles."""
     status: str = "not_available"
     official_website: Optional[dict[str, Any]] = None
     social_profiles: list[dict[str, Any]] = Field(default_factory=list)
@@ -76,24 +69,15 @@ class WebsiteProfiles(BaseModel):
 
 
 class HiringActivity(BaseModel):
-    """Section 5: Hiring and job postings."""
     status: str = "not_applicable"
     active_listings: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class EvidenceSummary(BaseModel):
-    """Section 6: Evidence tracking and source summary.
-
-    IMPORTANT: The scoring script checks these exact keys:
-      - registry_live.value.organisation_number
-      - financials.status
-      - "roles" in evidence
-      - "locations" in evidence
-      - "website" in evidence
-    """
     total_claims: int = 0
     claims_with_source: int = 0
     source_summary: list[dict[str, Any]] = Field(default_factory=list)
+    content_hash: Optional[str] = None
     registry_live: Optional[dict[str, Any]] = None
     financials: Optional[dict[str, Any]] = None
     roles: Optional[dict[str, Any]] = None
@@ -102,7 +86,6 @@ class EvidenceSummary(BaseModel):
 
 
 class RefreshMetadata(BaseModel):
-    """Section 7: Refresh and change-detection metadata."""
     is_initial_run: bool = True
     last_refreshed: Optional[str] = None
     next_refresh_due: Optional[str] = None
@@ -111,7 +94,6 @@ class RefreshMetadata(BaseModel):
 
 
 class Synthesis(BaseModel):
-    """LLM or rule-based synthesis summary."""
     status: str = "available"
     method: str = "rule_based"
     summary: Optional[str] = None
@@ -121,7 +103,6 @@ class Synthesis(BaseModel):
 
 
 class CompanyEnvelope(BaseModel):
-    """Complete company profile envelope with all 7 sections."""
     organisation_number: str
     name: Optional[str] = None
     legal_form: Optional[str] = None
@@ -152,6 +133,7 @@ class CompanyEnvelope(BaseModel):
                 locations={"status": "not_available"},
                 website={"status": "not_available"},
             ),
+            synthesis=Synthesis(summary=f"Company {org_number} was not found in the Norwegian business registry."),
         )
 
     @classmethod
@@ -167,4 +149,5 @@ class CompanyEnvelope(BaseModel):
                 locations={"status": "failed"},
                 website={"status": "failed"},
             ),
+            synthesis=Synthesis(summary=f"Failed to research company {org_number}: {error}"),
         )

@@ -13,7 +13,7 @@ logger = structlog.get_logger()
 
 
 @click.group()
-@click.version_option(version="1.0.0", prog_name="signalpost")
+@click.version_option(version="2.0.0", prog_name="signalpost")
 def main():
     """Signalpost -- AI Agent for Norwegian Company Intelligence."""
     pass
@@ -25,22 +25,27 @@ def main():
 @click.option("--workers", "-w", default=10, type=int)
 @click.option("--max-requests", default=2000, type=int)
 @click.option("--max-cost", default=10.0, type=float)
-def run(input_file, output_file, workers, max_requests, max_cost):
+@click.option("--previous", "-p", "previous_file", default=None, type=click.Path(),
+              help="Previous output file for refresh comparison")
+def run(input_file, output_file, workers, max_requests, max_cost, previous_file):
     """Run the agent on a batch of companies."""
     import asyncio
     from signalpost.orchestrator import Orchestrator
 
     click.echo(f"\n{'='*60}")
-    click.echo(f"  Signalpost -- Company Research Agent v1.0.0")
-    click.echo(f"  Input:   {input_file}")
-    click.echo(f"  Output:  {output_file}")
-    click.echo(f"  Workers: {workers}  |  Max Requests: {max_requests}")
+    click.echo(f"  Signalpost -- Company Research Agent v2.0")
+    click.echo(f"  Input:    {input_file}")
+    click.echo(f"  Output:   {output_file}")
+    click.echo(f"  Workers:  {workers}  |  Max Requests: {max_requests}")
     click.echo(f"  Max Cost: ${max_cost:.2f}")
+    if previous_file:
+        click.echo(f"  Previous: {previous_file} (refresh mode)")
     click.echo(f"{'='*60}\n")
 
     orchestrator = Orchestrator(
         input_file=input_file, output_file=output_file,
-        max_workers=workers, max_requests=max_requests, max_cost_usd=max_cost,
+        max_workers=workers, max_requests=max_requests,
+        max_cost_usd=max_cost, previous_file=previous_file,
     )
 
     start = time.time()
@@ -77,8 +82,6 @@ def smoke_test(count, output_file):
     temp_input.parent.mkdir(parents=True, exist_ok=True)
     temp_input.write_text("\n".join(lines), encoding="utf-8")
 
-    click.echo(f"\n  Smoke test: {len(lines)} companies -> {output_file}\n")
-
     from signalpost.orchestrator import Orchestrator
     orchestrator = Orchestrator(
         input_file=str(temp_input), output_file=output_file,
@@ -100,12 +103,11 @@ def smoke_test(count, output_file):
 
 
 @main.command()
-@click.option("--port", "-p", default=5000, type=int, help="Port to serve on")
-@click.option("--host", "-h", "host", default="127.0.0.1", help="Host to bind to")
-@click.option("--profiles", default="out/signalpost_final.json", type=click.Path(),
-              help="Path to profiles JSON file")
+@click.option("--port", "-p", default=5000, type=int)
+@click.option("--host", "-h", "host", default="127.0.0.1")
+@click.option("--profiles", default="out/signalpost_final.json", type=click.Path())
 def serve(port, host, profiles):
-    """Launch the web dashboard to browse company profiles."""
+    """Launch the web dashboard."""
     from signalpost.web.app import create_app
 
     click.echo(f"\n{'='*60}")
