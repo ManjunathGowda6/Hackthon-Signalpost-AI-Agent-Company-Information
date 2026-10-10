@@ -2,17 +2,21 @@
 {% block title %}Search{% endblock %}
 {% block content %}
 <div class="search-hero">
-    <h1>Search Companies</h1>
+    <h1>Search Norwegian Companies</h1>
+    <p class="hero-subtitle">Search across pre-loaded profiles OR search Brreg live for ANY Norwegian company</p>
+    <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('local')" id="tab-local">Pre-loaded ({{ total }})</button>
+        <button class="tab-btn" onclick="switchTab('live')" id="tab-live">Live Brreg Search</button>
+    </div>
     <div class="search-bar">
-        <input type="text" id="search-input" placeholder="Search by name, org number, or municipality..." autofocus>
+        <input type="text" id="search-input" placeholder="Search by company name, org number, or municipality..." autofocus>
         <button class="btn btn-primary" onclick="doSearch()">Search</button>
     </div>
-    <div class="filter-row">
+    <div class="filter-row" id="filter-row">
         <select id="form-filter" onchange="doSearch()">
             <option value="">All Legal Forms</option>
             <option value="AS">AS</option><option value="ENK">ENK</option>
             <option value="NUF">NUF</option><option value="ANS">ANS</option>
-            <option value="DA">DA</option><option value="STI">STI</option>
         </select>
     </div>
 </div>
@@ -20,7 +24,7 @@
 <div class="results-info" id="results-info"></div>
 <div class="table-wrap">
     <table class="data-table">
-        <thead><tr>
+        <thead><tr id="table-header">
             <th>Org Number</th><th>Name</th><th>Form</th><th>Municipality</th>
             <th>Financials</th><th>Roles</th><th>Claims</th>
         </tr></thead>
@@ -30,35 +34,81 @@
 <div class="pagination" id="pagination"></div>
 
 <script>
+let currentTab = 'local';
 let currentPage = 1;
 const input = document.getElementById('search-input');
 input.addEventListener('keyup', (e) => { if(e.key==='Enter') doSearch(); });
 
+function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById('tab-local').classList.toggle('active', tab === 'local');
+    document.getElementById('tab-live').classList.toggle('active', tab === 'live');
+    document.getElementById('filter-row').style.display = tab === 'local' ? 'flex' : 'none';
+    if (tab === 'live') {
+        input.placeholder = 'Search ANY Norwegian company by name (e.g. TCS, Equinor, DNB)...';
+        document.getElementById('table-header').innerHTML =
+            '<th>Org Number</th><th>Name</th><th>Form</th><th>Municipality</th><th>Employees</th><th>Industry</th><th>Profile</th>';
+    } else {
+        input.placeholder = 'Search pre-loaded profiles by name, org number, or municipality...';
+        document.getElementById('table-header').innerHTML =
+            '<th>Org Number</th><th>Name</th><th>Form</th><th>Municipality</th><th>Financials</th><th>Roles</th><th>Claims</th>';
+    }
+    doSearch();
+}
+
 async function doSearch(page=1) {
     currentPage = page;
     const q = input.value.trim();
-    const form = document.getElementById('form-filter').value;
-    const url = `/api/profiles?q=${encodeURIComponent(q)}&form=${form}&page=${page}&per_page=50`;
-    const data = await fetch(url).then(r => r.json());
-    document.getElementById('results-info').textContent = `${data.total} results found`;
     const tbody = document.getElementById('results-tbody');
-    tbody.innerHTML = '';
-    (data.items || []).forEach(p => {
-        tbody.innerHTML += `<tr onclick="location.href='/company/${p.organisation_number}'" class="clickable-row">
-            <td><code>${p.organisation_number}</code></td>
-            <td>${p.name || '-'}</td>
-            <td><span class="badge">${p.legal_form || '-'}</span></td>
-            <td>${p.municipality || '-'}</td>
-            <td>${p.has_financials ? '<span class=tag-yes>Yes</span>' : '<span class=tag-no>No</span>'}</td>
-            <td>${p.has_roles ? '<span class=tag-yes>Yes</span>' : '<span class=tag-no>No</span>'}</td>
-            <td>${p.total_claims}</td>
-        </tr>`;
-    });
-    const pages = Math.ceil(data.total / data.per_page);
-    const pag = document.getElementById('pagination');
-    pag.innerHTML = '';
-    for(let i=1; i<=Math.min(pages,10); i++) {
-        pag.innerHTML += `<button class="page-btn ${i===page?'active':''}" onclick="doSearch(${i})">${i}</button>`;
+    tbody.innerHTML = '<tr><td colspan="7" class="muted" style="text-align:center;padding:2rem">Searching...</td></tr>';
+
+    if (currentTab === 'live') {
+        if (q.length < 2) {
+            document.getElementById('results-info').textContent = 'Type at least 2 characters to search Brreg live';
+            tbody.innerHTML = '';
+            return;
+        }
+        const data = await fetch(`/api/search-live?q=${encodeURIComponent(q)}`).then(r => r.json());
+        document.getElementById('results-info').textContent = `${data.results?.length || 0} results from Brreg (live)`;
+        tbody.innerHTML = '';
+        (data.results || []).forEach(r => {
+            const profileBadge = r.has_profile
+                ? '<span class="tag-yes">Full Profile</span>'
+                : '<a href="/company/' + r.organisation_number + '" class="btn btn-outline btn-sm">View Live</a>';
+            tbody.innerHTML += `<tr onclick="location.href='/company/${r.organisation_number}'" class="clickable-row">
+                <td><code>${r.organisation_number}</code></td>
+                <td><strong>${r.name || '-'}</strong></td>
+                <td><span class="badge">${r.legal_form || '-'}</span></td>
+                <td>${r.municipality || '-'}</td>
+                <td>${r.employees || '-'}</td>
+                <td>${r.nace || '-'}</td>
+                <td>${profileBadge}</td>
+            </tr>`;
+        });
+        document.getElementById('pagination').innerHTML = '';
+    } else {
+        const form = document.getElementById('form-filter').value;
+        const url = `/api/profiles?q=${encodeURIComponent(q)}&form=${form}&page=${page}&per_page=50`;
+        const data = await fetch(url).then(r => r.json());
+        document.getElementById('results-info').textContent = `${data.total} results from pre-loaded profiles`;
+        tbody.innerHTML = '';
+        (data.items || []).forEach(p => {
+            tbody.innerHTML += `<tr onclick="location.href='/company/${p.organisation_number}'" class="clickable-row">
+                <td><code>${p.organisation_number}</code></td>
+                <td>${p.name || '-'}</td>
+                <td><span class="badge">${p.legal_form || '-'}</span></td>
+                <td>${p.municipality || '-'}</td>
+                <td>${p.has_financials ? '<span class=tag-yes>Yes</span>' : '<span class=tag-no>No</span>'}</td>
+                <td>${p.has_roles ? '<span class=tag-yes>Yes</span>' : '<span class=tag-no>No</span>'}</td>
+                <td>${p.total_claims}</td>
+            </tr>`;
+        });
+        const pages = Math.ceil(data.total / data.per_page);
+        const pag = document.getElementById('pagination');
+        pag.innerHTML = '';
+        for(let i=1; i<=Math.min(pages,10); i++) {
+            pag.innerHTML += `<button class="page-btn ${i===page?'active':''}" onclick="doSearch(${i})">${i}</button>`;
+        }
     }
 }
 doSearch();

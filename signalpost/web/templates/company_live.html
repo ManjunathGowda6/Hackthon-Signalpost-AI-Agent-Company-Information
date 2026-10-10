@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Company {{ org }}{% endblock %}
+{% block content %}
+<a href="/search" class="back-link">&larr; Back to Search</a>
+<div id="loading" class="hero"><h2>Loading company {{ org }} from Brreg...</h2><p class="muted">Fetching real-time data</p></div>
+<div id="content" style="display:none">
+    <div class="company-header">
+        <div class="company-name" id="c-name"></div>
+        <div class="company-meta">
+            <span class="badge badge-lg" id="c-form"></span>
+            <span class="meta-sep">&bull;</span>
+            <code>{{ org }}</code>
+            <span class="meta-sep">&bull;</span>
+            <span id="c-muni"></span>
+            <span id="c-web-wrap" style="display:none"><span class="meta-sep">&bull;</span><a id="c-web" target="_blank" class="ext-link"></a></span>
+        </div>
+        <div class="live-badge" style="margin-top:8px"><span class="badge" style="background:rgba(34,197,94,0.15);color:#22c55e">Real-time from Brreg</span></div>
+    </div>
+
+    <div class="profile-grid">
+        <div class="profile-card"><h3 class="card-title">Legal Identity</h3><div id="c-identity" class="card-rows"></div></div>
+        <div class="profile-card"><h3 class="card-title">Annual Accounts</h3><div id="c-accounts" class="card-rows"></div></div>
+        <div class="profile-card"><h3 class="card-title">Leadership</h3><div id="c-roles" class="roles-list"></div></div>
+        <div class="profile-card"><h3 class="card-title">Evidence</h3><div id="c-evidence" class="card-rows"></div></div>
+    </div>
+    <div class="raw-json-toggle"><button class="btn btn-outline" onclick="document.getElementById('raw-json').classList.toggle('hidden')">Toggle Raw JSON</button></div>
+    <pre id="raw-json" class="raw-json hidden"></pre>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const resp = await fetch('/api/lookup/{{ org }}');
+    const p = await resp.json();
+    if (p.error) {
+        document.getElementById('loading').innerHTML = '<h2>Company Not Found</h2><p>' + p.error + '</p><a href="/search">Back to Search</a>';
+        return;
+    }
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+    document.getElementById('c-name').textContent = p.name || 'Unknown';
+    document.getElementById('c-form').textContent = p.legal_form || '-';
+    document.getElementById('c-muni').textContent = p.municipality || '-';
+    if (p.website) {
+        document.getElementById('c-web-wrap').style.display = 'inline';
+        const wl = document.getElementById('c-web');
+        wl.href = p.website; wl.textContent = p.website;
+    }
+
+    const li = p.legal_identity || {};
+    const id = document.getElementById('c-identity');
+    const row = (l,v) => `<div class="card-row"><span class="row-label">${l}</span><span class="row-value">${v||'-'}</span></div>`;
+    id.innerHTML = row('Name', (li.legal_name||{}).value) + row('Form', (li.legal_form||{}).value) +
+        row('Address', (li.registered_address||{}).value) + row('Status', (li.registration_status||{}).value) +
+        row('Registered', (li.registration_date||{}).value) + row('Activity', (li.activity_description||{}).value);
+    if (li.industry_codes) {
+        li.industry_codes.forEach(ic => { id.innerHTML += row('NACE', ic.code + ' (' + ic.description + ')'); });
+    }
+
+    const aa = p.annual_accounts || {};
+    const acc = document.getElementById('c-accounts');
+    if (aa.status === 'available') {
+        const fmt = (v) => v != null ? Number(v).toLocaleString() + ' NOK' : '-';
+        acc.innerHTML = row('Year', aa.latest_filing_year) +
+            row('Revenue', fmt((aa.revenue||{}).value)) +
+            row('Operating Profit', fmt((aa.operating_profit||{}).value)) +
+            row('Total Assets', fmt((aa.total_assets||{}).value));
+    } else {
+        acc.innerHTML = '<p class="muted">Not available</p>';
+    }
+
+    const lw = p.leadership_workplaces || {};
+    const rl = document.getElementById('c-roles');
+    if (lw.roles && lw.roles.length > 0) {
+        lw.roles.forEach(r => { rl.innerHTML += `<div class="role-item"><span class="role-name">${r.name}</span><span class="role-type">${r.role}</span></div>`; });
+    } else {
+        rl.innerHTML = '<p class="muted">Not available</p>';
+    }
+
+    const ev = p.evidence || {};
+    document.getElementById('c-evidence').innerHTML =
+        row('Total Claims', ev.total_claims) + row('Sourced', ev.claims_with_source) +
+        row('Registry', (ev.registry_live||{}).status) + row('Financials', (ev.financials||{}).status) +
+        row('Roles', (ev.roles||{}).status + ' (' + ((ev.roles||{}).count||0) + ')');
+
+    document.getElementById('raw-json').textContent = JSON.stringify(p, null, 2);
+});
+</script>
+{% endblock %}
