@@ -3,7 +3,7 @@
 {% block content %}
 <div class="search-hero">
     <h1>Search Norwegian Companies</h1>
-    <p class="hero-subtitle">{{ total | default(0) }}+ companies across all sectors &bull; Real-time Brreg fallback</p>
+    <p class="hero-subtitle">53,000+ companies across all sectors &bull; Real-time Brreg fallback &bull; <a href="/chat" class="accent-link">Try AI Chat →</a></p>
     <div class="search-bar">
         <input type="text" id="search-input" placeholder="Search any company by name, org number, municipality, or industry..." autofocus>
         <button class="btn btn-primary" onclick="doSearch()">Search</button>
@@ -14,13 +14,12 @@
         </select>
     </div>
 </div>
-
 <div class="results-info" id="results-info"></div>
 <div class="table-wrap">
     <table class="data-table">
         <thead><tr>
             <th>Org Number</th><th>Company Name</th><th>Form</th>
-            <th>Municipality</th><th>Employees</th><th>Industry</th><th>Status</th>
+            <th>Municipality</th><th>Employees</th><th>Sector</th><th>Status</th>
         </tr></thead>
         <tbody id="results-tbody"></tbody>
     </table>
@@ -28,28 +27,24 @@
 <div class="pagination" id="pagination"></div>
 
 <script>
-let currentPage = 1;
 const input = document.getElementById('search-input');
 input.addEventListener('keyup', (e) => {
     if(e.key==='Enter') doSearch();
-    // Auto-search after 500ms of no typing
-    clearTimeout(window._searchTimer);
-    window._searchTimer = setTimeout(doSearch, 500);
+    clearTimeout(window._st);
+    window._st = setTimeout(doSearch, 500);
 });
 
-// Load sectors
 fetch('/api/sectors').then(r=>r.json()).then(sectors => {
     const sel = document.getElementById('sector-filter');
     sectors.forEach(s => {
         const opt = document.createElement('option');
         opt.value = s.code;
-        opt.textContent = `[${s.code}] ${s.name} (${s.count})`;
+        opt.textContent = `${s.name} (${s.count})`;
         sel.appendChild(opt);
     });
 });
 
 async function doSearch(page=1) {
-    currentPage = page;
     const q = input.value.trim();
     const sector = document.getElementById('sector-filter').value;
     const url = `/api/search?q=${encodeURIComponent(q)}&sector=${sector}&page=${page}&per_page=50`;
@@ -58,28 +53,24 @@ async function doSearch(page=1) {
 
     const data = await fetch(url).then(r => r.json());
     let info = `${data.total} results`;
-    if (data.live_count > 0) info += ` (${data.local_count} local + ${data.live_count} live from Brreg)`;
+    if (data.live_count > 0) info += ` (${data.local_count} local + ${data.live_count} live)`;
     document.getElementById('results-info').textContent = info;
 
     tbody.innerHTML = '';
     (data.items || []).forEach(p => {
-        const statusBadge = p.has_full_profile
-            ? '<span class="tag-yes">Full Profile</span>'
-            : (p.source === 'live_brreg' ? '<span class="badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">Live</span>' : '<span class="tag-no">Basic</span>');
-        const empStr = p.employees ? p.employees.toLocaleString() : '-';
-        const liveClass = p.source === 'live_brreg' ? ' style="background:rgba(245,158,11,0.05)"' : '';
-        tbody.innerHTML += `<tr onclick="location.href='/company/${p.organisation_number}'" class="clickable-row"${liveClass}>
+        const badge = p.has_full_profile ? '<span class="tag-yes">Full Profile</span>'
+            : (p.source === 'live' ? '<span class="badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">Live</span>' : '<span class="tag-no">Basic</span>');
+        tbody.innerHTML += `<tr onclick="location.href='/company/${p.organisation_number}'" class="clickable-row">
             <td><code>${p.organisation_number}</code></td>
             <td><strong>${p.name || '-'}</strong></td>
             <td><span class="badge">${p.legal_form || '-'}</span></td>
             <td>${p.municipality || '-'}</td>
-            <td>${empStr}</td>
-            <td>${p.nace_description || '-'}</td>
-            <td>${statusBadge}</td>
-        </tr>`;
+            <td>${p.employees ? p.employees.toLocaleString() : '-'}</td>
+            <td>${p.sector || '-'}</td>
+            <td>${badge}</td></tr>`;
     });
 
-    const pages = Math.ceil(data.total / (data.per_page || 50));
+    const pages = Math.ceil(data.total / 50);
     const pag = document.getElementById('pagination');
     pag.innerHTML = '';
     if (pages > 1) {

@@ -1,0 +1,329 @@
+[
+  {
+    "name": "OpenAI",
+    "sector": "AI & Machine Learning",
+    "hq": "San Francisco, USA",
+    "desc": "Creator of GPT, ChatGPT, DALL-E. Leading AI research lab.",
+    "founded": 2015,
+    "employees": 3000,
+    "revenue": "$3.4B (2024)",
+    "website": "https://openai.com"
+  },
+  {
+    "name": "Anthropic",
+    "sector": "AI & Machine Learning",
+    "hq": "San Francisco, USA",
+    "desc": "AI safety company, creator of Claude AI assistant.",
+    "founded": 2021,
+    "employees": 1000,
+    "revenue": "$850M (2024)",
+    "website": "https://anthropic.com"
+  },
+  {
+    "name": "Google / Alphabet",
+    "sector": "Technology",
+    "hq": "Mountain View, USA",
+    "desc": "Search, Cloud, Android, YouTube, DeepMind AI.",
+    "founded": 1998,
+    "employees": 182000,
+    "revenue": "$307B (2023)",
+    "website": "https://google.com"
+  },
+  {
+    "name": "Microsoft",
+    "sector": "Technology",
+    "hq": "Redmond, USA",
+    "desc": "Windows, Azure, Office 365, GitHub, LinkedIn.",
+    "founded": 1975,
+    "employees": 221000,
+    "revenue": "$211B (2023)",
+    "website": "https://microsoft.com"
+  },
+  {
+    "name": "Apple",
+    "sector": "Technology",
+    "hq": "Cupertino, USA",
+    "desc": "iPhone, Mac, iPad, Apple Silicon, Services ecosystem.",
+    "founded": 1976,
+    "employees": 161000,
+    "revenue": "$383B (2023)",
+    "website": "https://apple.com"
+  },
+  {
+    "name": "Amazon",
+    "sector": "Technology & E-commerce",
+    "hq": "Seattle, USA",
+    "desc": "E-commerce, AWS Cloud, Alexa, Prime Video.",
+    "founded": 1994,
+    "employees": 1540000,
+    "revenue": "$574B (2023)",
+    "website": "https://amazon.com"
+  },
+  {
+    "name": "Meta / Facebook",
+    "sector": "Social Media & AI",
+    "hq": "Menlo Park, USA",
+    "desc": "Facebook, Instagram, WhatsApp, Llama AI, VR.",
+    "founded": 2004,
+    "employees": 67000,
+    "revenue": "$134B (2023)",
+    "website": "https://meta.com"
+  },
+  {
+    "name": "NVIDIA",
+    "sector": "Semiconductors & AI",
+    "hq": "Santa Clara, USA",
+    "desc": "GPU chips powering AI. GeForce, CUDA, DGX.",
+    "founded": 1993,
+    "employees": 29600,
+    "revenue": "$60.9B (2024)",
+    "website": "https://nvidia.com"
+  },
+  {
+    "name": "Tesla",
+    "sector": "Automotive & Energy",
+    "hq": "Austin, USA",
+    "desc": "Electric vehicles, energy storage, FSD autonomy.",
+    "founded": 2003,
+    "employees": 140000,
+    "revenue": "$96.7B (2023)",
+    "website": "https://tesla.com"
+  },
+  {
+    "name": "Samsung",
+    "sector": "Electronics",
+    "hq": "Seoul, South Korea",
+    "desc": "Smartphones, semiconductors, displays, appliances.",
+    "founded": 1938,
+    "employees": 270000,
+    "revenue": "$200B (2023)",
+    "website": "https://samsung.com"
+  },
+  {
+    "name": "TCS (Tata Consultancy Services)",
+    "sector": "IT Services",
+    "hq": "Mumbai, India",
+    "desc": "India's largest IT services company. Digital transformation, consulting.",
+    "founded": 1968,
+    "employees": 600000,
+    "revenue": "$28B (2024)",
+    "website": "https://tcs.com"
+  },
+  {
+    "name": "Infosys",
+    "sector": "IT Services",
+    "hq": "Bangalore, India",
+    "desc": "IT consulting, outsourcing, digital services.",
+    "founded": 1981,
+    "employees": 317000,
+    "revenue": "$18.5B (2024)",
+    "website": "https://infosys.com"
+  },
+  {
+    "name": "Wipro",
+    "sector": "IT Services",
+    "hq": "Bangalore, India",
+    "desc": "IT, consulting, business process services.",
+    "founded": 1945,
+    "employees": 235000,
+    "revenue": "$10.8B (2024)",
+    "website": "https://wipro.com"
+  },
+  {
+    "name": "HCLTech",
+    "sector": "IT Services",
+    "hq": "Noida, India",
+    "desc": "IT services, engineering, cloud, cybersecurity.",
+    "founded": 1976,
+    "employees": 225000,
+    "revenue": "$13B (2024)",
+    "website": "https://hcltech.com"
+  },
+  {
+    "name": "DeepMind",
+    "sector": "AI Research",
+    "hq": "London, UK",
+    "desc": "Google's AI lab. AlphaFold, Gemini, AlphaGo.",
+    "founded": 2010,
+    "employees": 2500,
+    "revenue": "Subsidiary of Alphabet",
+    "website": "https://deepmind.com"
+  },
+  {
+    "name": "Mistral AI",
+    "sector": "AI & Machine Learning",
+    "hq": "Paris, France",
+    "desc": "Open-weight LLMs. Mistral, Mixtral models.",
+    "founded": 2023,
+    "employees": 600,
+    "revenue": "€28M (2024)",
+    "website": "https://mistral.ai"
+  },
+  {
+    "name": "Cohere",
+    "sector": "AI & Machine Learning",
+    "hq": "Toronto, Canada",
+    "desc": "Enterprise AI. NLP models for business.",
+    "founded": 2019,
+    "employees": 450,
+    "revenue": "$35M (2024)",
+    "website": "https://cohere.com"
+  },
+  {
+    "name": "Stability AI",
+    "sector": "AI & Machine Learning",
+    "hq": "London, UK",
+    "desc": "Open-source AI. Stable Diffusion image generation.",
+    "founded": 2019,
+    "employees": 200,
+    "revenue": "$40M (2024)",
+    "website": "https://stability.ai"
+  },
+  {
+    "name": "Hugging Face",
+    "sector": "AI Platform",
+    "hq": "New York, USA",
+    "desc": "Open-source AI platform. Model hub, Transformers library.",
+    "founded": 2016,
+    "employees": 400,
+    "revenue": "$70M (2024)",
+    "website": "https://huggingface.co"
+  },
+  {
+    "name": "xAI",
+    "sector": "AI Research",
+    "hq": "Austin, USA",
+    "desc": "Elon Musk's AI company. Grok chatbot.",
+    "founded": 2023,
+    "employees": 100,
+    "revenue": "Pre-revenue",
+    "website": "https://x.ai"
+  },
+  {
+    "name": "Toyota",
+    "sector": "Automotive",
+    "hq": "Toyota City, Japan",
+    "desc": "World's largest automaker. Hybrid pioneer.",
+    "founded": 1937,
+    "employees": 375000,
+    "revenue": "$274B (2023)",
+    "website": "https://toyota.com"
+  },
+  {
+    "name": "BMW",
+    "sector": "Automotive",
+    "hq": "Munich, Germany",
+    "desc": "Luxury vehicles, MINI, Rolls-Royce.",
+    "founded": 1916,
+    "employees": 149000,
+    "revenue": "$155B (2023)",
+    "website": "https://bmw.com"
+  },
+  {
+    "name": "Mercedes-Benz",
+    "sector": "Automotive",
+    "hq": "Stuttgart, Germany",
+    "desc": "Premium cars, trucks, vans, buses.",
+    "founded": 1926,
+    "employees": 170000,
+    "revenue": "$153B (2023)",
+    "website": "https://mercedes-benz.com"
+  },
+  {
+    "name": "Salesforce",
+    "sector": "Cloud & SaaS",
+    "hq": "San Francisco, USA",
+    "desc": "CRM platform, Slack, Tableau, AI-powered sales.",
+    "founded": 1999,
+    "employees": 73000,
+    "revenue": "$34.8B (2024)",
+    "website": "https://salesforce.com"
+  },
+  {
+    "name": "Snowflake",
+    "sector": "Cloud Data",
+    "hq": "Bozeman, USA",
+    "desc": "Cloud data platform for analytics & AI.",
+    "founded": 2012,
+    "employees": 7000,
+    "revenue": "$2.8B (2024)",
+    "website": "https://snowflake.com"
+  },
+  {
+    "name": "Equinor",
+    "sector": "Energy (Oil & Gas)",
+    "hq": "Stavanger, Norway",
+    "desc": "Norway's biggest energy company. Oil, gas, renewables.",
+    "founded": 1972,
+    "employees": 22000,
+    "revenue": "$105B (2023)",
+    "website": "https://equinor.com",
+    "brreg": "923609016"
+  },
+  {
+    "name": "Telenor",
+    "sector": "Telecom",
+    "hq": "Oslo, Norway",
+    "desc": "Nordic telecom giant. Mobile, broadband, TV.",
+    "founded": 1855,
+    "employees": 15000,
+    "revenue": "$12B (2023)",
+    "website": "https://telenor.com",
+    "brreg": "915006366"
+  },
+  {
+    "name": "DNB",
+    "sector": "Banking & Finance",
+    "hq": "Oslo, Norway",
+    "desc": "Norway's largest bank. Vipps payment.",
+    "founded": 1822,
+    "employees": 9000,
+    "revenue": "$8B (2023)",
+    "website": "https://dnb.no",
+    "brreg": "981276957"
+  },
+  {
+    "name": "Kahoot!",
+    "sector": "EdTech",
+    "hq": "Oslo, Norway",
+    "desc": "Game-based learning platform. 9B+ participants.",
+    "founded": 2012,
+    "employees": 500,
+    "revenue": "$190M (2023)",
+    "website": "https://kahoot.com",
+    "brreg": "916288257"
+  },
+  {
+    "name": "Opera",
+    "sector": "IT & Software",
+    "hq": "Oslo, Norway",
+    "desc": "Web browser, AI features, fintech in Africa.",
+    "founded": 1995,
+    "employees": 1800,
+    "revenue": "$400M (2023)",
+    "website": "https://opera.com",
+    "brreg": "982463718"
+  },
+  {
+    "name": "Nordic Semiconductor",
+    "sector": "Semiconductors",
+    "hq": "Trondheim, Norway",
+    "desc": "IoT wireless chips. Bluetooth Low Energy leader.",
+    "founded": 1983,
+    "employees": 1600,
+    "revenue": "$600M (2023)",
+    "website": "https://nordicsemi.com",
+    "brreg": "913433961"
+  },
+  {
+    "name": "AutoStore",
+    "sector": "Robotics & Automation",
+    "hq": "Nedre Vats, Norway",
+    "desc": "Robotic warehouse automation. Grid-based systems.",
+    "founded": 1996,
+    "employees": 700,
+    "revenue": "$600M (2023)",
+    "website": "https://autostoretech.com",
+    "brreg": "924420634"
+  }
+]

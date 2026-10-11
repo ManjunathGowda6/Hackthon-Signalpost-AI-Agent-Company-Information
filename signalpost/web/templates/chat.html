@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}AI Chat{% endblock %}
+{% block content %}
+<div class="chat-container">
+    <div class="chat-header">
+        <h2>🤖 Signalpost AI Assistant</h2>
+        <p class="muted">Ask me about any company — Norwegian or global. Try "Tell me about OpenAI" or "Show IT companies"</p>
+    </div>
+
+    <div class="chat-messages" id="chat-messages">
+        <div class="chat-msg bot">
+            <div class="msg-avatar">🤖</div>
+            <div class="msg-bubble">
+                <p>Hi! I'm the Signalpost AI Assistant. I can tell you about:</p>
+                <ul>
+                    <li>🌍 <strong>Global companies</strong> — OpenAI, Google, TCS, Tesla...</li>
+                    <li>🇳🇴 <strong>53,000+ Norwegian companies</strong> from all sectors</li>
+                    <li>📊 <strong>Financials, leadership, evidence</strong> for enriched profiles</li>
+                    <li>🏭 <strong>Sector browsing</strong> — "Show Healthcare companies"</li>
+                </ul>
+                <p>What would you like to know?</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-input-wrap">
+        <input type="text" id="chat-input" placeholder="Ask about any company..." autofocus>
+        <button class="btn btn-primary" onclick="sendMessage()" id="send-btn">Send</button>
+    </div>
+
+    <div class="quick-actions">
+        <button class="chip" onclick="quickAsk('Tell me about OpenAI')">OpenAI</button>
+        <button class="chip" onclick="quickAsk('Tell me about Anthropic')">Anthropic</button>
+        <button class="chip" onclick="quickAsk('Tell me about Equinor')">Equinor</button>
+        <button class="chip" onclick="quickAsk('Tell me about TCS')">TCS</button>
+        <button class="chip" onclick="quickAsk('Show IT companies')">IT Sector</button>
+        <button class="chip" onclick="quickAsk('Show Banking companies')">Banking</button>
+        <button class="chip" onclick="quickAsk('Tell me about Tesla')">Tesla</button>
+        <button class="chip" onclick="quickAsk('Tell me about NVIDIA')">NVIDIA</button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+const input = document.getElementById('chat-input');
+const messages = document.getElementById('chat-messages');
+
+input.addEventListener('keyup', e => { if(e.key==='Enter') sendMessage(); });
+
+function quickAsk(text) {
+    input.value = text;
+    sendMessage();
+}
+
+async function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+
+    // Add user message
+    messages.innerHTML += `<div class="chat-msg user"><div class="msg-bubble">${escapeHtml(text)}</div><div class="msg-avatar">👤</div></div>`;
+    messages.scrollTop = messages.scrollHeight;
+
+    // Show typing
+    const typingId = 'typing-' + Date.now();
+    messages.innerHTML += `<div class="chat-msg bot" id="${typingId}"><div class="msg-avatar">🤖</div><div class="msg-bubble typing">Thinking...</div></div>`;
+    messages.scrollTop = messages.scrollHeight;
+
+    try {
+        const resp = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({message: text}),
+        });
+        const data = await resp.json();
+        const el = document.getElementById(typingId);
+        if (el) {
+            const html = marked.parse(data.reply || 'No response');
+            const sourceTag = data.source === 'global' ? '<span class="source-tag global">🌍 Global</span>'
+                : data.source === 'live_brreg' ? '<span class="source-tag live">⚡ Live</span>'
+                : data.source === 'norwegian' ? '<span class="source-tag nor">🇳🇴 Norwegian</span>' : '';
+            el.querySelector('.msg-bubble').innerHTML = sourceTag + html;
+            el.querySelector('.msg-bubble').classList.remove('typing');
+        }
+    } catch (err) {
+        const el = document.getElementById(typingId);
+        if (el) el.querySelector('.msg-bubble').innerHTML = 'Sorry, something went wrong.';
+    }
+    messages.scrollTop = messages.scrollHeight;
+}
+
+function escapeHtml(t) {
+    return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+{% endblock %}
