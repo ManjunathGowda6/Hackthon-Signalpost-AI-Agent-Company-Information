@@ -57,6 +57,44 @@ def load_all():
             for word in name.split():
                 if len(word) >= 3 and word not in ('the','and','for'):
                     GLOBAL_INDEX[word] = gc
+            # Add common misspellings/aliases
+            aliases = {
+                "google": ["gogle","googl","goolge","alphabet","google alphabet"],
+                "microsoft": ["microsfot","microsft","msft","micorsoft"],
+                "apple": ["aapl","appl"],
+                "amazon": ["amzn","amazn","amazone"],
+                "nvidia": ["nvdia","nvda","nvidea"],
+                "tesla": ["tsla","tesle"],
+                "meta": ["facebook","fb","meta facebook","facbook"],
+                "samsung": ["samsng","samung"],
+                "openai": ["opn ai","open ai","chatgpt","gpt","openai chatgpt"],
+                "anthropic": ["antropic","anthopic","claude ai","claude"],
+                "deepmind": ["deep mind","google deepmind"],
+                "mistral": ["mistral ai","mistrl"],
+                "tcs": ["tata consultancy","tata consulting"],
+                "infosys": ["infy","infosis"],
+                "wipro": ["wipro ltd"],
+                "hcltech": ["hcl tech","hcl"],
+                "toyota": ["toyata","toyoto"],
+                "bmw": ["bayerische"],
+                "equinor": ["equnor","equinr","statoil"],
+                "telenor": ["telner","telenr"],
+                "dnb": ["dnb bank","dnb nor"],
+                "kahoot": ["kahot","kahoot!"],
+                "stripe": ["strip"],
+                "salesforce": ["salesfore","sfdc","crm"],
+                "oracle": ["orcle","orcl"],
+                "xai": ["x ai","grok","x.ai"],
+                "hugging face": ["huggingface","hugging"],
+                "stability ai": ["stable diffusion","stability"],
+                "cohere": ["coher"],
+                "volkswagen": ["vw","volkswagn"],
+                "mercedes-benz": ["mercedes","benz","daimler"],
+            }
+            for key, alt_list in aliases.items():
+                if key in name:
+                    for alt in alt_list:
+                        GLOBAL_INDEX[alt] = gc
         print(f"  Loaded {len(GLOBAL_COMPANIES)} global companies ({len(GLOBAL_INDEX)} search keys)")
 
 
@@ -94,7 +132,7 @@ def fuzzy_find_global(query):
             if len(word) >= 3:
                 s2 = fuzzy_score(word, gc["name"])
                 score = max(score, s2)
-        if score > best_score and score >= 0.55:
+        if score > best_score and score >= 0.45:
             best_score = score
             best_match = gc
 
