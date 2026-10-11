@@ -124,7 +124,7 @@ def fuzzy_find_global(query):
         for w in words:
             if len(w) >= 3:
                 s = max(s, fuzzy_score(w, gc["name"]))
-        if s > best_s and s >= 0.55: best_s, best = s, gc
+        if s > best_s and s >= 0.6: best_s, best = s, gc
     return best
 
 
