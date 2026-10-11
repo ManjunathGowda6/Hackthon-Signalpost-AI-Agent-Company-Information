@@ -1,20 +1,21 @@
-"""Signalpost AI — Claude-like Company Intelligence Chatbot."""
+"""Signalpost AI — Context-aware Company Intelligence Chatbot."""
 import json, re, httpx
 from difflib import SequenceMatcher
 from pathlib import Path
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session
 
 app = Flask(
     __name__,
     template_folder=str(Path(__file__).parent / "templates"),
     static_folder=str(Path(__file__).parent / "static"),
 )
+app.secret_key = "signalpost-ai-2026"
 
 PROFILES_INDEX: dict[str, dict] = {}
 ALL_COMPANIES: list[dict] = []
 COMPANY_INDEX: dict[str, dict] = {}
 GLOBAL_COMPANIES: list[dict] = []
-GLOBAL_INDEX: dict[str, dict] = {}  # lowercase name -> company
+GLOBAL_INDEX: dict[str, dict] = {}
 
 SECTOR_MAP = {
     "01":"Agriculture","02":"Forestry","03":"Fishing & Aquaculture","06":"Oil & Gas",
@@ -26,6 +27,26 @@ SECTOR_MAP = {
     "69":"Legal & Accounting","70":"Management Consulting","71":"Engineering",
     "72":"R&D & Science","73":"Advertising","78":"Staffing & HR","85":"Education",
     "86":"Healthcare","93":"Sports & Fitness",
+}
+
+ALIASES = {
+    "google":["gogle","googl","goolge","alphabet"],"microsoft":["microsfot","microsft","msft"],
+    "apple":["aapl"],"amazon":["amzn","amazone"],"nvidia":["nvdia","nvda","nvidea"],
+    "tesla":["tsla","tesle"],"meta":["facebook","fb","facbook"],
+    "samsung":["samsng"],"openai":["opn ai","open ai","chatgpt","gpt"],
+    "anthropic":["antropic","anthopic","claude ai","claude"],
+    "deepmind":["deep mind","google deepmind"],"mistral":["mistral ai"],
+    "tcs":["tata consultancy","tata consulting"],
+    "infosys":["infy","infosis"],"wipro":["wipro ltd"],
+    "hcltech":["hcl tech","hcl"],"toyota":["toyata"],
+    "bmw":["bayerische"],"equinor":["equnor","statoil"],
+    "telenor":["telner"],"dnb":["dnb bank"],
+    "kahoot":["kahot","kahoot!"],"stripe":["strip"],
+    "salesforce":["salesfore","sfdc","crm"],"oracle":["orcle","orcl"],
+    "xai":["x ai","grok","x.ai"],"hugging face":["huggingface","hugging"],
+    "stability ai":["stable diffusion","stability"],
+    "cohere":["coher"],"volkswagen":["vw"],
+    "mercedes-benz":["mercedes","benz","daimler"],
 }
 
 
@@ -45,63 +66,21 @@ def load_all():
     if p3.exists():
         GLOBAL_COMPANIES = json.loads(p3.read_text(encoding="utf-8"))
         for gc in GLOBAL_COMPANIES:
-            # Index by multiple name variations
             name = gc["name"].lower()
             GLOBAL_INDEX[name] = gc
-            # Add short names: "OpenAI" -> "openai", "TCS (Tata...)" -> "tcs"
             for part in re.split(r'[/\(\)]', name):
                 part = part.strip()
-                if len(part) >= 2:
-                    GLOBAL_INDEX[part] = gc
-            # Add keywords from name
+                if len(part) >= 2: GLOBAL_INDEX[part] = gc
             for word in name.split():
-                if len(word) >= 3 and word not in ('the','and','for'):
-                    GLOBAL_INDEX[word] = gc
-            # Add common misspellings/aliases
-            aliases = {
-                "google": ["gogle","googl","goolge","alphabet","google alphabet"],
-                "microsoft": ["microsfot","microsft","msft","micorsoft"],
-                "apple": ["aapl","appl"],
-                "amazon": ["amzn","amazn","amazone"],
-                "nvidia": ["nvdia","nvda","nvidea"],
-                "tesla": ["tsla","tesle"],
-                "meta": ["facebook","fb","meta facebook","facbook"],
-                "samsung": ["samsng","samung"],
-                "openai": ["opn ai","open ai","chatgpt","gpt","openai chatgpt"],
-                "anthropic": ["antropic","anthopic","claude ai","claude"],
-                "deepmind": ["deep mind","google deepmind"],
-                "mistral": ["mistral ai","mistrl"],
-                "tcs": ["tata consultancy","tata consulting"],
-                "infosys": ["infy","infosis"],
-                "wipro": ["wipro ltd"],
-                "hcltech": ["hcl tech","hcl"],
-                "toyota": ["toyata","toyoto"],
-                "bmw": ["bayerische"],
-                "equinor": ["equnor","equinr","statoil"],
-                "telenor": ["telner","telenr"],
-                "dnb": ["dnb bank","dnb nor"],
-                "kahoot": ["kahot","kahoot!"],
-                "stripe": ["strip"],
-                "salesforce": ["salesfore","sfdc","crm"],
-                "oracle": ["orcle","orcl"],
-                "xai": ["x ai","grok","x.ai"],
-                "hugging face": ["huggingface","hugging"],
-                "stability ai": ["stable diffusion","stability"],
-                "cohere": ["coher"],
-                "volkswagen": ["vw","volkswagn"],
-                "mercedes-benz": ["mercedes","benz","daimler"],
-            }
-            for key, alt_list in aliases.items():
+                if len(word) >= 3 and word not in ('the','and','for'): GLOBAL_INDEX[word] = gc
+            for key, alt_list in ALIASES.items():
                 if key in name:
-                    for alt in alt_list:
-                        GLOBAL_INDEX[alt] = gc
+                    for alt in alt_list: GLOBAL_INDEX[alt] = gc
         print(f"  Loaded {len(GLOBAL_COMPANIES)} global companies ({len(GLOBAL_INDEX)} search keys)")
 
 
-def fuzzy_score(query, target):
-    """Calculate fuzzy match score (0-1)."""
-    q = query.lower().strip()
-    t = target.lower().strip()
+def fuzzy_score(q, t):
+    q, t = q.lower().strip(), t.lower().strip()
     if q == t: return 1.0
     if q in t: return 0.9
     if t in q: return 0.85
@@ -109,408 +88,221 @@ def fuzzy_score(query, target):
 
 
 def fuzzy_find_global(query):
-    """Find global company with fuzzy matching."""
     q = query.lower().strip()
-
-    # Direct match
-    if q in GLOBAL_INDEX:
-        return GLOBAL_INDEX[q]
-
-    # Check each word in query against index
+    if q in GLOBAL_INDEX: return GLOBAL_INDEX[q]
     words = re.findall(r'\w+', q)
-    for word in words:
-        if len(word) >= 3 and word in GLOBAL_INDEX:
-            return GLOBAL_INDEX[word]
-
-    # Fuzzy match against all company names
-    best_match = None
-    best_score = 0
+    for w in words:
+        if len(w) >= 3 and w in GLOBAL_INDEX: return GLOBAL_INDEX[w]
+    best, best_s = None, 0
     for gc in GLOBAL_COMPANIES:
-        score = fuzzy_score(q, gc["name"])
-        # Also check each word against company name
-        for word in words:
-            if len(word) >= 3:
-                s2 = fuzzy_score(word, gc["name"])
-                score = max(score, s2)
-        if score > best_score and score >= 0.45:
-            best_score = score
-            best_match = gc
-
-    return best_match
+        s = fuzzy_score(q, gc["name"])
+        for w in words:
+            if len(w) >= 3: s = max(s, fuzzy_score(w, gc["name"]))
+        if s > best_s and s >= 0.45: best_s, best = s, gc
+    return best
 
 
 def fuzzy_find_norwegian(query):
-    """Find Norwegian companies with fuzzy matching."""
     q = query.lower().strip()
     words = [w for w in re.findall(r'\w+', q) if len(w) >= 2]
     matches = []
-
     for c in ALL_COMPANIES:
-        name = (c.get("n") or "").lower()
-        if not name:
-            continue
-
-        # Exact substring
-        if q in name:
-            matches.append((c, 0.95))
-            continue
-
-        # Any word match
-        for word in words:
-            if word in name:
-                matches.append((c, 0.8))
-                break
+        n = (c.get("n") or "").lower()
+        if not n: continue
+        if q in n: matches.append((c, 0.95)); continue
+        for w in words:
+            if w in n: matches.append((c, 0.8)); break
         else:
-            # Fuzzy
-            score = fuzzy_score(q, name)
-            if score >= 0.6:
-                matches.append((c, score))
-
-        if len(matches) >= 10:
-            break
-
-    matches.sort(key=lambda x: (-x[1], -(x[0].get("e", 0) or 0)))
+            s = fuzzy_score(q, n)
+            if s >= 0.6: matches.append((c, s))
+        if len(matches) >= 10: break
+    matches.sort(key=lambda x: (-x[1], -(x[0].get("e",0) or 0)))
     return [m[0] for m in matches[:5]]
 
 
-def extract_intent(message):
-    """Understand user intent even with grammar mistakes."""
-    q = message.lower().strip()
+def extract_intent(msg):
+    q = msg.lower().strip()
     q = re.sub(r'[?.!,;]+$', '', q)
-
-    # Remove filler words
-    noise = ['tell','me','about','what','is','who','the','a','an','show',
-             'give','info','information','details','of','company','called',
-             'please','can','you','do','know','say','explain','describe',
-             'search','find','look','up','how','whats','whos']
+    noise = ['tell','me','about','what','is','who','the','a','an','show','give',
+             'info','information','details','of','company','called','please','can',
+             'you','do','know','say','explain','describe','search','find','look','up',
+             'how','whats','whos','i','want','to','need','get','more','complete',
+             'full','everything','all']
     words = re.findall(r'\w+', q)
     clean = [w for w in words if w not in noise and len(w) >= 2]
     clean_query = ' '.join(clean)
 
-    # Detect intent type
-    intent = "company"  # default
-    if any(w in q for w in ['sector', 'sectors', 'industry', 'industries', 'categories', 'all sector']):
-        intent = "sectors"
-    elif any(w in q for w in ['compare', 'vs', 'versus', 'difference']):
-        intent = "compare"
-    elif any(w in q for w in ['help', 'what can you', 'how to use']):
-        intent = "help"
+    # Detect context references
+    context_refs = ['this','it','that','same','above','previous','its','their',
+                    'them','he','she','his','her','the company','this company',
+                    'that company','same company','more about','more details',
+                    'complete info','full details','everything about']
+    is_followup = any(ref in q for ref in context_refs)
 
-    return intent, clean_query, words
+    intent = "company"
+    if any(w in q for w in ['sector','sectors','industry','industries','categories']): intent = "sectors"
+    elif any(w in q for w in ['compare','vs','versus']): intent = "compare"
+    elif any(w in q for w in ['help','what can you','how to use']): intent = "help"
+
+    return intent, clean_query, words, is_followup
 
 
 def fmt(v):
     if v is None: return "N/A"
     if isinstance(v, str): return v
-    if abs(v) >= 1e9: return f"{v/1e9:,.1f}B"
-    if abs(v) >= 1e6: return f"{v/1e6:,.1f}M"
-    if abs(v) >= 1e3: return f"{v/1e3:,.1f}K"
+    if abs(v) >= 1e9: return f"NOK {v/1e9:,.1f}B"
+    if abs(v) >= 1e6: return f"NOK {v/1e6:,.1f}M"
+    if abs(v) >= 1e3: return f"NOK {v/1e3:,.1f}K"
     return f"{v:,.0f}"
 
 
-def build_global_response(gc):
-    """Build comprehensive A-Z company response."""
+def build_global_deep(gc):
+    """Build COMPREHENSIVE A-Z response with everything we know."""
     lines = []
     lines.append(f"# {gc['name']}\n")
-    lines.append(f"{gc.get('desc','')}\n")
+    lines.append(f"> {gc.get('desc','')}\n")
     lines.append("---\n")
 
-    # Overview
-    lines.append("## 🏢 Company Overview\n")
-    lines.append(f"| | |")
-    lines.append(f"|---|---|")
+    lines.append("## 🏢 Company Profile\n")
+    lines.append("| | |")
+    lines.append("|---|---|")
+    lines.append(f"| **Full Name** | {gc['name']} |")
     lines.append(f"| **Sector** | {gc.get('sector','')} |")
     lines.append(f"| **Headquarters** | {gc.get('hq','')} |")
     lines.append(f"| **Founded** | {gc.get('founded','N/A')} |")
-    lines.append(f"| **CEO** | {gc.get('ceo','N/A')} |")
+    lines.append(f"| **CEO / Leader** | {gc.get('ceo','N/A')} |")
     lines.append(f"| **Employees** | {gc.get('employees','N/A'):,} |")
     lines.append(f"| **Website** | [{gc.get('website','')}]({gc.get('website','')}) |")
     lines.append(f"| **Stock Ticker** | {gc.get('stock','Private')} |")
+    lines.append(f"| **Type** | {'Publicly Traded' if gc.get('stock','Private') != 'Private' else 'Private Company'} |")
     lines.append("")
 
-    # Financials
     lines.append("## 📊 Financial Overview\n")
-    lines.append(f"| Metric | Value |")
-    lines.append(f"|---|---|")
-    lines.append(f"| **Revenue** | {gc.get('revenue','N/A')} |")
+    lines.append("| Metric | Value |")
+    lines.append("|---|---|")
+    lines.append(f"| **Annual Revenue** | {gc.get('revenue','N/A')} |")
     lines.append(f"| **Net Profit** | {gc.get('profit','N/A')} |")
-    lines.append(f"| **Market Cap** | {gc.get('market_cap','N/A')} |")
+    lines.append(f"| **Market Capitalization** | {gc.get('market_cap','N/A')} |")
     if gc.get('valuation') and gc['valuation'] != 'N/A':
-        lines.append(f"| **Valuation** | {gc['valuation']} |")
-    lines.append(f"| **P/E Ratio** | {gc.get('pe_ratio','N/A')} |")
-    lines.append(f"| **Debt/Equity** | {gc.get('debt_equity','N/A')} |")
+        lines.append(f"| **Private Valuation** | {gc['valuation']} |")
+    lines.append(f"| **Price-to-Earnings (P/E)** | {gc.get('pe_ratio','N/A')} |")
+    lines.append(f"| **Debt-to-Equity (D/E)** | {gc.get('debt_equity','N/A')} |")
+    is_profitable = gc.get('profit','').startswith('$') and 'loss' not in gc.get('profit','').lower()
+    lines.append(f"| **Profitable?** | {'✅ Yes' if is_profitable else '❌ No / Pre-profit'} |")
     lines.append("")
 
-    # Products
     lines.append("## 🛠️ Products & Services\n")
-    products = gc.get('products', '').split(', ')
-    for p in products:
-        lines.append(f"- {p}")
+    for p in gc.get('products','').split(', '):
+        lines.append(f"- **{p}**")
     lines.append("")
 
-    # Key Metrics
     lines.append("## 📈 Key Metrics & Highlights\n")
-    metrics = gc.get('key_metrics', '').split('; ')
-    for m in metrics:
-        if m.strip():
-            lines.append(f"- {m.strip()}")
+    for m in gc.get('key_metrics','').split('; '):
+        if m.strip(): lines.append(f"- {m.strip()}")
     lines.append("")
 
-    # Investors
     if gc.get('investors'):
-        lines.append("## 💰 Key Investors\n")
+        lines.append("## 💰 Key Investors & Backers\n")
         lines.append(f"{gc['investors']}\n")
 
-    # Norwegian connection
-    if gc.get('brreg'):
-        lines.append(f"---\n🇳🇴 This company is registered in Norway. [View Norwegian registry details →](/company/{gc['brreg']})")
+    # Company age
+    if gc.get('founded'):
+        age = 2026 - gc['founded']
+        lines.append(f"## 📅 Company Age\n")
+        lines.append(f"Founded in **{gc['founded']}** — **{age} years** of operation.\n")
 
+    if gc.get('brreg'):
+        lines.append(f"---\n🇳🇴 **Norwegian Registry:** This company has a Norwegian presence. [View Brreg details →](/company/{gc['brreg']})\n")
+
+    lines.append(f"---\n*Data reflects the latest publicly available information. Ask me anything else about {gc['name']}!*")
     return "\n".join(lines)
 
 
-def build_norwegian_response(c, profile=None):
-    """Build comprehensive response for a Norwegian company."""
+def build_norwegian_deep(c, profile=None):
+    """Build comprehensive response for Norwegian company."""
     org = c["o"]
     sector = SECTOR_MAP.get(c.get("s",""), c.get("nd",""))
     lines = []
     lines.append(f"# {c.get('n','Unknown')}\n")
 
-    # Overview
-    lines.append("## 🏢 Company Overview\n")
-    lines.append(f"| | |")
-    lines.append(f"|---|---|")
-    lines.append(f"| **Org. Number** | `{org}` |")
+    lines.append("## 🏢 Company Profile\n")
+    lines.append("| | |")
+    lines.append("|---|---|")
+    lines.append(f"| **Organisation Number** | `{org}` |")
     lines.append(f"| **Legal Form** | {c.get('f','N/A')} |")
     lines.append(f"| **Sector** | {sector} |")
     lines.append(f"| **Municipality** | {c.get('m','N/A')} |")
     lines.append(f"| **Employees** | {c.get('e',0):,} |")
     lines.append(f"| **Industry (NACE)** | {c.get('nd','N/A')} |")
-    if c.get('w'):
-        lines.append(f"| **Website** | [{c['w']}]({c['w']}) |")
+    if c.get('w'): lines.append(f"| **Website** | [{c['w']}]({c['w']}) |")
+    lines.append(f"| **Source** | [Brreg Registry](https://data.brreg.no/enhetsregisteret/api/enheter/{org}) |")
     lines.append("")
 
     if profile:
-        ev = profile.get("evidence", {}) or {}
-        syn = profile.get("synthesis", {}) or {}
-        aa = profile.get("annual_accounts", {}) or {}
-        lw = profile.get("leadership_workplaces", {}) or {}
-        li = profile.get("legal_identity", {}) or {}
+        ev = profile.get("evidence",{}) or {}
+        syn = profile.get("synthesis",{}) or {}
+        aa = profile.get("annual_accounts",{}) or {}
+        lw = profile.get("leadership_workplaces",{}) or {}
+        li = profile.get("legal_identity",{}) or {}
 
-        # Legal identity
         if li.get("status") == "available":
             lines.append("## 📋 Legal Identity\n")
-            lines.append(f"| | |")
-            lines.append(f"|---|---|")
-            ln = (li.get("legal_name") or {}).get("value")
-            if ln: lines.append(f"| **Legal Name** | {ln} |")
-            lf = (li.get("legal_form") or {}).get("value")
-            if lf: lines.append(f"| **Legal Form** | {lf} |")
-            ra = (li.get("registered_address") or {}).get("value")
-            if ra: lines.append(f"| **Address** | {ra} |")
-            rd = (li.get("registration_date") or {}).get("value")
-            if rd: lines.append(f"| **Registered** | {rd} |")
-            rs = (li.get("registration_status") or {}).get("value")
-            if rs: lines.append(f"| **Status** | {rs} |")
-            ad = (li.get("activity_description") or {}).get("value")
-            if ad: lines.append(f"| **Activity** | {ad} |")
+            lines.append("| | |")
+            lines.append("|---|---|")
+            for key, label in [("legal_name","Legal Name"),("legal_form","Legal Form"),
+                               ("registered_address","Address"),("registration_date","Registered"),
+                               ("registration_status","Status"),("activity_description","Activity")]:
+                val = (li.get(key) or {}).get("value")
+                if val: lines.append(f"| **{label}** | {val} |")
             if li.get("is_bankrupt"): lines.append(f"| **⚠️ Bankrupt** | Yes |")
             lines.append("")
 
-        # Financials
         if aa.get("status") == "available":
-            lines.append("## 📊 Annual Accounts\n")
-            lines.append(f"| Metric | Value |")
-            lines.append(f"|---|---|")
+            lines.append("## 📊 Annual Accounts (Financial Data)\n")
+            lines.append("| Metric | Value |")
+            lines.append("|---|---|")
             lines.append(f"| **Filing Year** | {aa.get('latest_filing_year','N/A')} |")
-            rev = (aa.get("revenue") or {}).get("value")
-            if rev is not None: lines.append(f"| **Revenue** | {fmt(rev)} NOK |")
-            op = (aa.get("operating_profit") or {}).get("value")
-            if op is not None: lines.append(f"| **Operating Profit** | {fmt(op)} NOK |")
-            ta = (aa.get("total_assets") or {}).get("value")
-            if ta is not None: lines.append(f"| **Total Assets** | {fmt(ta)} NOK |")
-            te = (aa.get("total_equity") or {}).get("value")
-            if te is not None: lines.append(f"| **Total Equity** | {fmt(te)} NOK |")
+            for key, label in [("revenue","Revenue"),("operating_profit","Operating Profit"),
+                               ("total_assets","Total Assets"),("total_equity","Total Equity")]:
+                val = (aa.get(key) or {}).get("value")
+                if val is not None: lines.append(f"| **{label}** | {fmt(val)} |")
             lines.append("")
 
-        # Leadership
-        roles = lw.get("roles", [])
+        roles = lw.get("roles",[])
         if roles:
-            lines.append(f"## 👥 Leadership ({len(roles)} registered roles)\n")
-            for r in roles[:10]:
+            lines.append(f"## 👥 Leadership & Management ({len(roles)} roles)\n")
+            for r in roles[:12]:
                 lines.append(f"- **{r.get('name','')}** — {r.get('role','')}")
-            if len(roles) > 10:
-                lines.append(f"- *...and {len(roles)-10} more*")
+            if len(roles) > 12: lines.append(f"- *...and {len(roles)-12} more registered roles*")
             lines.append("")
 
-        # Synthesis
         if syn.get("summary"):
-            lines.append(f"## 💡 Summary\n")
+            lines.append("## 💡 AI Summary\n")
             lines.append(f"{syn['summary']}\n")
-            obs = syn.get("key_observations", [])
+            obs = syn.get("key_observations",[])
             if obs:
-                for o in obs[:5]:
-                    lines.append(f"- {o}")
-                lines.append("")
+                for o in obs[:6]: lines.append(f"- {o}")
+            lines.append("")
 
-        # Evidence
-        lines.append(f"## 🔍 Evidence & Sources\n")
+        lines.append("## 🔍 Evidence & Verification\n")
         lines.append(f"- **Total claims:** {ev.get('total_claims',0)}")
         lines.append(f"- **Sourced claims:** {ev.get('claims_with_source',0)}")
-        lines.append(f"- **Registry verified:** ✅")
+        lines.append(f"- **Registry verified:** ✅ Data from official Brreg")
+        ch = profile.get("content_hash")
+        if ch: lines.append(f"- **Content hash:** `{ch[:16]}...`")
     else:
-        lines.append("\n*This is a basic listing. For full financial details, leadership, and evidence, this company needs to be enriched through the Signalpost agent.*\n")
+        lines.append("\n> This is a basic listing from the registry. I can fetch live details — just ask!\n")
 
+    lines.append(f"\n---\n*Source: Norwegian Business Registry (Brreg). Ask me anything else about this company!*")
     return "\n".join(lines)
 
 
-@app.route("/")
-def index():
-    return render_template("chat.html")
-
-
-@app.route("/api/chat", methods=["POST"])
-def api_chat():
-    data = request.get_json() or {}
-    msg = data.get("message", "").strip()
-    if not msg:
-        return jsonify({"reply": "Hi! Ask me about any company — I'll give you the full picture.", "type": "text"})
-
-    intent, clean_q, words = extract_intent(msg)
-
-    # ── Help ──
-    if intent == "help":
-        return jsonify({"reply": """I'm your Company Intelligence Assistant. Here's what I can do:
-
-**🔍 Ask about any company:**
-- *"Tell me about OpenAI"*
-- *"What is NVIDIA?"*
-- *"opn ai"* (I handle typos!)
-- *"tcs company details"*
-
-**🏭 Browse sectors:**
-- *"Show IT companies"*
-- *"Banking sector"*
-
-**🌍 I know:**
-- 33+ major global companies (tech, auto, AI, finance)
-- 53,000+ Norwegian companies from the official registry
-- Financial data, leadership, products, and key metrics
-
-Just type a company name and I'll tell you everything I know!""", "type": "help"})
-
-    # ── Sectors ──
-    if intent == "sectors":
-        lines = ["# 📂 Available Sectors\n"]
-        for code, name in sorted(SECTOR_MAP.items(), key=lambda x: x[1]):
-            count = sum(1 for c in ALL_COMPANIES if c.get("s") == code)
-            if count > 0:
-                lines.append(f"- **{name}** — {count:,} companies")
-        lines.append(f"\nJust say something like *\"Show IT & Software companies\"* to explore a sector.")
-        return jsonify({"reply": "\n".join(lines), "type": "sectors"})
-
-    # ── Try global companies (fuzzy) ──
-    gc = fuzzy_find_global(clean_q or msg)
-    if gc:
-        return jsonify({"reply": build_global_response(gc), "type": "company", "source": "global"})
-
-    # ── Try Norwegian companies (fuzzy) ──
-    nor_matches = fuzzy_find_norwegian(clean_q or msg)
-    if nor_matches:
-        if len(nor_matches) == 1:
-            c = nor_matches[0]
-            profile = PROFILES_INDEX.get(c["o"])
-            return jsonify({"reply": build_norwegian_response(c, profile), "type": "company", "source": "norwegian"})
-        else:
-            lines = [f"I found **{len(nor_matches)} companies** matching your search:\n"]
-            for c in nor_matches:
-                sector = SECTOR_MAP.get(c.get("s",""), "")
-                emp = c.get("e", 0) or 0
-                badge = "✅ Full Profile" if c["o"] in PROFILES_INDEX else ""
-                lines.append(f"### {c.get('n','')}")
-                lines.append(f"*{sector}* | {c.get('m','')} | {emp:,} employees {badge}")
-                lines.append(f"Say *\"Tell me about {c.get('n','')}\"* for full details.\n")
-            return jsonify({"reply": "\n".join(lines), "type": "list", "source": "norwegian"})
-
-    # ── Sector queries ──
-    for code, name in SECTOR_MAP.items():
-        if name.lower() in msg.lower() or any(w in name.lower().split() for w in words if len(w) >= 3):
-            sector_cos = [c for c in ALL_COMPANIES if c.get("s") == code][:10]
-            global_cos = [g for g in GLOBAL_COMPANIES if name.lower() in g.get("sector","").lower()]
-            lines = [f"# {name} Sector\n"]
-            if global_cos:
-                lines.append("## 🌍 Global Leaders\n")
-                for g in global_cos[:5]:
-                    lines.append(f"**{g['name']}** — {g.get('hq','')} | {g.get('revenue','')} revenue | {g.get('employees','N/A'):,} employees")
-                    lines.append(f"*Say \"{g['name']}\" to see full details*\n")
-            if sector_cos:
-                lines.append("## 🇳🇴 Norwegian Companies\n")
-                for c in sector_cos:
-                    lines.append(f"- **{c.get('n','')}** — {c.get('e',0):,} employees | {c.get('m','')}")
-            return jsonify({"reply": "\n".join(lines), "type": "sector"})
-
-    # ── Live Brreg fallback ──
-    try:
-        with httpx.Client(timeout=8) as client:
-            resp = client.get(f"https://data.brreg.no/enhetsregisteret/api/enheter?navn={msg}&size=5")
-        if resp.status_code == 200:
-            entities = resp.json().get("_embedded", {}).get("enheter", [])
-            if entities:
-                lines = [f"I searched the Norwegian Business Registry and found:\n"]
-                for e in entities:
-                    nr = e.get("organisasjonsnummer","")
-                    name = e.get("navn","")
-                    emp = e.get("antallAnsatte",0) or 0
-                    muni = e.get("forretningsadresse",{}).get("kommune","")
-                    lines.append(f"### {name}")
-                    lines.append(f"`{nr}` | {muni} | {emp:,} employees")
-                    lines.append(f"Say *\"{name}\"* for full details.\n")
-                return jsonify({"reply": "\n".join(lines), "type": "list", "source": "live"})
-    except Exception:
-        pass
-
-    # ── Not found ──
-    return jsonify({"reply": f"""I couldn't find a company matching **\"{msg}\"**. Here are some things you can try:
-
-- Check the spelling and try again
-- Try a shorter name (e.g., *\"Google\"* instead of *\"Google LLC\"*)
-- Ask about a sector: *\"Show IT companies\"*
-
-I know **33+ major global companies** and **53,000+ Norwegian companies**. Try names like:
-OpenAI, Tesla, NVIDIA, TCS, Equinor, DNB, BMW, Samsung, Infosys, Anthropic...""", "type": "not_found"})
-
-
-@app.route("/api/suggest")
-def api_suggest():
-    """Auto-suggest as user types."""
-    q = request.args.get("q", "").strip().lower()
-    if len(q) < 2:
-        return jsonify([])
-    suggestions = []
-    # Global first
-    for gc in GLOBAL_COMPANIES:
-        if q in gc["name"].lower():
-            suggestions.append({"name": gc["name"], "type": "global", "sub": gc.get("sector","")})
-    # Norwegian
-    count = 0
-    for c in ALL_COMPANIES:
-        n = (c.get("n") or "").lower()
-        if q in n:
-            suggestions.append({"name": c.get("n"), "type": "norwegian", "sub": c.get("m","")})
-            count += 1
-        if count >= 5:
-            break
-    return jsonify(suggestions[:8])
-
-
-@app.route("/api/lookup/<org_number>")
-def api_lookup(org_number):
-    if org_number in PROFILES_INDEX:
-        return jsonify(PROFILES_INDEX[org_number])
+def enrich_live(org_number):
+    """Fetch real-time data from Brreg for any org number."""
     try:
         with httpx.Client(timeout=10) as client:
             resp = client.get(f"https://data.brreg.no/enhetsregisteret/api/enheter/{org_number}")
-            if resp.status_code != 200:
-                return jsonify({"error": "Not found"}), 404
+            if resp.status_code != 200: return None
             entity = resp.json()
             fin = None
             fr = client.get(f"https://data.brreg.no/regnskapsregisteret/regnskap/{org_number}")
@@ -521,7 +313,7 @@ def api_lookup(org_number):
                 for g in rr.json().get("rollegrupper",[]):
                     rt = g.get("type",{}).get("beskrivelse","")
                     for r in g.get("roller",[]):
-                        p = r.get("person",{}); o = r.get("enhet",{})
+                        p,o = r.get("person",{}), r.get("enhet",{})
                         nm = ""
                         if p: nm = f"{p.get('navn',{}).get('fornavn','')} {p.get('navn',{}).get('etternavn','')}".strip()
                         elif o: nm = o.get("navn","")
@@ -538,8 +330,8 @@ def api_lookup(org_number):
                     "revenue":{"value":r.get("driftsresultat",{}).get("driftsinntekter",{}).get("sumDriftsinntekter")},
                     "operating_profit":{"value":r.get("driftsresultat",{}).get("driftsresultat")},
                     "total_assets":{"value":b.get("sumEiendeler")}}
-        profile={"organisation_number":org_number,"name":entity.get("navn"),
-            "status":"available",
+        return {"organisation_number":org_number,"name":entity.get("navn"),
+            "status":"available","source":"real_time",
             "legal_identity":{"status":"available","legal_name":{"value":entity.get("navn")},
                 "legal_form":{"value":entity.get("organisasjonsform",{}).get("beskrivelse")},
                 "registered_address":{"value":fa},
@@ -550,10 +342,145 @@ def api_lookup(org_number):
             "annual_accounts":fs,
             "leadership_workplaces":{"status":"available" if roles else "not_available","roles":roles,"workplaces":[]},
             "evidence":{"total_claims":5+len(roles),"claims_with_source":5+len(roles)},
-            "synthesis":{"status":"available","summary":f"{entity.get('navn')} based in {addr.get('kommune','')}.","key_observations":[]}}
-        return jsonify(profile)
-    except Exception as ex:
-        return jsonify({"error":str(ex)}), 500
+            "synthesis":{"status":"available",
+                "summary":f"{entity.get('navn')} is a {entity.get('organisasjonsform',{}).get('beskrivelse','')} based in {addr.get('kommune','')}.",
+                "key_observations":[]}}
+    except: return None
+
+
+@app.route("/")
+def index():
+    return render_template("chat.html")
+
+
+@app.route("/api/chat", methods=["POST"])
+def api_chat():
+    data = request.get_json() or {}
+    msg = data.get("message","").strip()
+    context = data.get("context", {})  # Last company discussed, sent from frontend
+    last_company_name = context.get("last_company", "")
+
+    if not msg:
+        return jsonify({"reply":"Hi! Ask me about any company.","type":"text","company":""})
+
+    intent, clean_q, words, is_followup = extract_intent(msg)
+
+    # ── Follow-up: user is asking about the SAME company ──
+    if is_followup and last_company_name:
+        # Re-search the last company
+        gc = fuzzy_find_global(last_company_name)
+        if gc:
+            return jsonify({"reply": build_global_deep(gc), "type":"company", "source":"global", "company":gc["name"]})
+        nor = fuzzy_find_norwegian(last_company_name)
+        if nor:
+            c = nor[0]
+            profile = PROFILES_INDEX.get(c["o"]) or enrich_live(c["o"])
+            return jsonify({"reply": build_norwegian_deep(c, profile), "type":"company", "source":"norwegian", "company":c.get("n","")})
+
+    # ── Help ──
+    if intent == "help":
+        return jsonify({"reply":"""I'm your Company Intelligence Assistant. Here's what I can do:\n
+**🔍 Ask about any company:**
+- *"Tell me about OpenAI"* or *"opn ai"* (I handle typos!)
+- *"TCS company details"* or *"chatgpt"* (I know aliases!)
+- Then ask *"give me more details"* and I'll know you mean the same company
+
+**🏭 Browse sectors:** *"Show IT companies"*, *"Banking sector"*
+
+**🌍 I know:** 33+ global companies and 53,000+ Norwegian companies with real-time Brreg data.
+
+Just type any company name!""","type":"help","company":""})
+
+    # ── Sectors ──
+    if intent == "sectors":
+        lines = ["# 📂 Available Sectors\n"]
+        for code, name in sorted(SECTOR_MAP.items(), key=lambda x: x[1]):
+            count = sum(1 for c in ALL_COMPANIES if c.get("s") == code)
+            if count > 0: lines.append(f"- **{name}** — {count:,} companies")
+        lines.append(f"\nJust say *\"Show IT & Software companies\"* to explore.")
+        return jsonify({"reply":"\n".join(lines),"type":"sectors","company":""})
+
+    # ── Global company (fuzzy) ──
+    gc = fuzzy_find_global(clean_q or msg)
+    if gc:
+        return jsonify({"reply": build_global_deep(gc), "type":"company", "source":"global", "company":gc["name"]})
+
+    # ── Norwegian company (fuzzy) ──
+    nor = fuzzy_find_norwegian(clean_q or msg)
+    if nor:
+        if len(nor) == 1:
+            c = nor[0]
+            profile = PROFILES_INDEX.get(c["o"]) or enrich_live(c["o"])
+            return jsonify({"reply": build_norwegian_deep(c, profile), "type":"company", "source":"norwegian", "company":c.get("n","")})
+        else:
+            lines = [f"I found **{len(nor)} companies** matching your search:\n"]
+            for c in nor:
+                sector = SECTOR_MAP.get(c.get("s",""),"")
+                lines.append(f"### {c.get('n','')}")
+                lines.append(f"*{sector}* | {c.get('m','')} | {c.get('e',0):,} employees")
+                lines.append(f"Say *\"{c.get('n','')}\"* for full details.\n")
+            return jsonify({"reply":"\n".join(lines),"type":"list","source":"norwegian","company":""})
+
+    # ── Sector search ──
+    for code, name in SECTOR_MAP.items():
+        if name.lower() in msg.lower() or any(w in name.lower().split() for w in words if len(w) >= 3):
+            sector_cos = [c for c in ALL_COMPANIES if c.get("s") == code][:10]
+            global_cos = [g for g in GLOBAL_COMPANIES if name.lower() in g.get("sector","").lower()]
+            lines = [f"# {name} Sector\n"]
+            if global_cos:
+                lines.append("## 🌍 Global Leaders\n")
+                for g in global_cos[:5]:
+                    lines.append(f"**{g['name']}** — {g.get('hq','')} | {g.get('revenue','')} revenue | {g.get('employees','N/A'):,} employees\n")
+            if sector_cos:
+                lines.append("## 🇳🇴 Norwegian Companies\n")
+                for c in sector_cos:
+                    lines.append(f"- **{c.get('n','')}** — {c.get('e',0):,} employees | {c.get('m','')}")
+            return jsonify({"reply":"\n".join(lines),"type":"sector","company":""})
+
+    # ── Live Brreg ──
+    try:
+        with httpx.Client(timeout=8) as client:
+            resp = client.get(f"https://data.brreg.no/enhetsregisteret/api/enheter?navn={msg}&size=5")
+        if resp.status_code == 200:
+            entities = resp.json().get("_embedded",{}).get("enheter",[])
+            if entities:
+                lines = ["I searched the Norwegian Business Registry live:\n"]
+                for e in entities:
+                    lines.append(f"### {e.get('navn','')}")
+                    lines.append(f"`{e.get('organisasjonsnummer','')}` | {e.get('forretningsadresse',{}).get('kommune','')} | {e.get('antallAnsatte',0) or 0:,} employees")
+                    lines.append(f"Say *\"{e.get('navn','')}\"* for complete info.\n")
+                return jsonify({"reply":"\n".join(lines),"type":"list","source":"live","company":""})
+    except: pass
+
+    return jsonify({"reply":f"""I couldn't find **\"{msg}\"**. Try:
+- Check spelling or use a shorter name
+- Ask: *\"Show all sectors\"*
+- I know: OpenAI, Tesla, NVIDIA, TCS, Equinor, DNB, BMW, Samsung, Anthropic...""","type":"not_found","company":""})
+
+
+@app.route("/api/suggest")
+def api_suggest():
+    q = request.args.get("q","").strip().lower()
+    if len(q) < 2: return jsonify([])
+    suggestions = []
+    for gc in GLOBAL_COMPANIES:
+        if q in gc["name"].lower():
+            suggestions.append({"name":gc["name"],"type":"global","sub":gc.get("sector","")})
+    count = 0
+    for c in ALL_COMPANIES:
+        if q in (c.get("n") or "").lower():
+            suggestions.append({"name":c.get("n"),"type":"norwegian","sub":c.get("m","")})
+            count += 1
+        if count >= 5: break
+    return jsonify(suggestions[:8])
+
+
+@app.route("/api/lookup/<org_number>")
+def api_lookup(org_number):
+    if org_number in PROFILES_INDEX: return jsonify(PROFILES_INDEX[org_number])
+    result = enrich_live(org_number)
+    if result: return jsonify(result)
+    return jsonify({"error":"Not found"}), 404
 
 
 @app.route("/company/<org_number>")
