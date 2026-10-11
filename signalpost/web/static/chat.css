@@ -118,3 +118,11 @@ textarea::placeholder { color:var(--text-dim); }
     .sidebar-toggle { display:flex; }
     .suggestions { grid-template-columns:repeat(2,1fr); }
 }
+
+
+/* Context Menu */
+.context-menu { display:none; position:fixed; z-index:200; background:#1a1a26; border:1px solid rgba(255,255,255,0.1); border-radius:8px; box-shadow:0 8px 30px rgba(0,0,0,0.5); overflow:hidden; min-width:160px; }
+.context-menu button { display:block; width:100%; padding:10px 16px; background:none; border:none; border-bottom:1px solid rgba(255,255,255,0.05); color:#e8e8ed; cursor:pointer; font-family:inherit; font-size:0.85rem; text-align:left; transition:background 0.15s; }
+.context-menu button:last-child { border-bottom:none; }
+.context-menu button:hover { background:rgba(167,139,250,0.1); }
+.context-menu button.delete:hover { background:rgba(239,68,68,0.15); color:#ef4444; }

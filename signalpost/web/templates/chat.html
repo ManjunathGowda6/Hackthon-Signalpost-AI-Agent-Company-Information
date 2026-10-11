@@ -193,7 +193,9 @@
             const btn = document.createElement('button');
             btn.className = 'history-item' + (c.id === currentChatId ? ' active' : '');
             const time = new Date(c.updated).toLocaleDateString('en', {month:'short', day:'numeric'});
-            btn.innerHTML = `<span class="hi-title">${esc(c.title)}</span><span class="hi-meta">${time}</span>`;
+            btn.dataset.chatId = c.id;
+            const pin = c.pinned ? '📌 ' : '';
+            btn.innerHTML = `<span class="hi-title">${pin}${esc(c.title)}</span><span class="hi-meta">${time}</span>`;
             btn.onclick = () => {
                 // Just highlight (full restore would need server-side storage)
                 document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
@@ -219,6 +221,58 @@
 
     // Init
     renderHistory();
+    </script>
+
+    <!-- Right-click context menu -->
+    <div class="context-menu" id="contextMenu">
+        <button onclick="pinChat()">📌 Pin chat</button>
+        <button onclick="deleteChat()" class="delete">🗑️ Delete chat</button>
+    </div>
+
+    <script>
+    // ── Right-click on chat history ──
+    let contextChatId = null;
+    const ctxMenu = document.getElementById('contextMenu');
+
+    document.addEventListener('contextmenu', e => {
+        const item = e.target.closest('.history-item');
+        if (item) {
+            e.preventDefault();
+            contextChatId = item.dataset.chatId;
+            ctxMenu.style.display = 'block';
+            ctxMenu.style.left = e.pageX + 'px';
+            ctxMenu.style.top = e.pageY + 'px';
+        }
+    });
+    document.addEventListener('click', () => { ctxMenu.style.display = 'none'; });
+
+    function pinChat() {
+        if (!contextChatId) return;
+        const chats = JSON.parse(localStorage.getItem('sp_chats') || '[]');
+        const chat = chats.find(c => c.id === contextChatId);
+        if (chat) {
+            chat.pinned = !chat.pinned;
+            // Move pinned to top
+            chats.sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0));
+            localStorage.setItem('sp_chats', JSON.stringify(chats));
+            renderHistory();
+        }
+        ctxMenu.style.display = 'none';
+    }
+
+    function deleteChat() {
+        if (!contextChatId) return;
+        const chats = JSON.parse(localStorage.getItem('sp_chats') || '[]');
+        const idx = chats.findIndex(c => c.id === contextChatId);
+        if (idx >= 0) {
+            chats.splice(idx, 1);
+            localStorage.setItem('sp_chats', JSON.stringify(chats));
+            renderHistory();
+            // If deleting current chat, start new
+            if (contextChatId === currentChatId) newChat();
+        }
+        ctxMenu.style.display = 'none';
+    }
     </script>
 </body>
 </html>

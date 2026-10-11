@@ -175,6 +175,7 @@ def build_global_deep(gc):
     lines.append(f"> {gc.get('desc','')}\n")
     lines.append("---\n")
 
+    # Profile
     lines.append("## 🏢 Company Profile\n")
     lines.append("| | |")
     lines.append("|---|---|")
@@ -187,8 +188,11 @@ def build_global_deep(gc):
     lines.append(f"| **Website** | [{gc.get('website','')}]({gc.get('website','')}) |")
     lines.append(f"| **Stock Ticker** | {gc.get('stock','Private')} |")
     lines.append(f"| **Type** | {'Publicly Traded' if gc.get('stock','Private') != 'Private' else 'Private Company'} |")
+    if gc.get('founded'):
+        lines.append(f"| **Company Age** | {2026 - gc['founded']} years |")
     lines.append("")
 
+    # Financials
     lines.append("## 📊 Financial Overview\n")
     lines.append("| Metric | Value |")
     lines.append("|---|---|")
@@ -197,36 +201,65 @@ def build_global_deep(gc):
     lines.append(f"| **Market Capitalization** | {gc.get('market_cap','N/A')} |")
     if gc.get('valuation') and gc['valuation'] != 'N/A':
         lines.append(f"| **Private Valuation** | {gc['valuation']} |")
-    lines.append(f"| **Price-to-Earnings (P/E)** | {gc.get('pe_ratio','N/A')} |")
-    lines.append(f"| **Debt-to-Equity (D/E)** | {gc.get('debt_equity','N/A')} |")
+    lines.append(f"| **P/E Ratio** | {gc.get('pe_ratio','N/A')} |")
+    lines.append(f"| **Debt/Equity** | {gc.get('debt_equity','N/A')} |")
     is_profitable = gc.get('profit','').startswith('$') and 'loss' not in gc.get('profit','').lower()
     lines.append(f"| **Profitable?** | {'✅ Yes' if is_profitable else '❌ No / Pre-profit'} |")
     lines.append("")
 
+    # Products
     lines.append("## 🛠️ Products & Services\n")
     for p in gc.get('products','').split(', '):
         lines.append(f"- **{p}**")
     lines.append("")
 
-    lines.append("## 📈 Key Metrics & Highlights\n")
+    # Key Metrics
+    lines.append("## 📈 Key Metrics\n")
     for m in gc.get('key_metrics','').split('; '):
         if m.strip(): lines.append(f"- {m.strip()}")
     lines.append("")
 
+    # ✅ NEW: Pros and Cons
+    if gc.get('pros'):
+        lines.append("## ✅ Strengths (Pros)\n")
+        for p in gc['pros'].split('; '):
+            if p.strip(): lines.append(f"- ✅ {p.strip()}")
+        lines.append("")
+    if gc.get('cons'):
+        lines.append("## ⚠️ Weaknesses (Cons)\n")
+        for c in gc['cons'].split('; '):
+            if c.strip(): lines.append(f"- ⚠️ {c.strip()}")
+        lines.append("")
+
+    # ✅ NEW: History / Timeline
+    if gc.get('history'):
+        lines.append("## 📜 History & Timeline\n")
+        for h in gc['history'].split('. '):
+            h = h.strip()
+            if h: lines.append(f"- {h}.")
+        lines.append("")
+
+    # ✅ NEW: Current Situation
+    if gc.get('current_situation'):
+        lines.append("## 🔮 Current Situation & Outlook\n")
+        lines.append(f"{gc['current_situation']}\n")
+
+    # ✅ NEW: Competitors
+    if gc.get('competitors'):
+        lines.append("## 🏁 Key Competitors\n")
+        for comp in gc['competitors'].split(', '):
+            lines.append(f"- {comp.strip()}")
+        lines.append("")
+
+    # Investors
     if gc.get('investors'):
-        lines.append("## 💰 Key Investors & Backers\n")
+        lines.append("## 💰 Key Investors\n")
         lines.append(f"{gc['investors']}\n")
 
-    # Company age
-    if gc.get('founded'):
-        age = 2026 - gc['founded']
-        lines.append(f"## 📅 Company Age\n")
-        lines.append(f"Founded in **{gc['founded']}** — **{age} years** of operation.\n")
-
     if gc.get('brreg'):
-        lines.append(f"---\n🇳🇴 **Norwegian Registry:** This company has a Norwegian presence. [View Brreg details →](/company/{gc['brreg']})\n")
+        lines.append(f"---\n🇳🇴 **Norwegian Registry:** [View Brreg details →](/company/{gc['brreg']})\n")
 
-    lines.append(f"---\n*Data reflects the latest publicly available information. Ask me anything else about {gc['name']}!*")
+    lines.append(f"---\n*Data reflects latest publicly available information. Ask me anything else about {gc['name']}!*")
     return "\n".join(lines)
 
 
