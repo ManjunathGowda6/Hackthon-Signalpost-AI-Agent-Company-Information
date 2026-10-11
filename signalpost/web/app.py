@@ -114,16 +114,16 @@ def fuzzy_find_global(query):
     best, best_s = None, 0
     for gc in GLOBAL_COMPANIES:
         s = fuzzy_score(q, gc["name"])
-        # Also match against tags
-        for tag in gc.get("tags","").split(","):
+        # Match against tags but with higher threshold (0.7) to avoid false positives
+        for tag in gc.get('tags','').split(','):
             tag = tag.strip()
-            if tag: s = max(s, fuzzy_score(q, tag))
+            if len(tag) >= 4:
+                ts = fuzzy_score(q, tag)
+                if ts >= 0.7: s = max(s, ts)
+        # Match individual words against company name only
         for w in words:
             if len(w) >= 3:
                 s = max(s, fuzzy_score(w, gc["name"]))
-                for tag in gc.get("tags","").split(","):
-                    tag = tag.strip()
-                    if tag: s = max(s, fuzzy_score(w, tag))
         if s > best_s and s >= 0.55: best_s, best = s, gc
     return best
 
