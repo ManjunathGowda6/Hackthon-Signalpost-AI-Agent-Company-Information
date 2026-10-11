@@ -1,96 +1,124 @@
-{% extends "base.html" %}
-{% block title %}AI Chat{% endblock %}
-{% block content %}
-<div class="chat-container">
-    <div class="chat-header">
-        <h2>🤖 Signalpost AI Assistant</h2>
-        <p class="muted">Ask me about any company — Norwegian or global. Try "Tell me about OpenAI" or "Show IT companies"</p>
-    </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signalpost AI — Company Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/chat.css">
+</head>
+<body>
+    <div class="app">
+        <div class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">◆</div>
+                <span class="brand-text">Signalpost</span>
+                <span class="brand-badge">AI</span>
+            </div>
+            <div class="sidebar-section">
+                <div class="section-label">Quick Ask</div>
+                <button class="sidebar-btn" onclick="quickAsk('Tell me about OpenAI')">🤖 OpenAI</button>
+                <button class="sidebar-btn" onclick="quickAsk('Tell me about Anthropic')">🧠 Anthropic</button>
+                <button class="sidebar-btn" onclick="quickAsk('Tell me about NVIDIA')">💻 NVIDIA</button>
+                <button class="sidebar-btn" onclick="quickAsk('Tell me about Tesla')">🚗 Tesla</button>
+                <button class="sidebar-btn" onclick="quickAsk('Tell me about Google')">🔍 Google</button>
+                <button class="sidebar-btn" onclick="quickAsk('Tell me about TCS')">🏢 TCS</button>
+                <button class="sidebar-btn" onclick="quickAsk('Tell me about Microsoft')">🪟 Microsoft</button>
+                <button class="sidebar-btn" onclick="quickAsk('Tell me about Apple')">🍎 Apple</button>
+            </div>
+            <div class="sidebar-section">
+                <div class="section-label">🇳🇴 Norwegian</div>
+                <button class="sidebar-btn" onclick="quickAsk('Tell me about Equinor')">⛽ Equinor</button>
+                <button class="sidebar-btn" onclick="quickAsk('Tell me about DNB')">🏦 DNB</button>
+                <button class="sidebar-btn" onclick="quickAsk('Tell me about Telenor')">📡 Telenor</button>
+                <button class="sidebar-btn" onclick="quickAsk('Tell me about Kahoot')">🎮 Kahoot!</button>
+            </div>
+            <div class="sidebar-section">
+                <div class="section-label">Sectors</div>
+                <button class="sidebar-btn" onclick="quickAsk('Show IT & Software sector')">💻 IT & Software</button>
+                <button class="sidebar-btn" onclick="quickAsk('Show Banking & Finance sector')">🏦 Banking</button>
+                <button class="sidebar-btn" onclick="quickAsk('Show Automotive sector')">🚗 Automotive</button>
+                <button class="sidebar-btn" onclick="quickAsk('Show Healthcare sector')">🏥 Healthcare</button>
+                <button class="sidebar-btn" onclick="quickAsk('Show all sectors')">📋 All Sectors</button>
+            </div>
+            <div class="sidebar-footer">
+                <span class="sidebar-stat">53K+ 🇳🇴 companies</span>
+                <span class="sidebar-stat">30+ 🌍 global</span>
+            </div>
+        </div>
 
-    <div class="chat-messages" id="chat-messages">
-        <div class="chat-msg bot">
-            <div class="msg-avatar">🤖</div>
-            <div class="msg-bubble">
-                <p>Hi! I'm the Signalpost AI Assistant. I can tell you about:</p>
-                <ul>
-                    <li>🌍 <strong>Global companies</strong> — OpenAI, Google, TCS, Tesla...</li>
-                    <li>🇳🇴 <strong>53,000+ Norwegian companies</strong> from all sectors</li>
-                    <li>📊 <strong>Financials, leadership, evidence</strong> for enriched profiles</li>
-                    <li>🏭 <strong>Sector browsing</strong> — "Show Healthcare companies"</li>
-                </ul>
-                <p>What would you like to know?</p>
+        <div class="chat-main">
+            <div class="chat-messages" id="chat-messages">
+                <div class="welcome-screen" id="welcome">
+                    <div class="welcome-icon">◆</div>
+                    <h1>Signalpost AI</h1>
+                    <p class="welcome-sub">Your Company Intelligence Assistant</p>
+                    <p class="welcome-desc">Ask me about any company — I'll give you screener-style details including financials, leadership, products, and key metrics.</p>
+                    <div class="welcome-chips">
+                        <button class="chip" onclick="quickAsk('Tell me about OpenAI')">What is OpenAI?</button>
+                        <button class="chip" onclick="quickAsk('Tell me about TCS')">TCS overview</button>
+                        <button class="chip" onclick="quickAsk('Tell me about Equinor')">Equinor details</button>
+                        <button class="chip" onclick="quickAsk('Show IT & Software sector')">IT sector companies</button>
+                        <button class="chip" onclick="quickAsk('Tell me about NVIDIA')">NVIDIA financials</button>
+                        <button class="chip" onclick="quickAsk('Tell me about Anthropic')">About Anthropic</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-area">
+                <div class="input-container">
+                    <input type="text" id="chat-input" placeholder="Ask about any company... (e.g. OpenAI, TCS, Equinor)" autofocus>
+                    <button class="send-btn" onclick="sendMessage()" id="send-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="chat-input-wrap">
-        <input type="text" id="chat-input" placeholder="Ask about any company..." autofocus>
-        <button class="btn btn-primary" onclick="sendMessage()" id="send-btn">Send</button>
-    </div>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+    const input = document.getElementById('chat-input');
+    const messages = document.getElementById('chat-messages');
+    const welcome = document.getElementById('welcome');
 
-    <div class="quick-actions">
-        <button class="chip" onclick="quickAsk('Tell me about OpenAI')">OpenAI</button>
-        <button class="chip" onclick="quickAsk('Tell me about Anthropic')">Anthropic</button>
-        <button class="chip" onclick="quickAsk('Tell me about Equinor')">Equinor</button>
-        <button class="chip" onclick="quickAsk('Tell me about TCS')">TCS</button>
-        <button class="chip" onclick="quickAsk('Show IT companies')">IT Sector</button>
-        <button class="chip" onclick="quickAsk('Show Banking companies')">Banking</button>
-        <button class="chip" onclick="quickAsk('Tell me about Tesla')">Tesla</button>
-        <button class="chip" onclick="quickAsk('Tell me about NVIDIA')">NVIDIA</button>
-    </div>
-</div>
+    input.addEventListener('keyup', e => { if(e.key==='Enter') sendMessage(); });
 
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script>
-const input = document.getElementById('chat-input');
-const messages = document.getElementById('chat-messages');
+    function quickAsk(text) { input.value = text; sendMessage(); }
 
-input.addEventListener('keyup', e => { if(e.key==='Enter') sendMessage(); });
+    async function sendMessage() {
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = '';
+        if (welcome) welcome.style.display = 'none';
 
-function quickAsk(text) {
-    input.value = text;
-    sendMessage();
-}
+        messages.innerHTML += `<div class="chat-msg user"><div class="msg-content"><div class="msg-bubble">${esc(text)}</div></div></div>`;
+        messages.scrollTop = messages.scrollHeight;
 
-async function sendMessage() {
-    const text = input.value.trim();
-    if (!text) return;
-    input.value = '';
+        const tid = 'T' + Date.now();
+        messages.innerHTML += `<div class="chat-msg bot" id="${tid}"><div class="msg-avatar">◆</div><div class="msg-content"><div class="msg-bubble typing"><div class="typing-dots"><span></span><span></span><span></span></div></div></div></div>`;
+        messages.scrollTop = messages.scrollHeight;
 
-    // Add user message
-    messages.innerHTML += `<div class="chat-msg user"><div class="msg-bubble">${escapeHtml(text)}</div><div class="msg-avatar">👤</div></div>`;
-    messages.scrollTop = messages.scrollHeight;
-
-    // Show typing
-    const typingId = 'typing-' + Date.now();
-    messages.innerHTML += `<div class="chat-msg bot" id="${typingId}"><div class="msg-avatar">🤖</div><div class="msg-bubble typing">Thinking...</div></div>`;
-    messages.scrollTop = messages.scrollHeight;
-
-    try {
-        const resp = await fetch('/api/chat', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({message: text}),
-        });
-        const data = await resp.json();
-        const el = document.getElementById(typingId);
-        if (el) {
-            const html = marked.parse(data.reply || 'No response');
-            const sourceTag = data.source === 'global' ? '<span class="source-tag global">🌍 Global</span>'
-                : data.source === 'live_brreg' ? '<span class="source-tag live">⚡ Live</span>'
-                : data.source === 'norwegian' ? '<span class="source-tag nor">🇳🇴 Norwegian</span>' : '';
-            el.querySelector('.msg-bubble').innerHTML = sourceTag + html;
-            el.querySelector('.msg-bubble').classList.remove('typing');
+        try {
+            const resp = await fetch('/api/chat', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})});
+            const data = await resp.json();
+            const el = document.getElementById(tid);
+            if (el) {
+                const html = marked.parse(data.reply || 'No response');
+                const src = data.source === 'global' ? '<div class="source-badge global">🌍 Global Company</div>'
+                    : data.source === 'live' ? '<div class="source-badge live">⚡ Live from Brreg</div>'
+                    : data.source === 'norwegian' ? '<div class="source-badge nor">🇳🇴 Norwegian Registry</div>' : '';
+                el.querySelector('.msg-bubble').innerHTML = src + '<div class="msg-markdown">' + html + '</div>';
+                el.querySelector('.msg-bubble').classList.remove('typing');
+            }
+        } catch(err) {
+            const el = document.getElementById(tid);
+            if (el) el.querySelector('.msg-bubble').innerHTML = '❌ Connection error. Please try again.';
         }
-    } catch (err) {
-        const el = document.getElementById(typingId);
-        if (el) el.querySelector('.msg-bubble').innerHTML = 'Sorry, something went wrong.';
+        messages.scrollTop = messages.scrollHeight;
     }
-    messages.scrollTop = messages.scrollHeight;
-}
 
-function escapeHtml(t) {
-    return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-</script>
-{% endblock %}
+    function esc(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    </script>
+</body>
+</html>
