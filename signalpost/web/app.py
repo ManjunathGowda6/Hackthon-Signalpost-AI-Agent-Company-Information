@@ -110,7 +110,7 @@ def fuzzy_find_global(query):
                 if phrase in GLOBAL_INDEX: return GLOBAL_INDEX[phrase]
     # 4. Single word index lookup (last resort)
     for w in words:
-        if len(w) >= 3 and w in GLOBAL_INDEX: return GLOBAL_INDEX[w]
+        if len(w) >= 4 and w in GLOBAL_INDEX: return GLOBAL_INDEX[w]
     best, best_s = None, 0
     for gc in GLOBAL_COMPANIES:
         s = fuzzy_score(q, gc["name"])
@@ -120,11 +120,12 @@ def fuzzy_find_global(query):
             if len(tag) >= 4:
                 ts = fuzzy_score(q, tag)
                 if ts >= 0.7: s = max(s, ts)
-        # Match individual words against company name only
+        # Match individual words against company name (strict)
         for w in words:
-            if len(w) >= 3:
-                s = max(s, fuzzy_score(w, gc["name"]))
-        if s > best_s and s >= 0.6: best_s, best = s, gc
+            if len(w) >= 4:
+                ws = fuzzy_score(w, gc['name'])
+                if ws > 0.65: s = max(s, ws)
+        if s > best_s and s > 0.6: best_s, best = s, gc
     return best
 
 
