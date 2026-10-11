@@ -169,14 +169,13 @@ def fmt(v):
 
 
 def build_global_deep(gc):
-    """Build COMPREHENSIVE A-Z response with everything we know."""
+    """Build COMPREHENSIVE A-Z response."""
     lines = []
     lines.append(f"# {gc['name']}\n")
     lines.append(f"> {gc.get('desc','')}\n")
     lines.append("---\n")
 
-    # Profile
-    lines.append("## 🏢 Company Profile\n")
+    lines.append("## \U0001f3e2 Company Profile\n")
     lines.append("| | |")
     lines.append("|---|---|")
     lines.append(f"| **Full Name** | {gc['name']} |")
@@ -192,72 +191,84 @@ def build_global_deep(gc):
         lines.append(f"| **Company Age** | {2026 - gc['founded']} years |")
     lines.append("")
 
-    # Financials
-    lines.append("## 📊 Financial Overview\n")
+    lines.append("## \U0001f4ca Financial Overview\n")
     lines.append("| Metric | Value |")
     lines.append("|---|---|")
     lines.append(f"| **Annual Revenue** | {gc.get('revenue','N/A')} |")
     lines.append(f"| **Net Profit** | {gc.get('profit','N/A')} |")
     lines.append(f"| **Market Capitalization** | {gc.get('market_cap','N/A')} |")
-    if gc.get('valuation') and gc['valuation'] != 'N/A':
-        lines.append(f"| **Private Valuation** | {gc['valuation']} |")
+    v = gc.get('valuation','N/A')
+    if v and v != 'N/A':
+        lines.append(f"| **Private Valuation** | {v} |")
     lines.append(f"| **P/E Ratio** | {gc.get('pe_ratio','N/A')} |")
     lines.append(f"| **Debt/Equity** | {gc.get('debt_equity','N/A')} |")
-    is_profitable = gc.get('profit','').startswith('$') and 'loss' not in gc.get('profit','').lower()
-    lines.append(f"| **Profitable?** | {'✅ Yes' if is_profitable else '❌ No / Pre-profit'} |")
+    pr = gc.get('profit','')
+    is_prof = pr.startswith('$') and 'loss' not in pr.lower()
+    lines.append(f"| **Profitable?** | {'\u2705 Yes' if is_prof else '\u274c No / Pre-profit'} |")
     lines.append("")
 
-    # Products
-    lines.append("## 🛠️ Products & Services\n")
+    lines.append("## \U0001f6e0\ufe0f Products & Services\n")
     for p in gc.get('products','').split(', '):
         lines.append(f"- **{p}**")
     lines.append("")
 
-    # Key Metrics
-    lines.append("## 📈 Key Metrics\n")
+    lines.append("## \U0001f4c8 Key Metrics\n")
     for m in gc.get('key_metrics','').split('; '):
-        if m.strip(): lines.append(f"- {m.strip()}")
+        if m.strip():
+            lines.append(f"- {m.strip()}")
     lines.append("")
 
-    # ✅ NEW: Pros and Cons
-    if gc.get('pros'):
-        lines.append("## ✅ Strengths (Pros)\n")
-        for p in gc['pros'].split('; '):
-            if p.strip(): lines.append(f"- ✅ {p.strip()}")
-        lines.append("")
-    if gc.get('cons'):
-        lines.append("## ⚠️ Weaknesses (Cons)\n")
-        for c in gc['cons'].split('; '):
-            if c.strip(): lines.append(f"- ⚠️ {c.strip()}")
+    # Pros
+    pros = gc.get('pros','')
+    if pros:
+        lines.append("## \u2705 Strengths (Pros)\n")
+        for p in pros.split('; '):
+            if p.strip():
+                lines.append(f"- \u2705 {p.strip()}")
         lines.append("")
 
-    # ✅ NEW: History / Timeline
-    if gc.get('history'):
-        lines.append("## 📜 History & Timeline\n")
-        for h in gc['history'].split('. '):
-            h = h.strip()
-            if h: lines.append(f"- {h}.")
+    # Cons
+    cons = gc.get('cons','')
+    if cons:
+        lines.append("## \u26a0\ufe0f Weaknesses (Cons)\n")
+        for c in cons.split('; '):
+            if c.strip():
+                lines.append(f"- \u26a0\ufe0f {c.strip()}")
         lines.append("")
 
-    # ✅ NEW: Current Situation
-    if gc.get('current_situation'):
-        lines.append("## 🔮 Current Situation & Outlook\n")
-        lines.append(f"{gc['current_situation']}\n")
+    # History
+    hist = gc.get('history','')
+    if hist:
+        lines.append("## \U0001f4dc History & Timeline\n")
+        for h in hist.split('. '):
+            h = h.strip().rstrip('.')
+            if h:
+                lines.append(f"- {h}")
+        lines.append("")
 
-    # ✅ NEW: Competitors
-    if gc.get('competitors'):
-        lines.append("## 🏁 Key Competitors\n")
-        for comp in gc['competitors'].split(', '):
-            lines.append(f"- {comp.strip()}")
+    # Current Situation
+    cur = gc.get('current_situation','')
+    if cur:
+        lines.append("## \U0001f52e Current Situation & Outlook\n")
+        lines.append(f"{cur}\n")
+
+    # Competitors
+    comp = gc.get('competitors','')
+    if comp:
+        lines.append("## \U0001f3c1 Key Competitors\n")
+        for c in comp.split(', '):
+            lines.append(f"- {c.strip()}")
         lines.append("")
 
     # Investors
-    if gc.get('investors'):
-        lines.append("## 💰 Key Investors\n")
-        lines.append(f"{gc['investors']}\n")
+    inv = gc.get('investors','')
+    if inv:
+        lines.append("## \U0001f4b0 Key Investors\n")
+        lines.append(f"{inv}\n")
 
-    if gc.get('brreg'):
-        lines.append(f"---\n🇳🇴 **Norwegian Registry:** [View Brreg details →](/company/{gc['brreg']})\n")
+    brreg = gc.get('brreg','')
+    if brreg:
+        lines.append(f"---\n\U0001f1f3\U0001f1f4 **Norwegian Registry:** [View Brreg details \u2192](/company/{brreg})\n")
 
     lines.append(f"---\n*Data reflects latest publicly available information. Ask me anything else about {gc['name']}!*")
     return "\n".join(lines)
