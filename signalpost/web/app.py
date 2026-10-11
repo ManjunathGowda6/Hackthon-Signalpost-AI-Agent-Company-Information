@@ -37,7 +37,7 @@ ALIASES = {
     "anthropic":["antropic","anthopic","claude ai","claude"],
     "deepmind":["deep mind","google deepmind"],"mistral":["mistral ai"],
     "tcs":["tata consultancy","tata consulting"],
-    "infosys":["infy","infosis"],"wipro":["wipro ltd"],
+    "infosys":["infy","infosis","infosys ltd","infosys limited"],"wipro":["wipro ltd"],
     "hcltech":["hcl tech","hcl"],"toyota":["toyata"],
     "bmw":["bayerische"],"equinor":["equnor","statoil"],
     "telenor":["telner"],"dnb":["dnb bank"],
@@ -76,6 +76,10 @@ def load_all():
             for key, alt_list in ALIASES.items():
                 if key in name:
                     for alt in alt_list: GLOBAL_INDEX[alt] = gc
+            # Index by tags too
+            for tag in gc.get("tags","").split(","):
+                tag = tag.strip()
+                if len(tag) >= 2: GLOBAL_INDEX[tag] = gc
         print(f"  Loaded {len(GLOBAL_COMPANIES)} global companies ({len(GLOBAL_INDEX)} search keys)")
 
 
@@ -96,8 +100,16 @@ def fuzzy_find_global(query):
     best, best_s = None, 0
     for gc in GLOBAL_COMPANIES:
         s = fuzzy_score(q, gc["name"])
+        # Also match against tags
+        for tag in gc.get("tags","").split(","):
+            tag = tag.strip()
+            if tag: s = max(s, fuzzy_score(q, tag))
         for w in words:
-            if len(w) >= 3: s = max(s, fuzzy_score(w, gc["name"]))
+            if len(w) >= 3:
+                s = max(s, fuzzy_score(w, gc["name"]))
+                for tag in gc.get("tags","").split(","):
+                    tag = tag.strip()
+                    if tag: s = max(s, fuzzy_score(w, tag))
         if s > best_s and s >= 0.45: best_s, best = s, gc
     return best
 
