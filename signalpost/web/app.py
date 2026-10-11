@@ -124,7 +124,7 @@ def fuzzy_find_global(query):
                 for tag in gc.get("tags","").split(","):
                     tag = tag.strip()
                     if tag: s = max(s, fuzzy_score(w, tag))
-        if s > best_s and s >= 0.45: best_s, best = s, gc
+        if s > best_s and s >= 0.55: best_s, best = s, gc
     return best
 
 
