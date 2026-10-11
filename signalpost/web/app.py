@@ -419,6 +419,41 @@ def enrich_live(org_number):
     except: return None
 
 
+
+# ── Web Enrichment for Detail Queries ──
+import urllib.request, urllib.parse
+
+def web_enrich_company(company_name):
+    """Fetch extra info from Wikipedia for deeper detail."""
+    try:
+        wiki_url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(company_name)}"
+        req = urllib.request.Request(wiki_url, headers={"User-Agent": "SignalpostBot/1.0"})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read().decode())
+            if data.get("type") == "standard":
+                return data.get("extract", "")
+    except Exception:
+        pass
+    return ""
+
+def web_search_company(query):
+    """Search Wikipedia for unknown companies."""
+    try:
+        wiki_url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(query)}"
+        req = urllib.request.Request(wiki_url, headers={"User-Agent": "SignalpostBot/1.0"})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read().decode())
+            if data.get("type") == "standard" and data.get("extract"):
+                title = data.get("title", query)
+                extract = data.get("extract", "")
+                reply = f"# {title}\n\n> {extract[:300]}{'...' if len(extract) > 300 else ''}\n\n---\n\n"
+                reply += f"*This company is not in our detailed database ({len(GLOBAL_COMPANIES)} companies indexed).*\n"
+                reply += f"*For full A-Z analysis, this company needs to be added to our knowledge base.*"
+                return reply, title
+    except Exception:
+        pass
+    return None
+
 @app.route("/")
 def index():
     return render_template("chat.html")
@@ -441,7 +476,13 @@ def api_chat():
         # Re-search the last company
         gc = fuzzy_find_global(last_company_name)
         if gc:
-            return jsonify({"reply": build_global_deep(gc), "type":"company", "source":"global", "company":gc["name"]})
+            reply = build_global_deep(gc)
+            detail_words = ['detail','more','explain','everything','complete','full','depth','elaborate','deep','all about']
+            if any(dw in msg.lower() for dw in detail_words):
+                wiki = web_enrich_company(gc["name"])
+                if wiki:
+                    reply += "\n\n## 🌐 Additional Context (Live Web)\n\n" + wiki + "\n"
+            return jsonify({"reply": reply, "type":"company", "source":"global", "company":gc["name"]})
         nor = fuzzy_find_norwegian(last_company_name)
         if nor:
             c = nor[0]
@@ -474,7 +515,13 @@ Just type any company name!""","type":"help","company":""})
     # ── Global company (fuzzy) ──
     gc = fuzzy_find_global(clean_q or msg)
     if gc:
-        return jsonify({"reply": build_global_deep(gc), "type":"company", "source":"global", "company":gc["name"]})
+        reply = build_global_deep(gc)
+        detail_words = ['detail','more','explain','everything','complete','full','depth','elaborate','deep','all about']
+        if any(dw in msg.lower() for dw in detail_words):
+            wiki = web_enrich_company(gc["name"])
+            if wiki:
+                reply += "\n\n## 🌐 Additional Context (Live Web)\n\n" + wiki + "\n"
+        return jsonify({"reply": reply, "type":"company", "source":"global", "company":gc["name"]})
 
     # ── Norwegian company (fuzzy) ──
     nor = fuzzy_find_norwegian(clean_q or msg)
