@@ -36,7 +36,7 @@ ALIASES = {
     "samsung":["samsng"],"openai":["opn ai","open ai","chatgpt","gpt"],
     "anthropic":["antropic","anthopic","claude ai","claude"],
     "deepmind":["deep mind","google deepmind"],"mistral":["mistral ai"],
-    "tcs":["tata consultancy","tata consulting"],
+    "tcs":["tata consultancy","tata consulting"],"tata motors":["tatamotors","tata motor"],
     "infosys":["infy","infosis","infosys ltd","infosys limited"],"wipro":["wipro ltd"],
     "hcltech":["hcl tech","hcl"],"toyota":["toyata"],
     "bmw":["bayerische"],"equinor":["equnor","statoil"],
@@ -93,8 +93,22 @@ def fuzzy_score(q, t):
 
 def fuzzy_find_global(query):
     q = query.lower().strip()
+    # 1. Exact full query match
     if q in GLOBAL_INDEX: return GLOBAL_INDEX[q]
+    # 2. Try full query as fuzzy match against company names FIRST (priority)
+    best_full, best_full_s = None, 0
+    for gc in GLOBAL_COMPANIES:
+        s = fuzzy_score(q, gc["name"])
+        if s > best_full_s: best_full_s, best_full = s, gc
+    if best_full_s >= 0.6: return best_full
+    # 3. Try multi-word combinations
     words = re.findall(r'\w+', q)
+    if len(words) >= 2:
+        for i in range(len(words)):
+            for j in range(i+1, len(words)+1):
+                phrase = ' '.join(words[i:j])
+                if phrase in GLOBAL_INDEX: return GLOBAL_INDEX[phrase]
+    # 4. Single word index lookup (last resort)
     for w in words:
         if len(w) >= 3 and w in GLOBAL_INDEX: return GLOBAL_INDEX[w]
     best, best_s = None, 0
