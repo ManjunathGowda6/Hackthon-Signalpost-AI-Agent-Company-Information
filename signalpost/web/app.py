@@ -451,7 +451,7 @@ def web_enrich_company(company_name):
     return ""
 
 def web_search_company(query):
-    """Search web for unknown companies: Wikipedia + DuckDuckGo Lite scraping."""
+    """Search web for unknown companies: Wikipedia + DuckDuckGo Lite (httpx)."""
     import urllib.request, urllib.parse, re as regex
 
     q = query.strip()
@@ -479,43 +479,46 @@ def web_search_company(query):
     except Exception:
         pass
 
-    # ── Layer 2: DuckDuckGo Lite HTML scraping (works for ANY company) ──
+    # ── Layer 2: DuckDuckGo Lite via httpx (bypasses bot detection) ──
     ddg_results = []
     try:
         search_q = urllib.parse.quote(q + " company")
-        ddg_url = f"https://lite.duckduckgo.com/lite/?q={search_q}"
-        req = urllib.request.Request(ddg_url, headers={
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        })
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            html = resp.read().decode("utf-8", errors="ignore")
-            # Parse DuckDuckGo Lite results
-            # Links are in <a rel="nofollow" href="..."> tags
-            link_pattern = regex.compile(
-                r'<a rel="nofollow" href="[^"]*uddg=([^"&]+)[^"]*"[^>]*>\s*(.*?)\s*</a>',
-                regex.DOTALL
+        with httpx.Client(timeout=10, follow_redirects=True) as client:
+            resp = client.get(
+                f"https://lite.duckduckgo.com/lite/?q={search_q}",
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                    "Accept": "text/html,application/xhtml+xml",
+                    "Accept-Language": "en-US,en;q=0.9",
+                }
             )
-            snippet_pattern = regex.compile(r'<td class="result-snippet">(.*?)</td>', regex.DOTALL)
-            
-            links = link_pattern.findall(html)
-            snippets = snippet_pattern.findall(html)
-            
-            for i, (url_enc, title_html) in enumerate(links[:5]):
-                clean_title = regex.sub(r'<[^>]+>', '', title_html).strip()
-                clean_url = urllib.parse.unquote(url_enc)
-                clean_snippet = ""
-                if i < len(snippets):
-                    clean_snippet = regex.sub(r'<[^>]+>', '', snippets[i]).strip()
-                if clean_title:
-                    ddg_results.append({
-                        "title": clean_title,
-                        "snippet": clean_snippet,
-                        "url": clean_url
-                    })
-                    # Use first DDG result as summary if no Wikipedia
-                    if not wiki_summary and clean_snippet:
-                        wiki_summary = clean_snippet
-                        wiki_title = clean_title
+            if resp.status_code == 200:
+                html = resp.text
+                # Parse DDG Lite HTML — links contain uddg= redirect URLs
+                link_pattern = regex.compile(
+                    r'<a[^>]*href="[^"]*uddg=([^"&]+)[^"]*"[^>]*>(.*?)</a>',
+                    regex.DOTALL
+                )
+                snippet_pattern = regex.compile(
+                    r'<td[^>]*class="result-snippet"[^>]*>(.*?)</td>',
+                    regex.DOTALL
+                )
+                links = link_pattern.findall(html)
+                snippets = snippet_pattern.findall(html)
+
+                for i, (url_enc, title_html) in enumerate(links[:5]):
+                    clean_title = regex.sub(r'<[^>]+>', '', title_html).strip()
+                    clean_url = urllib.parse.unquote(url_enc)
+                    clean_snippet = ""
+                    if i < len(snippets):
+                        clean_snippet = regex.sub(r'<[^>]+>', '', snippets[i]).strip()
+                    if clean_title:
+                        ddg_results.append({
+                            "title": clean_title, "snippet": clean_snippet, "url": clean_url
+                        })
+                        if not wiki_summary and clean_snippet:
+                            wiki_summary = clean_snippet
+                            wiki_title = clean_title
     except Exception:
         pass
 
@@ -545,7 +548,6 @@ def web_search_company(query):
         lines.append("")
         lines.append("---")
         lines.append("")
-
     if ddg_results:
         lines.append("## \U0001f310 Web Search Results")
         lines.append("")
@@ -556,10 +558,8 @@ def web_search_company(query):
             if r.get("url"):
                 lines.append(f"[Source]({r['url']})")
             lines.append("")
-
     lines.append("---")
     lines.append(f"*\U0001f50d Real-time web search. Not in our database of **{len(GLOBAL_COMPANIES)} indexed companies**.*")
-
     return "\n".join(lines), wiki_title
 
 
