@@ -451,24 +451,25 @@ def web_enrich_company(company_name):
     return ""
 
 def web_search_company(query):
-    """Search Wikipedia for unknown companies — reliable, fast, no rate limits."""
+    """Search the web for unknown companies — Wikipedia + DuckDuckGo HTML scraping."""
     import urllib.request, urllib.parse
 
     # Step 1: Wikipedia SEARCH API (handles typos, finds relevant pages)
+    wiki_summary = ""
+    wiki_title = query.title()
+    search_results = []
     try:
         search_url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={urllib.parse.quote(query + ' company')}&format=json&srlimit=5"
         req = urllib.request.Request(search_url, headers={"User-Agent": "SignalpostBot/1.0"})
         with urllib.request.urlopen(req, timeout=5) as resp:
             data = json.loads(resp.read().decode())
-            results = data.get("query", {}).get("search", [])
+            search_results = data.get("query", {}).get("search", [])
     except Exception:
-        results = []
+        pass
 
-    # Step 2: Get summary of the best matching page
-    wiki_summary = ""
-    wiki_title = query.title()
-    if results:
-        best_page = results[0].get("title", "")
+    # Get summary of best matching Wikipedia page
+    if search_results:
+        best_page = search_results[0].get("title", "")
         try:
             summary_url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(best_page)}"
             req = urllib.request.Request(summary_url, headers={"User-Agent": "SignalpostBot/1.0"})
@@ -480,24 +481,57 @@ def web_search_company(query):
         except Exception:
             pass
 
-    # Step 3: Also try DuckDuckGo Instant Answers (free, no rate limit)
+    # Step 2: DuckDuckGo Instant Answers API (free, reliable)
     ddg_abstract = ""
+    ddg_related = []
     try:
         ddg_url = f"https://api.duckduckgo.com/?q={urllib.parse.quote(query)}&format=json&no_html=1&skip_disambig=1"
         req = urllib.request.Request(ddg_url, headers={"User-Agent": "SignalpostBot/1.0"})
-        with urllib.request.urlopen(req, timeout=3) as resp:
+        with urllib.request.urlopen(req, timeout=5) as resp:
             data = json.loads(resp.read().decode())
             ddg_abstract = data.get("AbstractText", "")
             if ddg_abstract and not wiki_summary:
                 wiki_summary = ddg_abstract
                 wiki_title = data.get("Heading", wiki_title)
+            for topic in data.get("RelatedTopics", [])[:5]:
+                if isinstance(topic, dict) and topic.get("Text"):
+                    ddg_related.append({"text": topic["Text"], "url": topic.get("FirstURL", "")})
     except Exception:
         pass
 
-    if not wiki_summary and not results:
+    # Step 3: DuckDuckGo HTML scraping via httpx (last resort for small companies)
+    html_results = []
+    if not wiki_summary and not ddg_abstract:
+        try:
+            search_q = urllib.parse.quote(query + " company")
+            ddg_html_url = f"https://html.duckduckgo.com/html/?q={search_q}"
+            req = urllib.request.Request(ddg_html_url, headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            })
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                html = resp.read().decode("utf-8", errors="ignore")
+                # Parse results from HTML
+                import re as regex
+                result_blocks = regex.findall(
+                    r'<a rel="nofollow" class="result__a" href="[^"]*"[^>]*>(.*?)</a>.*?<a class="result__snippet"[^>]*>(.*?)</a>',
+                    html, regex.DOTALL
+                )
+                for title_html, snippet_html in result_blocks[:5]:
+                    clean_title = regex.sub(r'<[^>]+>', '', title_html).strip()
+                    clean_snippet = regex.sub(r'<[^>]+>', '', snippet_html).strip()
+                    if clean_title:
+                        html_results.append({"title": clean_title, "snippet": clean_snippet})
+                        if not wiki_summary and clean_snippet:
+                            wiki_summary = clean_snippet
+                            wiki_title = clean_title
+        except Exception:
+            pass
+
+    # If nothing found at all, return None
+    if not wiki_summary and not search_results and not ddg_related and not html_results:
         return None
 
-    # Build rich response
+    # Build response
     lines = []
     lines.append(f"# {wiki_title}")
     lines.append("")
@@ -508,26 +542,40 @@ def web_search_company(query):
         lines.append("---")
         lines.append("")
 
-    if results and len(results) > 1:
-        lines.append("## \U0001f310 Related Search Results")
-        lines.append("")
-        for i, r in enumerate(results[:5]):
+    # Show search results
+    all_results = []
+    if search_results:
+        for r in search_results[:3]:
             title = r.get("title", "")
             snippet = r.get("snippet", "").replace('<span class="searchmatch">', "**").replace("</span>", "**")
-            lines.append(f"**{i+1}. {title}**")
-            lines.append(f"{snippet}")
-            lines.append(f"[Wikipedia](https://en.wikipedia.org/wiki/{urllib.parse.quote(title)})")
+            all_results.append({"title": title, "snippet": snippet, "url": f"https://en.wikipedia.org/wiki/{urllib.parse.quote(title)}"})
+
+    if html_results:
+        for r in html_results[:3]:
+            all_results.append({"title": r["title"], "snippet": r["snippet"], "url": ""})
+
+    if ddg_related:
+        for r in ddg_related[:3]:
+            all_results.append({"title": r["text"][:80], "snippet": r["text"], "url": r["url"]})
+
+    if all_results:
+        lines.append("## \U0001f310 Web Search Results")
+        lines.append("")
+        for i, r in enumerate(all_results[:5]):
+            lines.append(f"**{i+1}. {r['title']}**")
+            if r['snippet']:
+                lines.append(f"{r['snippet'][:200]}")
+            if r.get('url'):
+                lines.append(f"[Source]({r['url']})")
             lines.append("")
 
     lines.append("---")
     lines.append("")
     lines.append(f"*\U0001f50d Real-time web search. Not in our database of **{len(GLOBAL_COMPANIES)} indexed companies**.*")
-    lines.append(f"*For indexed companies, you get full A-Z analysis with pros, cons, history & competitors.*")
 
     return "\n".join(lines), wiki_title
 
 
-@app.route("/")
 def index():
     return render_template("chat.html")
 
