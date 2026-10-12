@@ -130,21 +130,35 @@ def fuzzy_find_global(query):
 
 
 def fuzzy_find_norwegian(query):
+    """Find Norwegian companies — stricter matching to avoid false positives."""
     q = query.lower().strip()
-    words = [w for w in re.findall(r'\w+', q) if len(w) >= 2]
-    matches = []
+    if not q or len(q) < 2:
+        return None
+    # Exact match by org number
+    if q.isdigit() and len(q) == 9:
+        for c in ALL_COMPANIES:
+            if str(c.get("o","")) == q:
+                return [c]
+    # Exact name match
+    exact = [c for c in ALL_COMPANIES if c.get("n","").lower() == q]
+    if exact:
+        return exact[:5]
+    # Fuzzy match — require high score (0.7+) to avoid false positives
+    from difflib import SequenceMatcher
+    scored = []
     for c in ALL_COMPANIES:
-        n = (c.get("n") or "").lower()
-        if not n: continue
-        if q in n: matches.append((c, 0.95)); continue
-        for w in words:
-            if w in n: matches.append((c, 0.8)); break
-        else:
-            s = fuzzy_score(q, n)
-            if s >= 0.6: matches.append((c, s))
-        if len(matches) >= 10: break
-    matches.sort(key=lambda x: (-x[1], -(x[0].get("e",0) or 0)))
-    return [m[0] for m in matches[:5]]
+        name = c.get("n","").lower()
+        s = SequenceMatcher(None, q, name).ratio()
+        if s >= 0.7:
+            scored.append((s, c))
+    if scored:
+        scored.sort(key=lambda x: -x[0])
+        return [x[1] for x in scored[:5]]
+    # Substring match — name contains query or query contains name
+    contains = [c for c in ALL_COMPANIES if q in c.get("n","").lower() or c.get("n","").lower() in q]
+    if contains:
+        return contains[:5]
+    return None
 
 
 def extract_intent(msg):
