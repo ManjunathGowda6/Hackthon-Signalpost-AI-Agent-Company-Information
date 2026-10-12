@@ -451,126 +451,113 @@ def web_enrich_company(company_name):
     return ""
 
 def web_search_company(query):
-    """Search the web for unknown companies — Wikipedia + DuckDuckGo HTML scraping."""
-    import urllib.request, urllib.parse
+    """Search web for unknown companies: Wikipedia + DuckDuckGo Lite scraping."""
+    import urllib.request, urllib.parse, re as regex
 
-    # Step 1: Wikipedia SEARCH API (handles typos, finds relevant pages)
+    q = query.strip()
+    if not q or len(q) < 2:
+        return None
+
+    # ── Layer 1: Wikipedia Search ──
     wiki_summary = ""
-    wiki_title = query.title()
-    search_results = []
+    wiki_title = q.title()
     try:
-        search_url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={urllib.parse.quote(query + ' company')}&format=json&srlimit=5"
-        req = urllib.request.Request(search_url, headers={"User-Agent": "SignalpostBot/1.0"})
+        url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={urllib.parse.quote(q + ' company')}&format=json&srlimit=3"
+        req = urllib.request.Request(url, headers={"User-Agent": "SignalpostBot/1.0"})
         with urllib.request.urlopen(req, timeout=5) as resp:
             data = json.loads(resp.read().decode())
-            search_results = data.get("query", {}).get("search", [])
+            results = data.get("query", {}).get("search", [])
+            if results:
+                best = results[0]["title"]
+                surl = f"https://en.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(best)}"
+                req2 = urllib.request.Request(surl, headers={"User-Agent": "SignalpostBot/1.0"})
+                with urllib.request.urlopen(req2, timeout=5) as resp2:
+                    sdata = json.loads(resp2.read().decode())
+                    if sdata.get("type") == "standard":
+                        wiki_summary = sdata.get("extract", "")
+                        wiki_title = sdata.get("title", best)
     except Exception:
         pass
 
-    # Get summary of best matching Wikipedia page
-    if search_results:
-        best_page = search_results[0].get("title", "")
+    # ── Layer 2: DuckDuckGo Lite HTML scraping (works for ANY company) ──
+    ddg_results = []
+    try:
+        search_q = urllib.parse.quote(q + " company")
+        ddg_url = f"https://lite.duckduckgo.com/lite/?q={search_q}"
+        req = urllib.request.Request(ddg_url, headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        })
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            html = resp.read().decode("utf-8", errors="ignore")
+            # Parse DuckDuckGo Lite results
+            # Links are in <a rel="nofollow" href="..."> tags
+            link_pattern = regex.compile(
+                r'<a rel="nofollow" href="[^"]*uddg=([^"&]+)[^"]*"[^>]*>\s*(.*?)\s*</a>',
+                regex.DOTALL
+            )
+            snippet_pattern = regex.compile(r'<td class="result-snippet">(.*?)</td>', regex.DOTALL)
+            
+            links = link_pattern.findall(html)
+            snippets = snippet_pattern.findall(html)
+            
+            for i, (url_enc, title_html) in enumerate(links[:5]):
+                clean_title = regex.sub(r'<[^>]+>', '', title_html).strip()
+                clean_url = urllib.parse.unquote(url_enc)
+                clean_snippet = ""
+                if i < len(snippets):
+                    clean_snippet = regex.sub(r'<[^>]+>', '', snippets[i]).strip()
+                if clean_title:
+                    ddg_results.append({
+                        "title": clean_title,
+                        "snippet": clean_snippet,
+                        "url": clean_url
+                    })
+                    # Use first DDG result as summary if no Wikipedia
+                    if not wiki_summary and clean_snippet:
+                        wiki_summary = clean_snippet
+                        wiki_title = clean_title
+    except Exception:
+        pass
+
+    # ── Layer 3: DuckDuckGo Instant Answers API ──
+    if not wiki_summary and not ddg_results:
         try:
-            summary_url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(best_page)}"
-            req = urllib.request.Request(summary_url, headers={"User-Agent": "SignalpostBot/1.0"})
+            ddg_api = f"https://api.duckduckgo.com/?q={urllib.parse.quote(q)}&format=json&no_html=1"
+            req = urllib.request.Request(ddg_api, headers={"User-Agent": "SignalpostBot/1.0"})
             with urllib.request.urlopen(req, timeout=5) as resp:
-                sdata = json.loads(resp.read().decode())
-                if sdata.get("type") == "standard":
-                    wiki_summary = sdata.get("extract", "")
-                    wiki_title = sdata.get("title", best_page)
+                data = json.loads(resp.read().decode())
+                abstract = data.get("AbstractText", "")
+                if abstract:
+                    wiki_summary = abstract
+                    wiki_title = data.get("Heading", q.title())
         except Exception:
             pass
 
-    # Step 2: DuckDuckGo Instant Answers API (free, reliable)
-    ddg_abstract = ""
-    ddg_related = []
-    try:
-        ddg_url = f"https://api.duckduckgo.com/?q={urllib.parse.quote(query)}&format=json&no_html=1&skip_disambig=1"
-        req = urllib.request.Request(ddg_url, headers={"User-Agent": "SignalpostBot/1.0"})
-        with urllib.request.urlopen(req, timeout=5) as resp:
-            data = json.loads(resp.read().decode())
-            ddg_abstract = data.get("AbstractText", "")
-            if ddg_abstract and not wiki_summary:
-                wiki_summary = ddg_abstract
-                wiki_title = data.get("Heading", wiki_title)
-            for topic in data.get("RelatedTopics", [])[:5]:
-                if isinstance(topic, dict) and topic.get("Text"):
-                    ddg_related.append({"text": topic["Text"], "url": topic.get("FirstURL", "")})
-    except Exception:
-        pass
-
-    # Step 3: DuckDuckGo HTML scraping via httpx (last resort for small companies)
-    html_results = []
-    if not wiki_summary and not ddg_abstract:
-        try:
-            search_q = urllib.parse.quote(query + " company")
-            ddg_html_url = f"https://html.duckduckgo.com/html/?q={search_q}"
-            req = urllib.request.Request(ddg_html_url, headers={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-            })
-            with urllib.request.urlopen(req, timeout=8) as resp:
-                html = resp.read().decode("utf-8", errors="ignore")
-                # Parse results from HTML
-                import re as regex
-                result_blocks = regex.findall(
-                    r'<a rel="nofollow" class="result__a" href="[^"]*"[^>]*>(.*?)</a>.*?<a class="result__snippet"[^>]*>(.*?)</a>',
-                    html, regex.DOTALL
-                )
-                for title_html, snippet_html in result_blocks[:5]:
-                    clean_title = regex.sub(r'<[^>]+>', '', title_html).strip()
-                    clean_snippet = regex.sub(r'<[^>]+>', '', snippet_html).strip()
-                    if clean_title:
-                        html_results.append({"title": clean_title, "snippet": clean_snippet})
-                        if not wiki_summary and clean_snippet:
-                            wiki_summary = clean_snippet
-                            wiki_title = clean_title
-        except Exception:
-            pass
-
-    # If nothing found at all, return None
-    if not wiki_summary and not search_results and not ddg_related and not html_results:
+    if not wiki_summary and not ddg_results:
         return None
 
     # Build response
     lines = []
     lines.append(f"# {wiki_title}")
     lines.append("")
-
     if wiki_summary:
-        lines.append(f"> {wiki_summary}")
+        lines.append(f"> {wiki_summary[:500]}")
         lines.append("")
         lines.append("---")
         lines.append("")
 
-    # Show search results
-    all_results = []
-    if search_results:
-        for r in search_results[:3]:
-            title = r.get("title", "")
-            snippet = r.get("snippet", "").replace('<span class="searchmatch">', "**").replace("</span>", "**")
-            all_results.append({"title": title, "snippet": snippet, "url": f"https://en.wikipedia.org/wiki/{urllib.parse.quote(title)}"})
-
-    if html_results:
-        for r in html_results[:3]:
-            all_results.append({"title": r["title"], "snippet": r["snippet"], "url": ""})
-
-    if ddg_related:
-        for r in ddg_related[:3]:
-            all_results.append({"title": r["text"][:80], "snippet": r["text"], "url": r["url"]})
-
-    if all_results:
+    if ddg_results:
         lines.append("## \U0001f310 Web Search Results")
         lines.append("")
-        for i, r in enumerate(all_results[:5]):
+        for i, r in enumerate(ddg_results[:5]):
             lines.append(f"**{i+1}. {r['title']}**")
-            if r['snippet']:
+            if r["snippet"]:
                 lines.append(f"{r['snippet'][:200]}")
-            if r.get('url'):
+            if r.get("url"):
                 lines.append(f"[Source]({r['url']})")
             lines.append("")
 
     lines.append("---")
-    lines.append("")
     lines.append(f"*\U0001f50d Real-time web search. Not in our database of **{len(GLOBAL_COMPANIES)} indexed companies**.*")
 
     return "\n".join(lines), wiki_title
