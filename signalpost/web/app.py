@@ -100,7 +100,7 @@ def fuzzy_find_global(query):
     for gc in GLOBAL_COMPANIES:
         s = fuzzy_score(q, gc["name"])
         if s > best_full_s: best_full_s, best_full = s, gc
-    if best_full_s >= 0.6: return best_full
+    if best_full_s > 0.65: return best_full
     # 3. Try multi-word combinations
     words = re.findall(r'\w+', q)
     if len(words) >= 2:
@@ -437,24 +437,82 @@ def web_enrich_company(company_name):
     return ""
 
 def web_search_company(query):
-    """Search Wikipedia for unknown companies."""
+    """Search Wikipedia for unknown companies — reliable, fast, no rate limits."""
+    import urllib.request, urllib.parse
+
+    # Step 1: Wikipedia SEARCH API (handles typos, finds relevant pages)
     try:
-        wiki_url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(query)}"
-        req = urllib.request.Request(wiki_url, headers={"User-Agent": "SignalpostBot/1.0"})
+        search_url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={urllib.parse.quote(query + ' company')}&format=json&srlimit=5"
+        req = urllib.request.Request(search_url, headers={"User-Agent": "SignalpostBot/1.0"})
         with urllib.request.urlopen(req, timeout=5) as resp:
             data = json.loads(resp.read().decode())
-            if data.get("type") == "standard" and data.get("extract"):
-                title = data.get("title", query)
-                extract = data.get("extract", "")
-                reply = f"# {title}\n\n> {extract[:300]}{'...' if len(extract) > 300 else ''}\n\n---\n\n"
-                reply += f"*This company is not in our detailed database ({len(GLOBAL_COMPANIES)} companies indexed).*\n"
-                reply += f"*For full A-Z analysis, this company needs to be added to our knowledge base.*"
-                return reply, title
+            results = data.get("query", {}).get("search", [])
+    except Exception:
+        results = []
+
+    # Step 2: Get summary of the best matching page
+    wiki_summary = ""
+    wiki_title = query.title()
+    if results:
+        best_page = results[0].get("title", "")
+        try:
+            summary_url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(best_page)}"
+            req = urllib.request.Request(summary_url, headers={"User-Agent": "SignalpostBot/1.0"})
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                sdata = json.loads(resp.read().decode())
+                if sdata.get("type") == "standard":
+                    wiki_summary = sdata.get("extract", "")
+                    wiki_title = sdata.get("title", best_page)
+        except Exception:
+            pass
+
+    # Step 3: Also try DuckDuckGo Instant Answers (free, no rate limit)
+    ddg_abstract = ""
+    try:
+        ddg_url = f"https://api.duckduckgo.com/?q={urllib.parse.quote(query)}&format=json&no_html=1&skip_disambig=1"
+        req = urllib.request.Request(ddg_url, headers={"User-Agent": "SignalpostBot/1.0"})
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            data = json.loads(resp.read().decode())
+            ddg_abstract = data.get("AbstractText", "")
+            if ddg_abstract and not wiki_summary:
+                wiki_summary = ddg_abstract
+                wiki_title = data.get("Heading", wiki_title)
     except Exception:
         pass
-    return None
 
-@app.route("/")
+    if not wiki_summary and not results:
+        return None
+
+    # Build rich response
+    lines = []
+    lines.append(f"# {wiki_title}")
+    lines.append("")
+
+    if wiki_summary:
+        lines.append(f"> {wiki_summary}")
+        lines.append("")
+        lines.append("---")
+        lines.append("")
+
+    if results and len(results) > 1:
+        lines.append("## \U0001f310 Related Search Results")
+        lines.append("")
+        for i, r in enumerate(results[:5]):
+            title = r.get("title", "")
+            snippet = r.get("snippet", "").replace('<span class="searchmatch">', "**").replace("</span>", "**")
+            lines.append(f"**{i+1}. {title}**")
+            lines.append(f"{snippet}")
+            lines.append(f"[Wikipedia](https://en.wikipedia.org/wiki/{urllib.parse.quote(title)})")
+            lines.append("")
+
+    lines.append("---")
+    lines.append("")
+    lines.append(f"*\U0001f50d Real-time web search. Not in our database of **{len(GLOBAL_COMPANIES)} indexed companies**.*")
+    lines.append(f"*For indexed companies, you get full A-Z analysis with pros, cons, history & competitors.*")
+
+    return "\n".join(lines), wiki_title
+
+
 def index():
     return render_template("chat.html")
 
@@ -522,6 +580,12 @@ Just type any company name!""","type":"help","company":""})
             if wiki:
                 reply += "\n\n## 🌐 Additional Context (Live Web)\n\n" + wiki + "\n"
         return jsonify({"reply": reply, "type":"company", "source":"global", "company":gc["name"]})
+
+    # ── Web Search for unknown companies (like Google/Perplexity) ──
+    web_result = web_search_company(clean_q or msg)
+    if web_result:
+        reply, found_name = web_result
+        return jsonify({"reply": reply, "type":"web", "source":"web_search", "company": found_name})
 
     # ── Norwegian company (fuzzy) ──
     nor = fuzzy_find_norwegian(clean_q or msg)
