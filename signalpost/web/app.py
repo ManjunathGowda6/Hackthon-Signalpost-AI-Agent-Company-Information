@@ -563,6 +563,7 @@ def web_search_company(query):
     return "\n".join(lines), wiki_title
 
 
+@app.route("/")
 def index():
     return render_template("chat.html")
 
