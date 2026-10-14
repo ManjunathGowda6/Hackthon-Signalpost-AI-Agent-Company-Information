@@ -568,6 +568,39 @@ def index():
     return render_template("chat.html")
 
 
+
+# Product-to-company aliases (ChatGPT → OpenAI, etc.)
+PRODUCT_ALIASES = {
+    "chatgpt": ("OpenAI", "ChatGPT is a product of **OpenAI**"),
+    "gpt": ("OpenAI", "GPT models are built by **OpenAI**"),
+    "gpt4": ("OpenAI", "GPT-4 is built by **OpenAI**"),
+    "gpt-4": ("OpenAI", "GPT-4 is built by **OpenAI**"),
+    "gpt4o": ("OpenAI", "GPT-4o is built by **OpenAI**"),
+    "dall-e": ("OpenAI", "DALL-E is created by **OpenAI**"),
+    "dalle": ("OpenAI", "DALL-E is created by **OpenAI**"),
+    "sora": ("OpenAI", "Sora is created by **OpenAI**"),
+    "copilot": ("Microsoft", "Copilot is a product of **Microsoft**"),
+    "github copilot": ("Microsoft", "GitHub Copilot is powered by **Microsoft** and OpenAI"),
+    "gemini": ("Google DeepMind", "Gemini AI is built by **Google DeepMind**"),
+    "bard": ("Google DeepMind", "Bard (now Gemini) is built by **Google DeepMind**"),
+    "claude": ("Anthropic", "Claude is built by **Anthropic**"),
+    "alexa": ("Amazon", "Alexa is a product of **Amazon**"),
+    "siri": ("Apple", "Siri is a product of **Apple**"),
+    "android": ("Google", "Android is developed by **Google**"),
+    "iphone": ("Apple", "iPhone is made by **Apple**"),
+    "xbox": ("Microsoft", "Xbox is made by **Microsoft**"),
+    "playstation": ("Sony", "PlayStation is made by **Sony**"),
+    "windows": ("Microsoft", "Windows is made by **Microsoft**"),
+    "activa": ("Honda", "Activa is made by **Honda**"),
+    "apache": ("TVS Motor", "Apache is made by **TVS Motor**"),
+    "jupiter": ("TVS Motor", "Jupiter is made by **TVS Motor**"),
+    "pulsar": ("Bajaj Auto", "Pulsar is made by **Bajaj Auto**"),
+    "bullet": ("Royal Enfield", "Bullet is made by **Royal Enfield**"),
+    "nexon": ("Tata Motors", "Nexon is made by **Tata Motors**"),
+    "seltos": ("Kia", "Seltos is made by **Kia**"),
+    "creta": ("Hyundai", "Creta is made by **Hyundai**"),
+}
+
 @app.route("/api/chat", methods=["POST"])
 def api_chat():
     data = request.get_json() or {}
@@ -620,6 +653,18 @@ Just type any company name!""","type":"help","company":""})
             if count > 0: lines.append(f"- **{name}** — {count:,} companies")
         lines.append(f"\nJust say *\"Show IT & Software companies\"* to explore.")
         return jsonify({"reply":"\n".join(lines),"type":"sectors","company":""})
+
+    
+    # ── Product alias check (ChatGPT → OpenAI, etc.) ──
+    product_note = ""
+    for alias, (company_name, note) in PRODUCT_ALIASES.items():
+        if alias in msg.lower():
+            gc = fuzzy_find_global(company_name)
+            if gc:
+                product_note = f"> *{note}*\n\n"
+                reply = product_note + build_global_deep(gc)
+                return jsonify({"reply": reply, "type":"company", "source":"global", "company":gc["name"]})
+
 
     # ── Global company (fuzzy) ──
     gc = fuzzy_find_global(clean_q or msg)
