@@ -37,10 +37,20 @@
       "gender": "female",
       "created_at": "2026-10-17T17:07:58.771104",
       "last_login": "2026-10-17T17:07:59.094673"
+    },
+    "demo@gmail.com": {
+      "email": "demo@gmail.com",
+      "username": "demouser",
+      "password_hash": "scrypt:32768:8:1$OPl7pJQzYkwNO45m$72d4d94d7f906393700886d8d6b16b8cb04f63099bcc870faa27066fb7c8ea200ec12f04f51d2774110cf0bac4f68a547a9ada2f12065e055846defdfaeb364b",
+      "age": 22,
+      "gender": "male",
+      "created_at": "2026-10-17T19:00:21.714816",
+      "last_login": "2026-10-17T19:00:21.714816"
     }
   },
   "usernames": {
     "testuser": "test2026@gmail.com",
-    "webuser": "webtest@gmail.com"
+    "webuser": "webtest@gmail.com",
+    "demouser": "demo@gmail.com"
   }
 }

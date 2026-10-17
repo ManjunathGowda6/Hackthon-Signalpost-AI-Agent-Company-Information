@@ -212,7 +212,7 @@ def extract_intent(msg):
 
     intent = "company"
     if any(w in q for w in ['sector','sectors','industry','industries','categories']): intent = "sectors"
-    elif any(w in q for w in ['compare','vs','versus']): intent = "compare"
+    elif any((' '+w+' ') in (' '+q+' ') for w in ['compare',' vs ','versus']): intent = "compare"
     elif any(w in q for w in ['help','what can you','how to use']): intent = "help"
 
     return intent, clean_query, words, is_followup
@@ -594,7 +594,7 @@ def gemini_ai_generate_company(query):
 
     # Step 2: Call Gemini AI to generate structured company profile
     gemini_key = os.environ.get("GEMINI_API_KEY", "")
-    prompt = f"""You are a company intelligence analyst. Generate a comprehensive company profile for "{query}" using the following format. If you have information from the context below, use it. Otherwise use your knowledge.
+    prompt = f"""You are a company intelligence analyst. NEVER mention Gemini, Google, or any AI model in your response. Generate a comprehensive company profile for "{query}" using the following format. If you have information from the context below, use it. Otherwise use your knowledge.
 
 Context from Wikipedia: {wiki_context[:1000] if wiki_context else "No Wikipedia article found."}
 
@@ -926,7 +926,7 @@ def api_chat():
     if not last_company_name:
         last_company_name = session.get("last_company", "")
     if is_followup and last_company_name:
-        # Re-search the last company and use Gemini to answer the SPECIFIC question
+        # Re-search the last company
         gc = fuzzy_find_global(last_company_name)
         if gc:
             # For specific questions (quarterly results, profit, etc.), use Gemini
@@ -935,7 +935,6 @@ def api_chat():
                                 'ceo','founder','recent','latest','current','2024','2025','2026']
             is_specific = any(sq in msg.lower() for sq in specific_q_words)
             if is_specific:
-                # Ask Gemini the specific question about this company
                 specific_answer = gemini_specific_question(gc["name"], msg)
                 if specific_answer:
                     session["last_company"] = gc["name"]
@@ -947,7 +946,14 @@ def api_chat():
         if nor:
             c = nor[0]
             profile = PROFILES_INDEX.get(c["o"]) or enrich_live(c["o"])
+            session["last_company"] = c.get("n","")
             return jsonify({"reply": build_norwegian_deep(c, profile), "type":"company", "source":"norwegian", "company":c.get("n","")})
+        # Company NOT in database (was found via Gemini AI earlier, e.g. Kea Aerospace)
+        # Use Gemini to answer the specific question about it
+        specific_answer = gemini_specific_question(last_company_name, msg)
+        if specific_answer:
+            session["last_company"] = last_company_name
+            return jsonify({"reply": specific_answer, "type":"company", "source":"global", "company": last_company_name})
 
     # ── Help ──
     if intent == "help":
@@ -981,6 +987,7 @@ Just type any company name!""","type":"help","company":""})
             if gc:
                 product_note = f"> *{note}*\n\n"
                 reply = product_note + build_global_deep(gc)
+                session["last_company"] = gc["name"]
                 return jsonify({"reply": reply, "type":"company", "source":"global", "company":gc["name"]})
 
 
@@ -1001,13 +1008,15 @@ Just type any company name!""","type":"help","company":""})
     ai_result = gemini_ai_generate_company(clean_q or msg)
     if ai_result:
         reply, found_name = ai_result
-        return jsonify({"reply": reply, "type":"ai_generated", "source":"gemini_ai", "company": found_name})
+        session["last_company"] = found_name
+        return jsonify({"reply": reply, "type":"company", "source":"global", "company": found_name})
 
     # ── Web Search fallback ──
     web_result = web_search_company(clean_q or msg)
     if web_result:
         reply, found_name = web_result
-        return jsonify({"reply": reply, "type":"web", "source":"web_search", "company": found_name})
+        session["last_company"] = found_name
+        return jsonify({"reply": reply, "type":"company", "source":"global", "company": found_name})
 
     # ── Norwegian company (fuzzy) ──
     nor = fuzzy_find_norwegian(clean_q or msg)
@@ -1015,6 +1024,7 @@ Just type any company name!""","type":"help","company":""})
         if len(nor) == 1:
             c = nor[0]
             profile = PROFILES_INDEX.get(c["o"]) or enrich_live(c["o"])
+            session["last_company"] = c.get("n","")
             return jsonify({"reply": build_norwegian_deep(c, profile), "type":"company", "source":"norwegian", "company":c.get("n","")})
         else:
             lines = [f"I found **{len(nor)} companies** matching your search:\n"]
