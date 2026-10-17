@@ -189,11 +189,26 @@ def extract_intent(msg):
     clean_query = ' '.join(clean)
 
     # Detect context references
-    context_refs = ['this','it','that','same','above','previous','its','their',
-                    'them','he','she','his','her','the company','this company',
-                    'that company','same company','more about','more details',
-                    'complete info','full details','everything about']
+    context_refs = ['this company','that company','same company','more about it',
+                    'more details','complete info','full details','everything about',
+                    'tell me more','about it','about them','about this',
+                    'its revenue','their revenue','its profit','their profit',
+                    'last quarter','quarterly result','financial result',
+                    'net worth','market cap','stock price']
+    # Only treat as follow-up if clean_query has NO company-like words
     is_followup = any(ref in q for ref in context_refs)
+    # Also treat as follow-up if the query is purely a question about attributes (no company name)
+    attr_words = ['revenue','profit','loss','ceo','founder','employees','stock',
+                  'quarter','result','net worth','valuation','ipo','growth',
+                  'history','products','competitors','salary','market']
+    if not is_followup and clean_query:
+        has_attr = any(aw in q for aw in attr_words)
+        has_company_name = bool(clean_query) and len(clean_query) > 2
+        # If it's all attribute words and no recognizable company name, it's a follow-up
+        clean_words_set = set(clean_query.split())
+        attr_only = all(any(aw in cw for aw in attr_words) for cw in clean_words_set if len(cw) > 2)
+        if has_attr and attr_only:
+            is_followup = True
 
     intent = "company"
     if any(w in q for w in ['sector','sectors','industry','industries','categories']): intent = "sectors"
@@ -467,6 +482,46 @@ def web_enrich_company(company_name):
 
 
 
+
+
+def gemini_specific_question(company_name, question):
+    """Use Gemini to answer a SPECIFIC question about a company (e.g. quarterly results)."""
+    import urllib.request
+    gemini_key = os.environ.get("GEMINI_API_KEY", "")
+    if not gemini_key:
+        return None
+
+    prompt = f"""Answer this specific question about {company_name}:
+Question: {question}
+
+Provide a focused, detailed answer in markdown format. Include:
+- Direct answer to the question with real data/numbers
+- Relevant context
+- Source year/quarter if applicable
+
+Keep it focused on the question asked. Do NOT generate a full company profile.
+Do NOT mention any AI model or API in the response.
+End with: *Data reflects latest publicly available information.*"""
+
+    try:
+        api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
+        payload = json.dumps({
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"temperature": 0.3, "maxOutputTokens": 2048}
+        })
+        req = urllib.request.Request(api_url, data=payload.encode("utf-8"),
+                                    headers={"Content-Type": "application/json"}, method="POST")
+        with urllib.request.urlopen(req, timeout=25) as resp:
+            result = json.loads(resp.read().decode())
+            candidates = result.get("candidates", [])
+            if candidates:
+                text = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                if text and len(text) > 50:
+                    return f"# {company_name}\n\n{text}"
+    except Exception:
+        pass
+    return None
+
 def gemini_enrich_company(gc):
     """Use Gemini AI to generate real-time enriched info for a known company."""
     import urllib.request, urllib.parse
@@ -488,7 +543,7 @@ Use markdown. Include these sections with emojis:
 ## History & Timeline (key milestones with years)
 ## Current Situation & Outlook (2-3 sentences)
 ## Key Competitors (list)
-End with: *Generated in real-time by Signalpost AI using Gemini.*"""
+End with: *Data reflects latest publicly available information.*"""
 
     try:
         api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
@@ -592,7 +647,7 @@ Generate the profile in this EXACT markdown format (fill ALL sections):
 [List 5-6 competitors]
 
 ---
-*Generated in real-time by Signalpost AI using Gemini. Data may not be 100% current.*
+*Data reflects latest publicly available information. Ask me anything else!*
 """
 
     try:
@@ -626,7 +681,7 @@ Generate the profile in this EXACT markdown format (fill ALL sections):
         lines.append(f"> {wiki_context[:500]}")
         lines.append("")
         lines.append("---")
-        lines.append(f"*Wikipedia summary. Gemini AI generation unavailable.*")
+        lines.append(f"*Source: Wikipedia. Ask me anything else!*")
         return "\n".join(lines), wiki_title
 
     return None
@@ -750,7 +805,8 @@ def index():
     user_email = session.get("user_email")
     if not user_email:
         return redirect(url_for("login"))
-    return render_template("chat.html", user_email=user_email)
+    user_name = session.get("user_name", user_email)
+    return render_template("chat.html", user_email=user_email, user_name=user_name)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -759,19 +815,21 @@ def login():
         return redirect(url_for("index"))
     
     error = None
-    email_val = request.args.get("email", "").strip()
+    identifier = request.args.get("identifier", "").strip()
     
     if request.method == "POST":
-        email_val = request.form.get("email", "").strip().lower()
-        success, msg, user = login_user(email_val)
+        identifier = request.form.get("identifier", "").strip()
+        password = request.form.get("password", "").strip()
+        success, msg, user = login_user(identifier, password)
         if success and user:
             session.permanent = True
             session["user_email"] = user["email"]
+            session["user_name"] = user.get("username", user["email"])
             return redirect(url_for("index"))
         else:
             error = msg
             
-    return render_template("login.html", error=error, email=email_val)
+    return render_template("login.html", error=error, identifier=identifier)
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -781,23 +839,40 @@ def register():
         
     error = None
     email_val = request.args.get("email", "").strip()
+    username_val = ""
+    age_val = ""
+    gender_val = ""
     
     if request.method == "POST":
         email_val = request.form.get("email", "").strip().lower()
-        success, msg, user = register_user(email_val)
+        username_val = request.form.get("username", "").strip()
+        password = request.form.get("password", "").strip()
+        age_val = request.form.get("age", "").strip()
+        gender_val = request.form.get("gender", "").strip()
+        
+        age_int = None
+        if age_val:
+            try:
+                age_int = int(age_val)
+            except ValueError:
+                pass
+        
+        success, msg, user = register_user(email_val, username_val, password, age_int, gender_val or None)
         if success and user:
             session.permanent = True
             session["user_email"] = user["email"]
+            session["user_name"] = user.get("username", user["email"])
             return redirect(url_for("index"))
         else:
             error = msg
             
-    return render_template("register.html", error=error, email=email_val)
+    return render_template("register.html", error=error, email=email_val,
+                         username=username_val, age=age_val, gender=gender_val)
 
 
 @app.route("/logout")
 def logout():
-    session.pop("user_email", None)
+    session.clear()
     return redirect(url_for("login"))
 
 
@@ -847,16 +922,26 @@ def api_chat():
     intent, clean_q, words, is_followup = extract_intent(msg)
 
     # ── Follow-up: user is asking about the SAME company ──
+    # Use server session as primary source for last company (more reliable than frontend)
+    if not last_company_name:
+        last_company_name = session.get("last_company", "")
     if is_followup and last_company_name:
-        # Re-search the last company
+        # Re-search the last company and use Gemini to answer the SPECIFIC question
         gc = fuzzy_find_global(last_company_name)
         if gc:
+            # For specific questions (quarterly results, profit, etc.), use Gemini
+            specific_q_words = ['quarter','result','profit','loss','revenue','growth',
+                                'stock','price','net worth','valuation','ipo','salary',
+                                'ceo','founder','recent','latest','current','2024','2025','2026']
+            is_specific = any(sq in msg.lower() for sq in specific_q_words)
+            if is_specific:
+                # Ask Gemini the specific question about this company
+                specific_answer = gemini_specific_question(gc["name"], msg)
+                if specific_answer:
+                    session["last_company"] = gc["name"]
+                    return jsonify({"reply": specific_answer, "type":"company", "source":"global", "company":gc["name"]})
             reply = build_global_deep(gc)
-            detail_words = ['detail','more','explain','everything','complete','full','depth','elaborate','deep','all about']
-            if any(dw in msg.lower() for dw in detail_words):
-                wiki = web_enrich_company(gc["name"])
-                if wiki:
-                    reply += "\n\n## 🌐 Additional Context (Live Web)\n\n" + wiki + "\n"
+            session["last_company"] = gc["name"]
             return jsonify({"reply": reply, "type":"company", "source":"global", "company":gc["name"]})
         nor = fuzzy_find_norwegian(last_company_name)
         if nor:
@@ -899,15 +984,17 @@ Just type any company name!""","type":"help","company":""})
                 return jsonify({"reply": reply, "type":"company", "source":"global", "company":gc["name"]})
 
 
-    # ── Global company (fuzzy) ──
+    # ── Global company (fuzzy) — database first for speed ──
     gc = fuzzy_find_global(clean_q or msg)
     if gc:
-        # Try Gemini AI for real-time enriched company info
-        enriched = gemini_enrich_company(gc)
+        # Use database info instantly (fast!), skip Gemini for speed
+        enriched = None  # Only use Gemini when explicitly asked for more details
         if enriched:
-            return jsonify({"reply": enriched, "type":"company", "source":"gemini_enriched", "company":gc["name"]})
+            session["last_company"] = gc["name"]
+            return jsonify({"reply": enriched, "type":"company", "source":"global", "company":gc["name"]})
         # Fallback to database if Gemini unavailable
         reply = build_global_deep(gc)
+        session["last_company"] = gc["name"]
         return jsonify({"reply": reply, "type":"company", "source":"global", "company":gc["name"]})
 
     # ── Gemini AI RAG: Real-time company info generation ──
