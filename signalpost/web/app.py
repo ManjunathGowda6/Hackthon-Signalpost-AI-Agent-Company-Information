@@ -1044,11 +1044,11 @@ Just type any company name!""","type":"help","company":""})
                 "source": "global",
                 "company": found_name,
                 "needs_enrichment": True,
-                "enrich_query": msg
+                "enrich_query": found_name
             })
-        # Gemini failed — return web search results as-is
+        # Gemini failed (rate limited) — return web search results + always enrich
         session["last_company"] = found_name
-        return jsonify({"reply": web_reply, "type":"company", "source":"web", "company": found_name, "needs_enrichment": True, "enrich_query": msg})
+        return jsonify({"reply": web_reply, "type":"company", "source":"web", "company": found_name, "needs_enrichment": True, "enrich_query": found_name})
 
     # ── Gemini AI RAG: Real-time company info generation ──
     ai_result = gemini_ai_generate_company(clean_q or msg)
