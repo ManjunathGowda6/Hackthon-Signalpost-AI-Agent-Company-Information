@@ -463,6 +463,107 @@ def web_enrich_company(company_name):
     return ""
 
 
+
+def gemini_enrich_company(gc):
+    """Use Gemini AI to generate real-time enriched info for a known company."""
+    import urllib.request, urllib.parse
+    gemini_key = os.environ.get("GEMINI_API_KEY", "")
+    if not gemini_key:
+        return None  # Fall back to database
+
+    # Build context from our database
+    db_context = f"""Company: {gc['name']}
+Sector: {gc.get('sector','')}
+HQ: {gc.get('hq','')}
+CEO: {gc.get('ceo','')}
+Founded: {gc.get('founded','')}
+Employees: {gc.get('employees','')}
+Revenue: {gc.get('revenue','')}
+Products: {gc.get('products','')}
+Description: {gc.get('desc','')}
+"""
+    prompt = f"""You are a company intelligence analyst. Generate a comprehensive, up-to-date company profile for "{gc['name']}" using the database context below AND your latest knowledge. Focus on CURRENT information, recent developments, and real-time insights.
+
+Database context:
+{db_context}
+
+Generate the profile in this EXACT markdown format (fill ALL sections with rich, detailed content):
+
+# {gc['name']}
+
+[One compelling line describing the company]
+
+## \U0001f3e2 Company Profile
+| Field | Value |
+|---|---|
+| Full Name | [name] |
+| Sector | [sector] |
+| Headquarters | [city, country] |
+| Founded | [year] |
+| CEO / Leader | [name] |
+| Employees | [number] |
+| Website | [url] |
+| Stock Ticker | [ticker or Private] |
+| Type | [Public/Private] |
+| Company Age | [years] |
+
+## \U0001f4ca Financial Overview
+| Metric | Value |
+|---|---|
+| Annual Revenue | [amount] |
+| Net Profit | [amount] |
+| Market Cap | [amount or Private] |
+| P/E Ratio | [ratio or N/A] |
+| Profitable? | [Yes/No] |
+
+## \U0001f6e0\ufe0f Products & Services
+[List key products/services as bullet points]
+
+## \U0001f4c8 Key Metrics
+[4-5 important metrics as bullet points]
+
+## \u2705 Strengths (Pros)
+[5-6 strengths with checkmark emoji]
+
+## \u26a0\ufe0f Weaknesses (Cons)
+[4-5 weaknesses with warning emoji]
+
+## \U0001f4dc History & Timeline
+[Key milestones with years]
+
+## \U0001f52e Current Situation & Outlook
+[2-3 sentences about current state, recent news, and future]
+
+## \U0001f3c1 Key Competitors
+[List 5-6 competitors]
+
+## \U0001f4b0 Key Investors
+[Key investors or stock info]
+
+---
+*\U0001f4e1 Generated in real-time by Signalpost AI using Gemini. Data reflects latest available information.*
+"""
+
+    try:
+        api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
+        payload = json.dumps({
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"temperature": 0.3, "maxOutputTokens": 4096}
+        })
+        req = urllib.request.Request(api_url, data=payload.encode("utf-8"),
+                                    headers={"Content-Type": "application/json"}, method="POST")
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            result = json.loads(resp.read().decode())
+            candidates = result.get("candidates", [])
+            if candidates:
+                text = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                if text and len(text) > 200:
+                    return text
+    except Exception:
+        pass
+    return None
+
+
 def gemini_ai_generate_company(query):
     """Use Google Gemini AI + Wikipedia to generate real-time company profiles."""
     import urllib.request, urllib.parse
