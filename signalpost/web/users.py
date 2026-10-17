@@ -1,90 +1,114 @@
-"""User management module for Signalpost AI auth (email-only registration and login)."""
+"""User management for Signalpost AI (email, username, password, age, gender)."""
 import json
 import re
 from datetime import datetime
 from pathlib import Path
+from werkzeug.security import generate_password_hash, check_password_hash
 
 DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
 USERS_FILE = DATA_DIR / "users.json"
-EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
+EMAIL_RE = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
+USERNAME_RE = re.compile(r"^[a-zA-Z0-9_]{3,20}$")
 
 
-def _load_data() -> dict:
+def _load() -> dict:
     if USERS_FILE.exists():
         try:
             with open(USERS_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except Exception as e:
-            print(f"Error loading users file: {e}")
-            return {"users": {}}
-    return {"users": {}}
+        except Exception:
+            return {"users": {}, "usernames": {}}
+    return {"users": {}, "usernames": {}}
 
 
-def _save_data(data: dict) -> bool:
-    try:
-        USERS_FILE.parent.mkdir(parents=True, exist_ok=True)
-        with open(USERS_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-        return True
-    except Exception as e:
-        print(f"Error saving users file: {e}")
-        return False
+def _save(data: dict):
+    USERS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(USERS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
 
 
-def is_valid_email(email: str) -> bool:
-    if not email:
-        return False
-    return bool(EMAIL_REGEX.match(email.strip()))
+def register_user(email, username, password, age=None, gender=None):
+    """Register with email, username, password, age, gender. Returns (ok, msg, user)."""
+    email = (email or "").strip().lower()
+    username = (username or "").strip().lower()
+    password = (password or "").strip()
+
+    if not email or not EMAIL_RE.match(email):
+        return False, "Please enter a valid email (e.g. name@gmail.com).", None
+    if not username or not USERNAME_RE.match(username):
+        return False, "Username must be 3-20 characters (letters, numbers, underscore only).", None
+    if not password or len(password) < 4:
+        return False, "Password must be at least 4 characters.", None
+
+    data = _load()
+    users = data.setdefault("users", {})
+    unames = data.setdefault("usernames", {})
+
+    if email in users:
+        return False, "This email is already registered. Please sign in.", None
+    if username in unames:
+        return False, "This username is taken. Try another one.", None
+
+    now = datetime.now().isoformat()
+    user = {
+        "email": email,
+        "username": username,
+        "password_hash": generate_password_hash(password),
+        "age": age,
+        "gender": gender,
+        "created_at": now,
+        "last_login": now,
+    }
+    users[email] = user
+    unames[username] = email
+    _save(data)
+    return True, "Account created!", user
 
 
-def find_user(email: str) -> dict | None:
+def login_user(identifier, password):
+    """Login with email or username + password. Returns (ok, msg, user)."""
+    identifier = (identifier or "").strip().lower()
+    password = (password or "").strip()
+
+    if not identifier:
+        return False, "Please enter your email or username.", None
+    if not password:
+        return False, "Please enter your password.", None
+
+    data = _load()
+    users = data.get("users", {})
+    unames = data.get("usernames", {})
+
+    # Find user by email or username
+    user = None
+    if "@" in identifier:
+        user = users.get(identifier)
+    else:
+        mapped_email = unames.get(identifier)
+        if mapped_email:
+            user = users.get(mapped_email)
+
+    if not user:
+        return False, "No account found. Please register first.", None
+
+    # Check if user has password_hash (old email-only users won't)
+    ph = user.get("password_hash")
+    if not ph:
+        # Legacy user without password - allow login and prompt to set password
+        user["last_login"] = datetime.now().isoformat()
+        _save(data)
+        return True, "Welcome back!", user
+
+    if not check_password_hash(ph, password):
+        return False, "Incorrect password. Please try again.", None
+
+    user["last_login"] = datetime.now().isoformat()
+    _save(data)
+    return True, "Welcome back!", user
+
+
+def find_user(email):
     if not email:
         return None
-    email_clean = email.strip().lower()
-    data = _load_data()
-    return data.get("users", {}).get(email_clean)
-
-
-def register_user(email: str) -> tuple[bool, str, dict | None]:
-    if not email:
-        return False, "Email address is required.", None
-    email_clean = email.strip().lower()
-    if not is_valid_email(email_clean):
-        return False, "Please enter a valid email address (e.g. name@example.com).", None
-
-    data = _load_data()
-    users = data.setdefault("users", {})
-    now_iso = datetime.now().isoformat()
-
-    if email_clean in users:
-        # User already exists - update last login and allow access
-        users[email_clean]["last_login"] = now_iso
-        _save_data(data)
-        return True, "Email already registered. Signing you in...", users[email_clean]
-
-    user_record = {
-        "email": email_clean,
-        "created_at": now_iso,
-        "last_login": now_iso,
-    }
-    users[email_clean] = user_record
-    _save_data(data)
-    return True, "Account created successfully!", user_record
-
-
-def login_user(email: str) -> tuple[bool, str, dict | None]:
-    if not email:
-        return False, "Email address is required.", None
-    email_clean = email.strip().lower()
-    if not is_valid_email(email_clean):
-        return False, "Please enter a valid email address (e.g. name@example.com).", None
-
-    data = _load_data()
-    users = data.get("users", {})
-    if email_clean not in users:
-        return False, f"No account found for '{email_clean}'. Please register first.", None
-
-    now_iso = datetime.now().isoformat()
-    users[email_clean]["last_login"] = now_iso
-    _save_data(data)
-    return True, "Welcome back!", users[email_clean]
+    data = _load()
+    return data.get("users", {}).get(email.strip().lower())
