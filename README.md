@@ -1,4 +1,4 @@
-# Signalpost -- AI Agent for Norwegian Company Intelligence
+ # Signalpost -- AI Agent for Norwegian Company Intelligence
 
 > **Hackathon Entry**: Builderr.ai Signalpost Competition
 > **Author**: ManjunathGowda6 (manjunathd236@gmail.com)
