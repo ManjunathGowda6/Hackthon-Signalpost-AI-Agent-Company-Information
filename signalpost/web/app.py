@@ -954,6 +954,13 @@ def api_chat():
         if specific_answer:
             session["last_company"] = last_company_name
             return jsonify({"reply": specific_answer, "type":"company", "source":"global", "company": last_company_name})
+        # Gemini failed (rate limit/timeout) - return helpful fallback instead of wrong company
+        fallback_reply = f"# {last_company_name}\n\n"
+        fallback_reply += f"I understand you're asking about **{last_company_name}**. "
+        fallback_reply += "Unfortunately I couldn't fetch the specific data right now (server busy). "
+        fallback_reply += f"\n\nPlease try again in a moment, or ask me a different question about {last_company_name}."
+        session["last_company"] = last_company_name
+        return jsonify({"reply": fallback_reply, "type":"company", "source":"global", "company": last_company_name})
 
     # ── Help ──
     if intent == "help":
