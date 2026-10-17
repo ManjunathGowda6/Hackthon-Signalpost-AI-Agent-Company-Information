@@ -217,17 +217,24 @@
         // Render messages
         msgEl.innerHTML = '';
         if (welcome) welcome.style.display = 'none';
-        savedMsgs.forEach(m => {
-            if (m.role === 'user') {
-                addMsg('user', m.text);
-            } else if (m.role === 'bot') {
-                const botDiv = document.createElement('div');
-                botDiv.className = 'msg msg-bot';
-                botDiv.innerHTML = `<div class="msg-inner"><div class="bot-icon">◆</div><div class="msg-content"><div class="msg-bubble rendered">${marked.parse(m.text || '')}</div></div></div>`;
-                msgEl.appendChild(botDiv);
-            }
-        });
-        if (savedMsgs.length === 0) {
+
+        if (savedMsgs.length > 0) {
+            // Restore saved messages
+            savedMsgs.forEach(m => {
+                if (m.role === 'user') {
+                    addMsg('user', m.text);
+                } else if (m.role === 'bot') {
+                    const botDiv = document.createElement('div');
+                    botDiv.className = 'msg msg-bot';
+                    botDiv.innerHTML = `<div class="msg-inner"><div class="bot-icon">◆</div><div class="msg-content"><div class="msg-bubble rendered">${marked.parse(m.text || '')}</div></div></div>`;
+                    msgEl.appendChild(botDiv);
+                }
+            });
+        } else if (title) {
+            // Old chat with no saved messages — re-search the title
+            input.value = title;
+            send();
+        } else {
             if (welcome) welcome.style.display = 'flex';
         }
         // Update active state
