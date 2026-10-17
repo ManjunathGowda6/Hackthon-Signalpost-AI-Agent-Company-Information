@@ -9,6 +9,11 @@
       "email": "tester_2026@company.ai",
       "created_at": "2026-10-17T16:30:11.739757",
       "last_login": "2026-10-17T16:30:11.822976"
+    },
+    "investor@signalpost.ai": {
+      "email": "investor@signalpost.ai",
+      "created_at": "2026-10-17T16:31:25.889600",
+      "last_login": "2026-10-17T16:31:25.889600"
     }
   }
 }
