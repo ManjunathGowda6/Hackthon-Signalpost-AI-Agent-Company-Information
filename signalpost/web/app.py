@@ -194,7 +194,7 @@ def extract_intent(msg):
                     'tell me more','about it','about them','about this',
                     'its revenue','their revenue','its profit','their profit',
                     'last quarter','quarterly result','financial result',
-                    'net worth','market cap','stock price']
+                    'net worth','market cap','stock price','give more','more information','more details','elaborate','explain more']
     # Only treat as follow-up if clean_query has NO company-like words
     is_followup = any(ref in q for ref in context_refs)
     # Also treat as follow-up if the query is purely a question about attributes (no company name)
