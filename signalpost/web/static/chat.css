@@ -127,6 +127,14 @@ textarea::placeholder { color:var(--text-dim); }
 .context-menu button:hover { background:rgba(167,139,250,.1); }
 .context-menu button.delete:hover { background:rgba(239,68,68,.15); color:#ef4444; }
 
+
+/* Enrichment loading */
+.enrich-loading { display:flex; align-items:center; gap:8px; padding:10px 0; color:var(--accent); font-size:.82rem; font-weight:500; animation:fadeIn .3s ease; }
+.enrich-pulse { width:8px; height:8px; border-radius:50%; background:var(--accent); animation:pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:.3;transform:scale(.8)} 50%{opacity:1;transform:scale(1.2)} }
+.msg-enrichment { border-top:1px solid rgba(167,139,250,.15); margin-top:8px; padding-top:8px; animation:fadeIn .4s ease; }
+.msg-enrichment h2 { color:var(--accent); font-size:.95rem; }
+
 /* Responsive */
 @media (max-width:768px) {
     .sidebar { position:fixed; left:0; top:0; bottom:0; z-index:99; margin-left:-260px; }
