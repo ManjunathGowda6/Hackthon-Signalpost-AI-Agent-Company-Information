@@ -998,25 +998,33 @@ Just type any company name!""","type":"help","company":""})
                 return jsonify({"reply": reply, "type":"company", "source":"global", "company":gc["name"]})
 
 
-    # ── Global company (fuzzy) — database first for speed ──
+    # ── Global company (fuzzy) — database first, real-time in parallel ──
     gc = fuzzy_find_global(clean_q or msg)
     if gc:
-        # Use database info instantly (fast!), skip Gemini for speed
-        enriched = None  # Only use Gemini when explicitly asked for more details
-        if enriched:
-            session["last_company"] = gc["name"]
-            return jsonify({"reply": enriched, "type":"company", "source":"global", "company":gc["name"]})
-        # Fallback to database if Gemini unavailable
+        # Return database info INSTANTLY + tell frontend to fetch real-time data in parallel
         reply = build_global_deep(gc)
         session["last_company"] = gc["name"]
-        return jsonify({"reply": reply, "type":"company", "source":"global", "company":gc["name"]})
+        return jsonify({
+            "reply": reply,
+            "type": "company",
+            "source": "global",
+            "company": gc["name"],
+            "needs_enrichment": True,
+            "enrich_query": msg
+        })
 
     # ── Gemini AI RAG: Real-time company info generation ──
     ai_result = gemini_ai_generate_company(clean_q or msg)
     if ai_result:
         reply, found_name = ai_result
         session["last_company"] = found_name
-        return jsonify({"reply": reply, "type":"company", "source":"global", "company": found_name})
+        return jsonify({
+            "reply": reply,
+            "type": "company",
+            "source": "global",
+            "company": found_name,
+            "needs_enrichment": False
+        })
 
     # ── Web Search fallback ──
     web_result = web_search_company(clean_q or msg)
@@ -1078,6 +1086,63 @@ Just type any company name!""","type":"help","company":""})
 - Ask: *\"Show all sectors\"*
 - I know: OpenAI, Tesla, NVIDIA, TCS, Equinor, DNB, BMW, Samsung, Anthropic...""","type":"not_found","company":""})
 
+
+
+
+@app.route("/api/enrich", methods=["POST"])
+def api_enrich():
+    """Fetch real-time enrichment data for a company using Gemini AI.
+    Called by frontend in parallel after showing database info."""
+    data = request.get_json() or {}
+    company = data.get("company", "").strip()
+    query = data.get("query", "").strip()
+
+    if not company:
+        return jsonify({"enrichment": "", "status": "no_company"})
+
+    import urllib.request
+    gemini_key = os.environ.get("GEMINI_API_KEY", "")
+    if not gemini_key:
+        return jsonify({"enrichment": "", "status": "no_api_key"})
+
+    prompt = f"""You are a company intelligence analyst. Provide ONLY the latest real-time updates for **{company}**.
+The user asked: "{query}"
+
+Generate a focused update in markdown with ONLY these sections (skip any that aren't relevant):
+
+## 📡 Latest Updates & News
+- [2-3 most recent developments, news, or announcements]
+
+## 💰 Current Financial Status
+- Latest quarterly/annual revenue, profit, and growth figures
+- Stock price or valuation update (if applicable)
+
+## 🔮 Outlook & Predictions
+- [1-2 sentences about future direction]
+
+Keep it concise and factual. Use real numbers where possible.
+NEVER mention Gemini, Google AI, or any AI model.
+Do NOT repeat basic company profile info (name, HQ, founded, etc.) — that's already shown."""
+
+    try:
+        api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
+        payload = json.dumps({
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"temperature": 0.3, "maxOutputTokens": 2048}
+        })
+        req = urllib.request.Request(api_url, data=payload.encode("utf-8"),
+                                    headers={"Content-Type": "application/json"}, method="POST")
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            result = json.loads(resp.read().decode())
+            candidates = result.get("candidates", [])
+            if candidates:
+                text = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                if text and len(text) > 50:
+                    return jsonify({"enrichment": text, "status": "ok", "company": company})
+    except Exception as e:
+        return jsonify({"enrichment": "", "status": "error", "error": str(e)[:100]})
+
+    return jsonify({"enrichment": "", "status": "no_data"})
 
 @app.route("/api/suggest")
 def api_suggest():
