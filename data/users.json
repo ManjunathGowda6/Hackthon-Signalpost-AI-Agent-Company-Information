@@ -19,6 +19,28 @@
       "email": "manjunathd236@gmail.com",
       "created_at": "2026-10-17T16:33:54.955707",
       "last_login": "2026-10-17T16:34:03.521720"
+    },
+    "test2026@gmail.com": {
+      "email": "test2026@gmail.com",
+      "username": "testuser",
+      "password_hash": "scrypt:32768:8:1$SxVzNCWDgOv3VOUx$641c7bab9917d03cc08f7d339f17a3965ef9089c69ea4542f77fbcaa43b91710f06b8a0f45f8b03fb722a99c1c97733649483f585dcb637d8d965a8c39d9642b",
+      "age": 25,
+      "gender": "male",
+      "created_at": "2026-10-17T17:07:58.108343",
+      "last_login": "2026-10-17T17:07:58.602813"
+    },
+    "webtest@gmail.com": {
+      "email": "webtest@gmail.com",
+      "username": "webuser",
+      "password_hash": "scrypt:32768:8:1$OLu6FiqamTknP1Qf$a91893b48899504a243ceb0bbf4e0b0f2c119dd1db54b5428116436dac84d444c454f0312565717f3b692e1c12130ad1c691fbd0b92e6be0be601184e3d81dab",
+      "age": 30,
+      "gender": "female",
+      "created_at": "2026-10-17T17:07:58.771104",
+      "last_login": "2026-10-17T17:07:59.094673"
     }
+  },
+  "usernames": {
+    "testuser": "test2026@gmail.com",
+    "webuser": "webtest@gmail.com"
   }
 }
