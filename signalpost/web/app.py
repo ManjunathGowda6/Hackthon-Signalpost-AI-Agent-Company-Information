@@ -484,6 +484,49 @@ def web_enrich_company(company_name):
 
 
 
+
+def _gemini_call(prompt, max_retries=3, timeout=30):
+    """Call Gemini API with retry logic and model fallback."""
+    import urllib.request, time as _time
+    gemini_key = os.environ.get("GEMINI_API_KEY", "")
+    if not gemini_key:
+        return None
+    
+    models = ["gemini-2.0-flash", "gemini-2.5-flash"]
+    
+    for model in models:
+        for attempt in range(max_retries):
+            try:
+                api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={gemini_key}"
+                payload = json.dumps({
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "generationConfig": {"temperature": 0.3, "maxOutputTokens": 4096}
+                })
+                req = urllib.request.Request(api_url, data=payload.encode("utf-8"),
+                                            headers={"Content-Type": "application/json"}, method="POST")
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    result = json.loads(resp.read().decode())
+                    candidates = result.get("candidates", [])
+                    if candidates:
+                        text = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                        if text and len(text) > 50:
+                            return text
+            except Exception as e:
+                err_str = str(e)
+                if "429" in err_str:
+                    # Rate limited — wait and retry
+                    wait = (attempt + 1) * 2
+                    _time.sleep(wait)
+                    continue
+                elif "503" in err_str or "500" in err_str:
+                    _time.sleep(1)
+                    continue
+                else:
+                    break  # Other error, try next model
+        # If all retries failed for this model, try next model
+    return None
+
+
 def gemini_specific_question(company_name, question):
     """Use Gemini to answer a SPECIFIC question about a company (e.g. quarterly results)."""
     import urllib.request
@@ -1130,11 +1173,6 @@ def api_enrich():
     if not company:
         return jsonify({"enrichment": "", "status": "no_company"})
 
-    import urllib.request
-    gemini_key = os.environ.get("GEMINI_API_KEY", "")
-    if not gemini_key:
-        return jsonify({"enrichment": "", "status": "no_api_key"})
-
     prompt = f"""You are a company intelligence analyst. Provide ONLY the latest real-time updates for **{company}**.
 The user asked: "{query}"
 
@@ -1154,23 +1192,9 @@ Keep it concise and factual. Use real numbers where possible.
 NEVER mention Gemini, Google AI, or any AI model.
 Do NOT repeat basic company profile info (name, HQ, founded, etc.) — that's already shown."""
 
-    try:
-        api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
-        payload = json.dumps({
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"temperature": 0.3, "maxOutputTokens": 2048}
-        })
-        req = urllib.request.Request(api_url, data=payload.encode("utf-8"),
-                                    headers={"Content-Type": "application/json"}, method="POST")
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            result = json.loads(resp.read().decode())
-            candidates = result.get("candidates", [])
-            if candidates:
-                text = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-                if text and len(text) > 50:
-                    return jsonify({"enrichment": text, "status": "ok", "company": company})
-    except Exception as e:
-        return jsonify({"enrichment": "", "status": "error", "error": str(e)[:100]})
+    result = _gemini_call(prompt)
+    if result:
+        return jsonify({"enrichment": result, "status": "ok", "company": company})
 
     return jsonify({"enrichment": "", "status": "no_data"})
 
