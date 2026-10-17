@@ -905,12 +905,12 @@ Just type any company name!""","type":"help","company":""})
     # ── Global company (fuzzy) ──
     gc = fuzzy_find_global(clean_q or msg)
     if gc:
+        # Try Gemini AI for real-time enriched company info
+        enriched = gemini_enrich_company(gc)
+        if enriched:
+            return jsonify({"reply": enriched, "type":"company", "source":"gemini_enriched", "company":gc["name"]})
+        # Fallback to database if Gemini unavailable
         reply = build_global_deep(gc)
-        detail_words = ['detail','more','explain','everything','complete','full','depth','elaborate','deep','all about']
-        if any(dw in msg.lower() for dw in detail_words):
-            wiki = web_enrich_company(gc["name"])
-            if wiki:
-                reply += "\n\n## 🌐 Additional Context (Live Web)\n\n" + wiki + "\n"
         return jsonify({"reply": reply, "type":"company", "source":"global", "company":gc["name"]})
 
     # ── Gemini AI RAG: Real-time company info generation ──
