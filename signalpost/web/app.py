@@ -1013,6 +1013,36 @@ Just type any company name!""","type":"help","company":""})
             "enrich_query": msg
         })
 
+    # ── Web Search (runs BEFORE Gemini to correct misspellings) ──
+    web_result = web_search_company(clean_q or msg)
+    if web_result:
+        web_reply, found_name = web_result
+        # Web search found a real company name — now use Gemini for full profile
+        # This corrects misspellings like "ashok lylend" -> "Ashok Leyland"
+        ai_result = gemini_ai_generate_company(found_name)
+        if ai_result:
+            full_reply, _ = ai_result
+            # Prepend web search links header
+            web_links_end = web_reply.find("\n\n---")
+            if web_links_end < 0:
+                web_links_end = web_reply.find("\n---")
+            if web_links_end > 0:
+                web_header = web_reply[:web_links_end]
+            else:
+                web_header = ""
+            session["last_company"] = found_name
+            return jsonify({
+                "reply": full_reply,
+                "type": "company",
+                "source": "global",
+                "company": found_name,
+                "needs_enrichment": True,
+                "enrich_query": msg
+            })
+        # Gemini failed — return web search results as-is
+        session["last_company"] = found_name
+        return jsonify({"reply": web_reply, "type":"company", "source":"web", "company": found_name, "needs_enrichment": True, "enrich_query": msg})
+
     # ── Gemini AI RAG: Real-time company info generation ──
     ai_result = gemini_ai_generate_company(clean_q or msg)
     if ai_result:
@@ -1025,13 +1055,6 @@ Just type any company name!""","type":"help","company":""})
             "company": found_name,
             "needs_enrichment": False
         })
-
-    # ── Web Search fallback ──
-    web_result = web_search_company(clean_q or msg)
-    if web_result:
-        reply, found_name = web_result
-        session["last_company"] = found_name
-        return jsonify({"reply": reply, "type":"company", "source":"global", "company": found_name})
 
     # ── Norwegian company (fuzzy) ──
     nor = fuzzy_find_norwegian(clean_q or msg)
