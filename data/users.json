@@ -46,11 +46,21 @@
       "gender": "male",
       "created_at": "2026-10-17T19:00:21.714816",
       "last_login": "2026-10-17T19:31:51.313507"
+    },
+    "parallel@test.com": {
+      "email": "parallel@test.com",
+      "username": "paralleltest",
+      "password_hash": "scrypt:32768:8:1$3m3DGNcLMQGAzjYl$06b8e78b6f89c5e46d0e6844b471fad1eebe515a5a97a7a889b38db855e099e2fa63513573c75fa1efe92e74406c2d5c600feb915fef184f54dde0b319ebc9a2",
+      "age": null,
+      "gender": null,
+      "created_at": "2026-10-17T20:56:48.969713",
+      "last_login": "2026-10-17T20:56:48.969713"
     }
   },
   "usernames": {
     "testuser": "test2026@gmail.com",
     "webuser": "webtest@gmail.com",
-    "demouser": "demo@gmail.com"
+    "demouser": "demo@gmail.com",
+    "paralleltest": "parallel@test.com"
   }
 }

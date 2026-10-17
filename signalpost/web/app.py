@@ -941,7 +941,7 @@ def api_chat():
                     return jsonify({"reply": specific_answer, "type":"company", "source":"global", "company":gc["name"]})
             reply = build_global_deep(gc)
             session["last_company"] = gc["name"]
-            return jsonify({"reply": reply, "type":"company", "source":"global", "company":gc["name"]})
+            return jsonify({"reply": reply, "type":"company", "source":"global", "company":gc["name"], "needs_enrichment": True, "enrich_query": msg})
         nor = fuzzy_find_norwegian(last_company_name)
         if nor:
             c = nor[0]
@@ -995,7 +995,7 @@ Just type any company name!""","type":"help","company":""})
                 product_note = f"> *{note}*\n\n"
                 reply = product_note + build_global_deep(gc)
                 session["last_company"] = gc["name"]
-                return jsonify({"reply": reply, "type":"company", "source":"global", "company":gc["name"]})
+                return jsonify({"reply": reply, "type":"company", "source":"global", "company":gc["name"], "needs_enrichment": True, "enrich_query": msg})
 
 
     # ── Global company (fuzzy) — database first, real-time in parallel ──
