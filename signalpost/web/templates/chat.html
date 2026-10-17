@@ -21,6 +21,22 @@
                 <!-- Filled by JS from localStorage -->
             </div>
             <div class="sidebar-bottom">
+                {% if user_email %}
+                <div class="sidebar-user">
+                    <div class="user-avatar" title="{{ user_email }}">{{ user_email[0].upper() }}</div>
+                    <div class="user-details">
+                        <span class="user-email-text" title="{{ user_email }}">{{ user_email }}</span>
+                        <span class="user-status-text"><span class="status-dot"></span>Active</span>
+                    </div>
+                    <a href="/logout" class="logout-btn" title="Sign out" aria-label="Sign out">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                    </a>
+                </div>
+                {% endif %}
                 <div class="sidebar-brand">◆ Signalpost AI</div>
             </div>
         </aside>
@@ -170,19 +186,38 @@
     function esc(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
 
     // ── Chat History (localStorage) ──
+    function safeParseMarkdown(content) {
+        try {
+            if (typeof marked !== 'undefined' && marked && marked.parse) {
+                return marked.parse(content || '');
+            }
+        } catch(e) {
+            console.error('Markdown parse error:', e);
+        }
+        return esc(content || '');
+    }
+
     function saveChat(firstMsg) {
         const chats = JSON.parse(localStorage.getItem('sp_chats') || '[]');
-        const existing = chats.find(c => c.id === currentChatId);
+        const existing = chats.find(c => String(c.id) === String(currentChatId));
         if (existing) {
             existing.updated = Date.now();
             existing.count = chatMessages.length;
+            existing.messages = chatMessages;
         } else {
-            chats.unshift({id: currentChatId, title: firstMsg.substring(0, 40), created: Date.now(), updated: Date.now(), count: chatMessages.length});
+            chats.unshift({
+                id: String(currentChatId),
+                title: firstMsg.substring(0, 40),
+                created: Date.now(),
+                updated: Date.now(),
+                count: chatMessages.length,
+                messages: chatMessages
+            });
         }
         // Keep last 20
         while (chats.length > 20) chats.pop();
         localStorage.setItem('sp_chats', JSON.stringify(chats));
-        // Save messages for this chat
+        // Save messages for this chat under specific key as well
         localStorage.setItem('sp_msgs_' + currentChatId, JSON.stringify(chatMessages));
         renderHistory();
     }
@@ -193,55 +228,90 @@
         list.innerHTML = '';
         chats.forEach(c => {
             const btn = document.createElement('button');
-            btn.className = 'history-item' + (c.id === currentChatId ? ' active' : '');
-            const time = new Date(c.updated).toLocaleDateString('en', {month:'short', day:'numeric'});
-            btn.dataset.chatId = c.id;
+            const isActive = String(c.id) === String(currentChatId);
+            btn.className = 'history-item' + (isActive ? ' active' : '');
+            const time = new Date(c.updated || c.created || Date.now()).toLocaleDateString('en', {month:'short', day:'numeric'});
+            btn.dataset.chatId = String(c.id);
             const pin = c.pinned ? '📌 ' : '';
-            btn.innerHTML = `<span class="hi-title">${pin}${esc(c.title)}</span><span class="hi-meta">${time}</span>`;
-            btn.onclick = () => {
-                loadChat(c.id, c.title);
+            btn.innerHTML = `<span class="hi-title">${pin}${esc(c.title || 'Untitled Chat')}</span><span class="hi-meta">${time}</span>`;
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                loadChat(String(c.id), c.title);
             };
             list.appendChild(btn);
         });
     }
 
     function loadChat(chatId, title) {
-        // Save current chat first
-        if (chatMessages.length > 0) {
+        const targetId = String(chatId);
+        // Save current chat first if it had messages
+        if (chatMessages.length > 0 && currentChatId) {
             localStorage.setItem('sp_msgs_' + currentChatId, JSON.stringify(chatMessages));
+            const allChats = JSON.parse(localStorage.getItem('sp_chats') || '[]');
+            const cur = allChats.find(c => String(c.id) === String(currentChatId));
+            if (cur) {
+                cur.messages = chatMessages;
+                localStorage.setItem('sp_chats', JSON.stringify(allChats));
+            }
         }
-        // Load the selected chat
-        currentChatId = chatId;
-        const savedMsgs = JSON.parse(localStorage.getItem('sp_msgs_' + chatId) || '[]');
+
+        // Switch to the selected chat
+        currentChatId = targetId;
+        const chats = JSON.parse(localStorage.getItem('sp_chats') || '[]');
+        const targetChat = chats.find(c => String(c.id) === targetId);
+
+        let savedMsgs = [];
+        if (targetChat && Array.isArray(targetChat.messages) && targetChat.messages.length > 0) {
+            savedMsgs = targetChat.messages;
+        } else {
+            try {
+                savedMsgs = JSON.parse(localStorage.getItem('sp_msgs_' + targetId) || '[]');
+            } catch(e) {
+                savedMsgs = [];
+            }
+        }
         chatMessages = savedMsgs;
-        // Render messages
+
+        // Clear UI and render messages
         msgEl.innerHTML = '';
         if (welcome) welcome.style.display = 'none';
 
-        if (savedMsgs.length > 0) {
-            // Restore saved messages
+        if (savedMsgs && savedMsgs.length > 0) {
             savedMsgs.forEach(m => {
-                if (m.role === 'user') {
-                    addMsg('user', m.text);
-                } else if (m.role === 'bot') {
+                const role = m.role || 'bot';
+                const msgText = m.text || m.reply || m.content || '';
+                if (role === 'user') {
+                    addMsg('user', msgText);
+                } else {
                     const botDiv = document.createElement('div');
                     botDiv.className = 'msg msg-bot';
-                    botDiv.innerHTML = `<div class="msg-inner"><div class="bot-icon">◆</div><div class="msg-content"><div class="msg-bubble rendered">${marked.parse(m.text || '')}</div></div></div>`;
+                    botDiv.innerHTML = `<div class="msg-inner"><div class="bot-icon">◆</div><div class="msg-content"><div class="msg-bubble rendered">${safeParseMarkdown(msgText)}</div></div></div>`;
                     msgEl.appendChild(botDiv);
                 }
             });
         } else if (title) {
-            // Old chat with no saved messages — re-search the title
+            // Fallback for empty/legacy chat
             input.value = title;
             send();
         } else {
             if (welcome) welcome.style.display = 'flex';
         }
-        // Update active state
-        document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
+
+        // Update active styling
         document.querySelectorAll('.history-item').forEach(el => {
-            if (el.dataset.chatId === chatId) el.classList.add('active');
+            if (String(el.dataset.chatId) === targetId) {
+                el.classList.add('active');
+            } else {
+                el.classList.remove('active');
+            }
         });
+
+        // Close sidebar on mobile
+        if (window.innerWidth <= 768) {
+            const sb = document.getElementById('sidebar');
+            if (sb) sb.classList.remove('open');
+        }
+
         scroll();
         input.focus();
     }

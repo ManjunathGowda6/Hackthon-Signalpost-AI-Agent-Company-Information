@@ -14,7 +14,9 @@ if _os.path.exists(_env_path):
 import json, re, httpx
 from difflib import SequenceMatcher
 from pathlib import Path
-from flask import Flask, render_template, request, jsonify, session
+from datetime import timedelta
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from signalpost.web.users import register_user, login_user, find_user
 
 app = Flask(
     __name__,
@@ -22,6 +24,7 @@ app = Flask(
     static_folder=str(Path(__file__).parent / "static"),
 )
 app.secret_key = "signalpost-ai-2026"
+app.permanent_session_lifetime = timedelta(days=30)
 
 PROFILES_INDEX: dict[str, dict] = {}
 ALL_COMPANIES: list[dict] = []
@@ -744,7 +747,58 @@ def web_search_company(query):
 
 @app.route("/")
 def index():
-    return render_template("chat.html")
+    user_email = session.get("user_email")
+    if not user_email:
+        return redirect(url_for("login"))
+    return render_template("chat.html", user_email=user_email)
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if session.get("user_email"):
+        return redirect(url_for("index"))
+    
+    error = None
+    email_val = request.args.get("email", "").strip()
+    
+    if request.method == "POST":
+        email_val = request.form.get("email", "").strip().lower()
+        success, msg, user = login_user(email_val)
+        if success and user:
+            session.permanent = True
+            session["user_email"] = user["email"]
+            return redirect(url_for("index"))
+        else:
+            error = msg
+            
+    return render_template("login.html", error=error, email=email_val)
+
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if session.get("user_email"):
+        return redirect(url_for("index"))
+        
+    error = None
+    email_val = request.args.get("email", "").strip()
+    
+    if request.method == "POST":
+        email_val = request.form.get("email", "").strip().lower()
+        success, msg, user = register_user(email_val)
+        if success and user:
+            session.permanent = True
+            session["user_email"] = user["email"]
+            return redirect(url_for("index"))
+        else:
+            error = msg
+            
+    return render_template("register.html", error=error, email=email_val)
+
+
+@app.route("/logout")
+def logout():
+    session.pop("user_email", None)
+    return redirect(url_for("login"))
 
 
 
