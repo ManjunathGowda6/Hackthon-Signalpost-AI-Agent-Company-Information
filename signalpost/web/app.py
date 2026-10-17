@@ -1,3 +1,4 @@
+import os
 """Signalpost AI — Context-aware Company Intelligence Chatbot."""
 import json, re, httpx
 from difflib import SequenceMatcher
@@ -100,7 +101,7 @@ def fuzzy_find_global(query):
     for gc in GLOBAL_COMPANIES:
         s = fuzzy_score(q, gc["name"])
         if s > best_full_s: best_full_s, best_full = s, gc
-    if best_full_s > 0.65: return best_full
+    if best_full_s > 0.75: return best_full
     # 3. Try multi-word combinations
     words = re.findall(r'\w+', q)
     if len(words) >= 2:
@@ -119,13 +120,13 @@ def fuzzy_find_global(query):
             tag = tag.strip()
             if len(tag) >= 4:
                 ts = fuzzy_score(q, tag)
-                if ts >= 0.7: s = max(s, ts)
+                if ts >= 0.9: s = max(s, ts)
         # Match individual words against company name (strict)
         for w in words:
             if len(w) >= 4:
                 ws = fuzzy_score(w, gc['name'])
-                if ws > 0.65: s = max(s, ws)
-        if s > best_s and s > 0.6: best_s, best = s, gc
+                if ws > 0.8: s = max(s, ws)
+        if s > best_s and s > 0.7: best_s, best = s, gc
     return best
 
 
@@ -450,6 +451,129 @@ def web_enrich_company(company_name):
         pass
     return ""
 
+
+def gemini_ai_generate_company(query):
+    """Use Google Gemini AI + Wikipedia to generate real-time company profiles."""
+    import urllib.request, urllib.parse
+
+    # Step 1: Gather context from Wikipedia
+    wiki_context = ""
+    wiki_title = query.title()
+    try:
+        # Search Wikipedia for the company
+        search_url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={urllib.parse.quote(query + ' company')}&format=json&srlimit=3"
+        req = urllib.request.Request(search_url, headers={"User-Agent": "SignalpostBot/1.0"})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read().decode())
+            results = data.get("query", {}).get("search", [])
+            if results:
+                wiki_title = results[0]["title"]
+                # Get full summary
+                surl = f"https://en.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(wiki_title)}"
+                req2 = urllib.request.Request(surl, headers={"User-Agent": "SignalpostBot/1.0"})
+                with urllib.request.urlopen(req2, timeout=5) as resp2:
+                    sdata = json.loads(resp2.read().decode())
+                    if sdata.get("type") == "standard":
+                        wiki_context = sdata.get("extract", "")
+                        wiki_title = sdata.get("title", wiki_title)
+    except Exception:
+        pass
+
+    # Step 2: Call Gemini AI to generate structured company profile
+    gemini_key = os.environ.get("GEMINI_API_KEY", "")
+    prompt = f"""You are a company intelligence analyst. Generate a comprehensive company profile for "{query}" using the following format. If you have information from the context below, use it. Otherwise use your knowledge.
+
+Context from Wikipedia: {wiki_context[:1000] if wiki_context else "No Wikipedia article found."}
+
+Generate the profile in this EXACT markdown format (fill ALL sections):
+
+# [Company Name]
+
+[One-line description of the company]
+
+## Company Profile
+| Field | Value |
+|---|---|
+| Full Name | [name] |
+| Sector | [sector] |
+| Headquarters | [city, country] |
+| Founded | [year] |
+| CEO / Leader | [name] |
+| Employees | [number] |
+| Website | [url] |
+| Stock Ticker | [ticker or Private] |
+| Type | [Public/Private] |
+
+## Financial Overview
+| Metric | Value |
+|---|---|
+| Annual Revenue | [amount] |
+| Net Profit | [amount] |
+| Market Cap | [amount or Private] |
+| Profitable? | [Yes/No] |
+
+## Products & Services
+[List key products/services as bullet points]
+
+## Key Metrics
+[4-5 important metrics as bullet points]
+
+## Strengths (Pros)
+[5-6 strengths as bullet points with checkmark emoji]
+
+## Weaknesses (Cons)
+[4-5 weaknesses as bullet points with warning emoji]
+
+## History & Timeline
+[Key milestones as bullet points with years]
+
+## Current Situation & Outlook
+[2-3 sentences about current state and future]
+
+## Key Competitors
+[List 5-6 competitors]
+
+---
+*Generated in real-time by Signalpost AI using Gemini. Data may not be 100% current.*
+"""
+
+    try:
+        api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
+        payload = json.dumps({
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"temperature": 0.3, "maxOutputTokens": 2000}
+        })
+        req = urllib.request.Request(
+            api_url,
+            data=payload.encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST"
+        )
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            result = json.loads(resp.read().decode())
+            candidates = result.get("candidates", [])
+            if candidates:
+                text = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                if text and len(text) > 100:
+                    return text, wiki_title
+    except Exception as e:
+        # Gemini failed — fall back to Wikipedia-only response
+        pass
+
+    # Fallback: Wikipedia-only response (no Gemini)
+    if wiki_context:
+        lines = []
+        lines.append(f"# {wiki_title}")
+        lines.append("")
+        lines.append(f"> {wiki_context[:500]}")
+        lines.append("")
+        lines.append("---")
+        lines.append(f"*Wikipedia summary. Gemini AI generation unavailable.*")
+        return "\n".join(lines), wiki_title
+
+    return None
+
+
 def web_search_company(query):
     """Search web for unknown companies: Wikipedia + DuckDuckGo Lite (httpx)."""
     import urllib.request, urllib.parse, re as regex
@@ -677,7 +801,13 @@ Just type any company name!""","type":"help","company":""})
                 reply += "\n\n## 🌐 Additional Context (Live Web)\n\n" + wiki + "\n"
         return jsonify({"reply": reply, "type":"company", "source":"global", "company":gc["name"]})
 
-    # ── Web Search for unknown companies (like Google/Perplexity) ──
+    # ── Gemini AI RAG: Real-time company info generation ──
+    ai_result = gemini_ai_generate_company(clean_q or msg)
+    if ai_result:
+        reply, found_name = ai_result
+        return jsonify({"reply": reply, "type":"ai_generated", "source":"gemini_ai", "company": found_name})
+
+    # ── Web Search fallback ──
     web_result = web_search_company(clean_q or msg)
     if web_result:
         reply, found_name = web_result
