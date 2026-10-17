@@ -191,10 +191,15 @@
             const data = await resp.json();
             const bubble = botDiv.querySelector('.msg-bubble');
 
-            // Use typewriter effect for the response
+            // Phase 1: Show database/initial info with typewriter effect
             typeWriter(bubble, data.reply || 'No response.', () => {
-                // After typing finishes, save
                 if (data.company) lastCompany = data.company;
+
+                // Phase 2: If needs_enrichment, fetch real-time data in parallel
+                if (data.needs_enrichment && data.company) {
+                    fetchEnrichment(data.company, text, bubble, data.reply || '');
+                }
+
                 chatMessages.push({role:'bot', text: data.reply || ''});
                 saveChat(text);
             });
@@ -202,6 +207,45 @@
             botDiv.querySelector('.msg-bubble').innerHTML = '&#10060; Connection error.';
         }
         scroll();
+    }
+
+    // ── Fetch real-time enrichment in parallel ──
+    async function fetchEnrichment(company, query, bubble, baseReply) {
+        // Show loading indicator for real-time data
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'enrich-loading';
+        loadingDiv.innerHTML = '<div class="enrich-pulse"></div> Fetching latest real-time data...';
+        bubble.parentElement.appendChild(loadingDiv);
+        scroll();
+
+        try {
+            const resp = await fetch('/api/enrich', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({company, query}),
+            });
+            const data = await resp.json();
+            loadingDiv.remove();
+
+            if (data.enrichment && data.status === 'ok') {
+                // Create enrichment section
+                const enrichDiv = document.createElement('div');
+                enrichDiv.className = 'msg-enrichment';
+                bubble.parentElement.appendChild(enrichDiv);
+
+                // Typewriter for enrichment
+                typeWriter(enrichDiv, '\n---\n\n' + data.enrichment, () => {
+                    // Update saved message with full content
+                    const fullReply = baseReply + '\n\n---\n\n' + data.enrichment;
+                    const lastBot = chatMessages.findLast(m => m.role === 'bot');
+                    if (lastBot) lastBot.text = fullReply;
+                    saveChat(query);
+                });
+                scroll();
+            }
+        } catch(e) {
+            loadingDiv.remove();
+        }
     }
 
     function addMsg(role, text) {
