@@ -552,7 +552,7 @@ Generate the profile in this EXACT markdown format (fill ALL sections):
         api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
         payload = json.dumps({
             "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"temperature": 0.3, "maxOutputTokens": 2000}
+            "generationConfig": {"temperature": 0.3, "maxOutputTokens": 4096}
         })
         req = urllib.request.Request(
             api_url,
