@@ -1017,8 +1017,15 @@ Just type any company name!""","type":"help","company":""})
     web_result = web_search_company(clean_q or msg)
     if web_result:
         web_reply, found_name = web_result
-        # Web search found a real company name — now use Gemini for full profile
-        # This corrects misspellings like "ashok lylend" -> "Ashok Leyland"
+        # Extract the CORRECT company name from web search results
+        # e.g. "ashok lylend" -> finds "Ashok Leyland" in Wikipedia title
+        import re as _re
+        title_match = _re.search(r'\*\*1\.\s*(.+?)(?:\s*[-–]|\s*\|)', web_reply)
+        if title_match:
+            corrected_name = title_match.group(1).strip()
+            if corrected_name and len(corrected_name) > 2:
+                found_name = corrected_name
+        # Use Gemini with the CORRECTED name for full profile
         ai_result = gemini_ai_generate_company(found_name)
         if ai_result:
             full_reply, _ = ai_result
