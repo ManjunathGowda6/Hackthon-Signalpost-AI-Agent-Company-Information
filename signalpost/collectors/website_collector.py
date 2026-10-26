@@ -1,4 +1,4 @@
-﻿"""Tier 2: Company website crawler using trafilatura."""
+"""Tier 2: Company website crawler using trafilatura."""
 from __future__ import annotations
 
 from typing import Any, Optional
