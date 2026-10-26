@@ -1,4 +1,4 @@
-"""Pydantic models for the Signalpost company envelope."""
+﻿"""Pydantic models for the Signalpost company envelope."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -64,7 +64,9 @@ class LeadershipWorkplaces(BaseModel):
 class WebsiteProfiles(BaseModel):
     status: str = "not_available"
     official_website: Optional[dict[str, Any]] = None
+    website_ownership: Optional[dict[str, Any]] = None
     social_profiles: list[dict[str, Any]] = Field(default_factory=list)
+    news_items: list[dict[str, Any]] = Field(default_factory=list)
     technologies: list[str] = Field(default_factory=list)
 
 
