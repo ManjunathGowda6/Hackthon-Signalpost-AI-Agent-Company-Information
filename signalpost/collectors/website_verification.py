@@ -139,11 +139,19 @@ def verify_social_link(
         if not company_tokens:
             # Cannot verify - keep (benefit of the doubt when name is empty)
             return True, "no distinctive tokens to compare"
-        slug_tokens = set(re.findall(r"[a-z0-9]+", slug.lower()))
+        slug_lower = slug.lower()
+        slug_tokens = set(re.findall(r"[a-z0-9]+", slug_lower))
         # Remove noise tokens from both sides
         slug_tokens -= {"official", "page", "pages", "company", "profile"}
         company_tokens_set = set(company_tokens)
+        # Direct token-set overlap
         overlap = slug_tokens & company_tokens_set
+        # Also check if company tokens appear as substrings in the slug
+        # (handles concatenated slugs like 'nordlandelektro')
+        if not overlap:
+            substring_hits = sum(1 for t in company_tokens if t in slug_lower)
+            if substring_hits >= max(1, len(company_tokens) // 2):
+                overlap = True  # truthy
         if not overlap:
             return False, f"slug '{slug}' has no overlap with company name tokens {company_tokens_set}"
 
