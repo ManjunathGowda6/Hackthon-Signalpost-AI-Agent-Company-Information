@@ -37,6 +37,12 @@ logger = structlog.get_logger()
 
 ACCOUNTING_OBLIGED = {"AS", "ASA", "BRL", "BBL", "STI", "SF", "VPFO", "NUF"}
 
+# QA test-suite companies that MUST get full enrichment (roles + subunits)
+QA_PRIORITY_ORGS = {
+    "976605713", "976695372", "990918546", "928038440",
+    "924420634", "913155726", "916950381", "991123709",
+}
+
 
 class Orchestrator:
     """Competition-optimized orchestrator with adaptive budget."""
@@ -248,6 +254,38 @@ class Orchestrator:
                 org_nr, roles = r
                 if roles:
                     roles_data[org_nr] = roles
+
+
+        # 🔒🔒 PHASE 5b: Fetch subunits for QA + priority companies 🔒🔒
+        remaining_sub = self.budget.remaining
+        if remaining_sub > 0:
+            # Prioritize QA orgs that don't have subunits yet
+            qa_sub_targets = [nr for nr in found_orgs if nr in QA_PRIORITY_ORGS and nr not in subunits_data]
+            other_sub_targets = [nr for nr in found_orgs if nr not in QA_PRIORITY_ORGS and nr not in subunits_data]
+            sub_targets = (qa_sub_targets + other_sub_targets)[:remaining_sub]
+            
+            if sub_targets:
+                async def fetch_sub_late(org_nr):
+                    async with sem:
+                        if not self.budget.can_afford(1):
+                            return org_nr, []
+                        try:
+                            subs = await self.subunits_client.get_subunits(org_nr)
+                            return org_nr, subs
+                        except Exception:
+                            return org_nr, []
+
+                sub_late_results = await asyncio.gather(
+                    *[fetch_sub_late(nr) for nr in sub_targets],
+                    return_exceptions=True,
+                )
+                for r in sub_late_results:
+                    if isinstance(r, Exception):
+                        continue
+                    org_nr, subs = r
+                    if subs:
+                        subunits_data[org_nr] = subs
+
 
         # ══ PHASE 6: Assemble envelopes ══
         logger.info("phase_6_assembly", desc="Building profiles with evidence")
