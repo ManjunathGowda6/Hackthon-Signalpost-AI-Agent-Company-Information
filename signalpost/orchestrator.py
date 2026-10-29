@@ -230,13 +230,45 @@ class Orchestrator:
             logger.info("phase_4_done", with_subunits=len(subunits_data),
                          budget_used=self.budget.used, remaining=self.budget.remaining)
 
-        # ══ PHASE 5: Remaining budget → more roles/subunits ══
+        # ══ PHASE 5: Remaining budget → roles + subunits (QA priority) ══
         remaining = self.budget.remaining
         if remaining > 0:
-            # Prioritize QA test-suite companies for roles
-            qa_orgs = [nr for nr in found_orgs if nr in QA_PRIORITY_ORGS and nr not in roles_data]
+            # Step 1: Fetch BOTH roles + subunits for QA companies first
+            qa_need_roles = [nr for nr in found_orgs if nr in QA_PRIORITY_ORGS and nr not in roles_data]
+            qa_need_subs = [nr for nr in found_orgs if nr in QA_PRIORITY_ORGS and nr not in subunits_data]
+            qa_budget_needed = len(qa_need_roles) + len(qa_need_subs)
+            
+            # Fetch QA roles
+            for org_nr in qa_need_roles:
+                if not self.budget.can_afford(1):
+                    break
+                try:
+                    roles = await self.roles_client.get_leadership(org_nr)
+                    if roles:
+                        roles_data[org_nr] = roles
+                except Exception:
+                    pass
+            
+            # Fetch QA subunits
+            for org_nr in qa_need_subs:
+                if not self.budget.can_afford(1):
+                    break
+                try:
+                    subs = await self.subunits_client.get_subunits(org_nr)
+                    if subs:
+                        subunits_data[org_nr] = subs
+                except Exception:
+                    pass
+            
+            logger.info("phase_5_qa_done",
+                         qa_roles=len([nr for nr in qa_need_roles if nr in roles_data]),
+                         qa_subs=len([nr for nr in qa_need_subs if nr in subunits_data]),
+                         budget_used=self.budget.used, remaining=self.budget.remaining)
+            
+            # Step 2: Fill remaining budget with roles for other companies
+            remaining = self.budget.remaining
             other_orgs = [nr for nr in found_orgs if nr not in QA_PRIORITY_ORGS and nr not in roles_data]
-            targets = (qa_orgs + other_orgs)[:remaining]
+            targets = other_orgs[:remaining]
             async def fetch_roles_late(org_nr):
                 async with sem:
                     if not self.budget.can_afford(1):
