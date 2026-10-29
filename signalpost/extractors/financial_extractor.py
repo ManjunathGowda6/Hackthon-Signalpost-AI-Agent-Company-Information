@@ -122,5 +122,5 @@ class FinancialExtractor:
             total_debt=ClaimValue(value=debt_val, currency=currency, period=period_str, source=src, retrieved_at=now) if debt_val is not None else None,
             employees=ClaimValue(value=registry_employees, period=period_str, source=f"https://data.brreg.no/enhetsregisteret/api/enheter/{org_number}", retrieved_at=now) if registry_employees is not None else None,
             accounting_obligation=obligation_class,
-            history=history,
+            historical_summary=history,
         )

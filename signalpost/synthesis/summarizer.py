@@ -48,7 +48,7 @@ class Summarizer:
                     cleaned = "\n".join(lines[1:-1])
                 parsed = json.loads(cleaned)
                 return {
-                    "company_summary": parsed.get("company_summary", ""),
+                    "summary": parsed.get("company_summary", parsed.get("summary", "")),
                     "key_observations": parsed.get("key_observations", []),
                     "unknowns": parsed.get("unknowns", []),
                     "confidence_assessment": parsed.get("confidence_assessment", ""),
@@ -56,7 +56,7 @@ class Summarizer:
             except (json.JSONDecodeError, KeyError):
                 # Use raw text as summary
                 return {
-                    "company_summary": text[:500],
+                    "summary": text[:500],
                     "key_observations": [],
                     "unknowns": self._detect_unknowns(envelope_data),
                     "confidence_assessment": "LLM response was non-JSON; partial synthesis.",
@@ -166,7 +166,7 @@ class Summarizer:
             confidence = "Low — limited data available."
 
         return {
-            "company_summary": summary,
+            "summary": summary,
             "key_observations": [],
             "unknowns": unknowns,
             "confidence_assessment": confidence,
