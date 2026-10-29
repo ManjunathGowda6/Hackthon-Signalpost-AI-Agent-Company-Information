@@ -2,7 +2,7 @@
 
 > **Hackathon Entry**: Builderr.ai Signalpost Competition
 > **Author**: ManjunathGowda6 (manjunathd236@gmail.com)
-> **Commit**: `5f0dceb`
+> **Commit**: `latest`
 
 ## What It Does
 
@@ -145,7 +145,7 @@ Each company envelope contains 7 required sections:
 
 ```
 signalpost/
-  cli.py                 # Click CLI: run, smoke-test, refresh
+  cli.py                 # Click CLI: run, smoke-test, refresh, serve
   config.py              # Settings, budget limits, API URLs
   orchestrator.py        # Phased pipeline with smart budget allocation
   identity/
@@ -155,9 +155,10 @@ signalpost/
   collectors/
     base.py              # Abstract collector interface
     registry_collector.py # Tier 1: Official registry
-    website_collector.py  # Tier 2: Website crawling (trafilatura)
+    website_collector.py  # Tier 2: Website crawling with audit verification
+    website_verification.py # Audit rules: ownership, social links, news dates
   extractors/
-    financial_extractor.py # Regnskapsregisteret parser with obligation assessment
+    financial_extractor.py # Regnskapsregisteret parser with 5-year history
   synthesis/
     claude_client.py     # Anthropic API with token-based cost tracking
     summarizer.py        # LLM + rule-based fallback synthesis
@@ -166,16 +167,41 @@ signalpost/
   utils/
     request_budget.py    # Thread-safe request counter
     cost_tracker.py      # Thread-safe cost tracker
-scripts/
-  generate_1000.py       # Generate company input list from Brreg search
-  run_batch.py           # Alternative batch runner
+  web/
+    app.py               # Flask web UI with chat, search, company profiles
 tests/
+  test_collectors/
+    test_website_verification.py  # 43 audit-compliance tests
   fixtures/
     sample_companies.json # 10 sample org numbers for testing
 data/
-  company_1000.jsonl     # 1,000 company org numbers (production input)
+  company_1000.jsonl     # 1,007 company org numbers (production input + QA orgs)
   company_universe.jsonl # 1,100 company org numbers (full universe)
 ```
+
+
+## Audit Compliance (Competition Judge Rules)
+
+Three data-quality rules are enforced in `website_verification.py`:
+
+### 1. Parent Group vs. Own Website Ownership
+Before attributing a website's social links, news, or jobs to the target company,
+the system verifies ownership by checking orgnr matches, name matches in headers/footers,
+and detecting different orgnr values that indicate a parent-group site.
+
+### 2. Strict Social Media Link Verification
+Every extracted social URL is validated:
+- **Rejected**: share/template links (`sharer.php`, `intent/tweet`, Wix/Squarespace/WordPress)
+- **Rejected**: links inside agency credit blocks ("utviklet av", "designet av", "powered by")
+- **Required**: social handle/slug must overlap with the target company name
+
+### 3. Strict News & Publication Date Validation
+- **Rejected**: navigation labels ("Om oss", "Kontakt", "Karriere", etc.)
+- **Required**: every news item must have an explicit publication date
+- **Rejected**: `lastmod` (sitemap), `updated` (Atom), `modified_time` (OG) as publish dates
+- **Accepted**: `datePublished`, `article:published_time`, `pubDate`, `<time datetime>`
+
+All 43 audit tests pass (`pytest tests/test_collectors/test_website_verification.py`).
 
 ## Development
 
