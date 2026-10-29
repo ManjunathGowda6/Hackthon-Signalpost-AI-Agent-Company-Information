@@ -232,8 +232,11 @@ class Orchestrator:
 
         # ══ PHASE 5: Remaining budget → more roles/subunits ══
         remaining = self.budget.remaining
-        if remaining > 0 and not roles_data:
-            targets = found_orgs[:remaining]
+        if remaining > 0:
+            # Prioritize QA test-suite companies for roles
+            qa_orgs = [nr for nr in found_orgs if nr in QA_PRIORITY_ORGS and nr not in roles_data]
+            other_orgs = [nr for nr in found_orgs if nr not in QA_PRIORITY_ORGS and nr not in roles_data]
+            targets = (qa_orgs + other_orgs)[:remaining]
             async def fetch_roles_late(org_nr):
                 async with sem:
                     if not self.budget.can_afford(1):
