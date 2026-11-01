@@ -434,10 +434,85 @@ class Orchestrator:
         )
 
         website_url = entity.get("hjemmeside")
+        social_profiles = []
+        news_items = []
+        job_listings = []
+        website_html = None
+        website_source = "brreg_registry"
+
+        # Upgrade 1: If Brreg has no website, try domain guessing
+        if not website_url and self.budget.can_afford(2):
+            company_name = entity.get("navn", "")
+            discovery = await discover_website(
+                company_name=company_name,
+                orgnr=org_number,
+                budget=self.budget,
+                timeout=5.0,
+            )
+            if discovery:
+                website_url = discovery["url"]
+                website_html = discovery.get("html")
+                website_source = "domain_guess_verified"
+                logger.debug("website_discovered", org=org_number, url=website_url)
+
+        # Upgrade 1+2: If we have a verified website, extract social/news/jobs
+        if website_url:
+            company_name = entity.get("navn", "")
+            # Fetch homepage HTML if we don't have it already
+            if not website_html and self.budget.can_afford(1):
+                try:
+                    import httpx
+                    async with httpx.AsyncClient(
+                        follow_redirects=True, timeout=5.0, verify=False,
+                        headers={"User-Agent": "Signalpost/2.0"},
+                    ) as client:
+                        self.budget.use(1)
+                        resp = await client.get(website_url)
+                        if resp.status_code == 200:
+                            website_html = resp.text
+                except Exception:
+                    pass
+
+            if website_html:
+                # Extract social links
+                try:
+                    social_profiles = await extract_social_links(
+                        html=website_html,
+                        company_name=company_name,
+                        base_url=website_url,
+                    )
+                except Exception:
+                    pass
+
+                # Extract news items (uses budget for subpage fetches)
+                try:
+                    news_items = await extract_news_items(
+                        html=website_html,
+                        base_url=website_url,
+                        company_name=company_name,
+                        budget=self.budget,
+                        timeout=5.0,
+                    )
+                except Exception:
+                    pass
+
+                # Extract job listings (uses budget for career page fetches)
+                try:
+                    job_listings = await extract_job_listings(
+                        base_url=website_url,
+                        company_name=company_name,
+                        budget=self.budget,
+                        timeout=5.0,
+                    )
+                except Exception:
+                    pass
+
         website_profiles = WebsiteProfiles(
             status="available" if website_url else "not_available",
-            official_website={"url": website_url, "source": "brreg_registry",
+            official_website={"url": website_url, "source": website_source,
                               "retrieved_at": now} if website_url else None,
+            social_profiles=social_profiles,
+            news_items=news_items,
         )
 
         evidence = self._build_evidence(
@@ -456,7 +531,10 @@ class Orchestrator:
             "annual_accounts": annual_accounts.model_dump(mode="json"),
             "leadership_workplaces": leadership_workplaces.model_dump(mode="json"),
             "website_profiles": website_profiles.model_dump(mode="json"),
-            "hiring_activity": {"status": "not_applicable"},
+            "hiring_activity": {
+                "status": "available" if job_listings else "not_applicable",
+                "job_listings": job_listings,
+            },
         }
         synthesis_data = await self.summarizer.summarize(envelope_data)
         # Enhance synthesis with richer analysis
@@ -476,7 +554,10 @@ class Orchestrator:
             annual_accounts=annual_accounts,
             leadership_workplaces=leadership_workplaces,
             website_profiles=website_profiles,
-            hiring_activity=HiringActivity(status="not_applicable"),
+            hiring_activity=HiringActivity(
+                status="available" if job_listings else "not_applicable",
+                job_listings=job_listings,
+            ),
             evidence=evidence,
             refresh_metadata=RefreshMetadata(
                 is_initial_run=not is_refresh,
