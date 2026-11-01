@@ -85,7 +85,7 @@ async def discover_website(
                 break
             try:
                 if budget:
-                    budget.use(1)
+                    budget.consume(1)
                 resp = await client.get(url)
                 if resp.status_code != 200:
                     continue
@@ -178,7 +178,7 @@ async def extract_news_items(
                 break
             try:
                 if budget:
-                    budget.use(1)
+                    budget.consume(1)
                 resp = await client.get(f"{base}{path}")
                 if resp.status_code == 200:
                     news.extend(_extract_news_from_html(resp.text, f"{base}{path}", now))
@@ -261,7 +261,7 @@ async def extract_job_listings(
                 break
             try:
                 if budget:
-                    budget.use(1)
+                    budget.consume(1)
                 resp = await client.get(f"{base}{path}")
                 if resp.status_code != 200:
                     continue
