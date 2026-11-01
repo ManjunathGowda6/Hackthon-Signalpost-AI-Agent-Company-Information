@@ -325,34 +325,48 @@ class Orchestrator:
                         subunits_data[org_nr] = subs
 
 
-        # ══ PHASE 6: Assemble envelopes ══
+        # ══ PHASE 6: Assemble envelopes (concurrent for website scraping) ══
         logger.info("phase_6_assembly", desc="Building profiles with evidence")
-        envelopes: list[dict[str, Any]] = []
-
-        for idx, org_nr in enumerate(org_numbers):
+        
+        assembly_sem = asyncio.Semaphore(self.max_workers)
+        
+        async def assemble_one(idx, org_nr):
             entity = entities.get(org_nr)
             if entity is None:
                 if org_nr not in entities:
                     env = CompanyEnvelope.create_failed(org_nr, "Request budget exhausted")
                 else:
                     env = CompanyEnvelope.create_not_available(org_nr)
-                envelopes.append(env.model_dump(mode="json"))
-                continue
-
+                return idx, env.model_dump(mode="json")
             try:
-                prev = previous_profiles.get(org_nr)
-                envelope = await self._assemble_envelope(
-                    org_nr, entity,
-                    financials.get(org_nr),
-                    roles_data.get(org_nr, []),
-                    subunits_data.get(org_nr, []),
-                    prev, idx, total,
-                )
-                envelopes.append(envelope)
+                async with assembly_sem:
+                    prev = previous_profiles.get(org_nr)
+                    envelope = await self._assemble_envelope(
+                        org_nr, entity,
+                        financials.get(org_nr),
+                        roles_data.get(org_nr, []),
+                        subunits_data.get(org_nr, []),
+                        prev, idx, total,
+                    )
+                    return idx, envelope
             except Exception as e:
                 logger.error("assembly_error", org=org_nr, error=str(e))
                 env = CompanyEnvelope.create_failed(org_nr, str(e))
-                envelopes.append(env.model_dump(mode="json"))
+                return idx, env.model_dump(mode="json")
+        
+        assembly_results = await asyncio.gather(
+            *[assemble_one(idx, org_nr) for idx, org_nr in enumerate(org_numbers)],
+            return_exceptions=True,
+        )
+        
+        # Sort by original index to maintain order
+        envelopes: list[dict[str, Any]] = []
+        for r in assembly_results:
+            if isinstance(r, Exception):
+                logger.error("assembly_gather_error", error=str(r))
+                continue
+            idx, env_data = r
+            envelopes.append(env_data)
 
         self._write_output(envelopes)
         await self.brreg.close()
