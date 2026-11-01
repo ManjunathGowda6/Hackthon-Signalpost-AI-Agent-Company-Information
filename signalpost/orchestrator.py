@@ -434,6 +434,9 @@ class Orchestrator:
         )
 
         website_url = entity.get("hjemmeside")
+        # Normalize URL: add https:// if missing
+        if website_url and not website_url.startswith(("http://", "https://")):
+            website_url = "https://" + website_url
         social_profiles = []
         news_items = []
         job_listings = []
