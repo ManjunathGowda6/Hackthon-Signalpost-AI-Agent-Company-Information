@@ -55,6 +55,28 @@ def check_website_ownership(
     footer_text = footer_el.get_text(separator=" ", strip=True) if footer_el else ""
     other_orgnrs = set(re.findall(r"\b\d{9}\b", footer_text)) - {target_orgnr}
 
+    # ---- Check 3b: Detect any orgnr on page (not just footer) ----
+    all_page_orgnrs = set(re.findall(r"\b\d{9}\b", page_text))
+    # If any orgnr appears on page but target is NOT among them => parent site
+    if all_page_orgnrs and target_orgnr not in all_page_orgnrs:
+        return {"ownership": "parent_group",
+                "reason": f"Page shows orgnr(s) {all_page_orgnrs} but not target {target_orgnr}",
+                "suppress_socials": True}
+
+    # ---- Check 3c: Subsidiary markers need full name match ----
+    _SUBSIDIARY_MARKERS = ("NORGE", "HOLDING", "EIENDOM", "AVD", "DATTER",
+                           "SERVICES", "ALUMINIUM", "NORDIC", "SCANDINAVIA")
+    name_upper = target_name.upper()
+    is_subsidiary = any(m in name_upper for m in _SUBSIDIARY_MARKERS)
+    if is_subsidiary and not orgnr_found:
+        # Must find the FULL distinctive name (excluding AS/ASA), not just brand word
+        import re as _re
+        clean_name = _re.sub(r"\b(AS|ASA|ANS|DA|SA|ENK)\b", "", target_name, flags=_re.IGNORECASE).strip()
+        if clean_name and clean_name.lower() not in combined_identity.lower():
+            return {"ownership": "parent_group",
+                    "reason": f"Subsidiary name '{clean_name}' not found on page",
+                    "suppress_socials": True}
+
     # ---- Decision tree ----
     if orgnr_found and name_match:
         return {"ownership": "own", "reason": "orgnr + name match on page",

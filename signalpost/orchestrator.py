@@ -491,38 +491,54 @@ class Orchestrator:
                     pass
 
             if website_html:
-                # Extract social links
+                # Run ownership verification even for Brreg-listed sites
+                from signalpost.collectors.website_verification import check_website_ownership
+                ownership = check_website_ownership(
+                    html=website_html,
+                    target_orgnr=org_number,
+                    target_name=company_name,
+                    final_url=website_url,
+                )
+                suppress = ownership.get("suppress_socials", False)
+
+                # Extract social links (only if not suppressed)
                 try:
-                    social_profiles = await extract_social_links(
+                    if not suppress:
+                        social_profiles = await extract_social_links(
                         html=website_html,
                         company_name=company_name,
                         base_url=website_url,
                     )
-                except Exception:
-                    pass
+                    except Exception:
+                        pass
+                else:
+                    logger.debug("parent_site_suppressed", org=org_number,
+                                 reason=ownership.get("reason", ""))
 
-                # Extract news items (uses budget for subpage fetches)
+                # Extract news items (only if not suppressed)
                 try:
-                    news_items = await extract_news_items(
+                    if not suppress:
+                        news_items = await extract_news_items(
                         html=website_html,
                         base_url=website_url,
                         company_name=company_name,
                         budget=self.budget,
                         timeout=5.0,
                     )
-                except Exception:
-                    pass
+                    except Exception:
+                        pass
 
-                # Extract job listings (uses budget for career page fetches)
+                # Extract job listings (only if not suppressed)
                 try:
-                    job_listings = await extract_job_listings(
+                    if not suppress:
+                        job_listings = await extract_job_listings(
                         base_url=website_url,
                         company_name=company_name,
                         budget=self.budget,
                         timeout=5.0,
                     )
-                except Exception:
-                    pass
+                    except Exception:
+                        pass
 
         website_profiles = WebsiteProfiles(
             status="available" if website_url else "not_available",

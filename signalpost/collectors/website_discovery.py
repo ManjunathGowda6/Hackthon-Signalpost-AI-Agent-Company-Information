@@ -30,6 +30,15 @@ _SOCIAL_DOMAINS = {
 }
 
 _NEWS_PATHS = ["/nyheter", "/aktuelt", "/news", "/blogg", "/blog"]
+
+# Static corporate page paths — never treat as news sources
+_STATIC_PAGE_SLUGS = re.compile(
+    r"(/sustainability|/baerekraft|/b%C3%A6rekraft|/about|/om-oss|/om$"
+    r"|/products|/produkter|/services|/tjenester|/contact|/kontakt"
+    r"|/privacy|/personvern|/investor|/governance|/compliance"
+    r"|/esg|/csr|/annual-report|/arsrapport)(/|$)",
+    re.IGNORECASE,
+)
 _JOBS_PATHS = ["/karriere", "/jobb", "/ledige-stillinger", "/careers", "/jobs"]
 
 
@@ -213,7 +222,7 @@ def _extract_news_from_html(html: str, page_url: str, now: str) -> list[dict]:
                         url = item.get("url") or page_url
                         if title and pub_date:
                             keep, _ = validate_news_item(title, pub_date, "datePublished", url)
-                            if keep:
+                            if keep and _news_passes_extra_checks(pub_date, url):
                                 items.append({"title": title, "url": url,
                                     "publish_date": pub_date, "date_source": "datePublished",
                                     "source_url": page_url, "date": pub_date[:10], "retrieved_at": now})
@@ -233,12 +242,29 @@ def _extract_news_from_html(html: str, page_url: str, now: str) -> list[dict]:
                 p = urlparse(page_url)
                 url = f"{p.scheme}://{p.netloc}{url}"
             keep, _ = validate_news_item(title, pub_date, date_source, url)
-            if keep:
+            if keep and _news_passes_extra_checks(pub_date, url):
                 items.append({"title": title, "url": url,
                     "publish_date": pub_date, "date_source": date_source,
                     "source_url": page_url, "date": pub_date[:10] if pub_date else now[:10],
                     "retrieved_at": now})
     return items
+
+
+def _news_passes_extra_checks(pub_date: Optional[str], url: Optional[str]) -> bool:
+    """Reject future dates and static corporate page URLs."""
+    from datetime import date as _date
+    # Reject future dates
+    if pub_date:
+        try:
+            parsed = _date.fromisoformat(pub_date[:10])
+            if parsed > _date.today():
+                return False
+        except (ValueError, TypeError):
+            pass
+    # Reject static corporate page URLs
+    if url and _STATIC_PAGE_SLUGS.search(urlparse(url).path):
+        return False
+    return True
 
 
 async def extract_job_listings(
