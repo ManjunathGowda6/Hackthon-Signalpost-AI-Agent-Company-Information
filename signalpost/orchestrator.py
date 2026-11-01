@@ -731,8 +731,12 @@ class Orchestrator:
 
         observations = []
 
-        # Financial analysis
+        # Financial analysis (including YoY)
         if annual_accounts.status == "available":
+            # Add YoY summary if available
+            yoy = getattr(annual_accounts, 'yoy_summary', None)
+            if yoy and isinstance(yoy, dict) and yoy.get('text'):
+                observations.append(yoy['text'])
             year = annual_accounts.latest_filing_year
             rev = getattr(annual_accounts, 'revenue', None)
             profit = getattr(annual_accounts, 'operating_profit', None)
