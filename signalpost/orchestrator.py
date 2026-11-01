@@ -502,46 +502,44 @@ class Orchestrator:
                     target_name=company_name,
                     final_url=website_url,
                 )
-                suppress = ownership.get("suppress_socials", False)
+                suppress = ownership.get('suppress_socials', False)
 
-                # Extract social links (only if not suppressed)
-                try:
-                    if not suppress:
+                if not suppress:
+                    # Extract social links
+                    try:
                         social_profiles = await extract_social_links(
-                        html=website_html,
-                        company_name=company_name,
-                        base_url=website_url,
-                    )
+                            html=website_html,
+                            company_name=company_name,
+                            base_url=website_url,
+                        )
+                    except Exception:
+                        pass
+
+                    # Extract news items
+                    try:
+                        news_items = await extract_news_items(
+                            html=website_html,
+                            base_url=website_url,
+                            company_name=company_name,
+                            budget=self.budget,
+                            timeout=5.0,
+                        )
+                    except Exception:
+                        pass
+
+                    # Extract job listings
+                    try:
+                        job_listings = await extract_job_listings(
+                            base_url=website_url,
+                            company_name=company_name,
+                            budget=self.budget,
+                            timeout=5.0,
+                        )
                     except Exception:
                         pass
                 else:
                     logger.debug("parent_site_suppressed", org=org_number,
                                  reason=ownership.get("reason", ""))
-
-                # Extract news items (only if not suppressed)
-                try:
-                    if not suppress:
-                        news_items = await extract_news_items(
-                        html=website_html,
-                        base_url=website_url,
-                        company_name=company_name,
-                        budget=self.budget,
-                        timeout=5.0,
-                    )
-                    except Exception:
-                        pass
-
-                # Extract job listings (only if not suppressed)
-                try:
-                    if not suppress:
-                        job_listings = await extract_job_listings(
-                        base_url=website_url,
-                        company_name=company_name,
-                        budget=self.budget,
-                        timeout=5.0,
-                    )
-                    except Exception:
-                        pass
 
         website_profiles = WebsiteProfiles(
             status="available" if website_url else "not_available",
