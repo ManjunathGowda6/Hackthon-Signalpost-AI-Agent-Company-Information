@@ -53,6 +53,7 @@ class AnnualAccounts(BaseModel):
     total_debt: Optional[ClaimValue] = None
     employees: Optional[ClaimValue] = None
     historical_summary: list[dict[str, Any]] = Field(default_factory=list)
+    yoy_summary: Optional[dict[str, Any]] = None
 
 
 class LeadershipWorkplaces(BaseModel):
@@ -73,6 +74,7 @@ class WebsiteProfiles(BaseModel):
 class HiringActivity(BaseModel):
     status: str = "not_applicable"
     active_listings: list[dict[str, Any]] = Field(default_factory=list)
+    job_listings: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class EvidenceSummary(BaseModel):

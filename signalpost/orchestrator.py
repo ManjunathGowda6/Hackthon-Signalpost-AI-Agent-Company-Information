@@ -32,6 +32,9 @@ from signalpost.identity.subunits_client import SubunitsClient
 from signalpost.extractors.financial_extractor import FinancialExtractor
 from signalpost.synthesis.claude_client import ClaudeClient
 from signalpost.synthesis.summarizer import Summarizer
+from signalpost.collectors.website_discovery import (
+    discover_website, extract_social_links, extract_news_items, extract_job_listings,
+)
 
 logger = structlog.get_logger()
 
@@ -400,6 +403,11 @@ class Orchestrator:
                     retrieved_at=now,
                 ) if employees is not None else None,
             )
+
+        # Upgrade 4: Generate Year-over-Year financial summary
+        yoy_summary = FinancialExtractor.generate_yoy_summary(annual_accounts)
+        if yoy_summary:
+            annual_accounts.yoy_summary = yoy_summary
 
         # Build workplaces from subunits
         workplaces = []
