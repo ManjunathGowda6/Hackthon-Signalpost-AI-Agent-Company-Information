@@ -56,7 +56,8 @@ def check_website_ownership(
     other_orgnrs = set(re.findall(r"\b\d{9}\b", footer_text)) - {target_orgnr}
 
     # ---- Check 3b: Detect any orgnr on page (not just footer) ----
-    all_page_orgnrs = set(re.findall(r"\b\d{9}\b", page_text))
+    full_text = soup.get_text(separator=" ", strip=True)
+    all_page_orgnrs = set(re.findall(r"\b\d{9}\b", full_text))
     # If any orgnr appears on page but target is NOT among them => parent site
     if all_page_orgnrs and target_orgnr not in all_page_orgnrs:
         return {"ownership": "parent_group",
