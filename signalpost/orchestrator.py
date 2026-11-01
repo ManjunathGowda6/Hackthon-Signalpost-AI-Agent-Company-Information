@@ -469,7 +469,7 @@ class Orchestrator:
                         follow_redirects=True, timeout=5.0, verify=False,
                         headers={"User-Agent": "Signalpost/2.0"},
                     ) as client:
-                        self.budget.use(1)
+                        self.budget.consume(1)
                         resp = await client.get(website_url)
                         if resp.status_code == 200:
                             website_html = resp.text
