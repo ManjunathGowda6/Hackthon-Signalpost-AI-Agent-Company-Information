@@ -1,5 +1,25 @@
 {% extends "base.html" %}
 {% block title %}{{ profile.name or profile.organisation_number }}{% endblock %}
+
+<style>
+.src-badge { display:inline-block; font-size:11px; color:#6366f1; text-decoration:none; margin-left:4px; opacity:0.7; transition:opacity 0.2s }
+.src-badge:hover { opacity:1; text-decoration:underline }
+.social-links { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 }
+.social-chip { display:inline-flex; align-items:center; gap:4px; padding:4px 12px; border-radius:16px; background:rgba(99,102,241,0.1); color:#6366f1; text-decoration:none; font-size:13px; transition:background 0.2s }
+.social-chip:hover { background:rgba(99,102,241,0.2) }
+.news-list,.jobs-list { display:flex; flex-direction:column; gap:6px; margin:8px 0 }
+.news-item,.job-item { display:flex; align-items:center; gap:8px; font-size:13px }
+.news-item a,.job-item a { color:#6366f1; text-decoration:none }
+.news-item a:hover,.job-item a:hover { text-decoration:underline }
+.news-date,.job-loc { color:#9ca3af; font-size:12px }
+.yoy-summary { margin-top:12px; padding:10px 14px; border-radius:8px; background:rgba(99,102,241,0.05); border-left:3px solid #6366f1; font-size:13px }
+.yoy-summary p { margin:4px 0; line-height:1.5 }
+</style>
+
+{%- macro src_link(claim) -%}
+{% if claim and claim.source %}<a href="{{ claim.source }}" target="_blank" class="src-badge" title="Source: {{ claim.source }}">&#x1f517;{% if claim.retrieved_at %} {{ claim.retrieved_at[:10] }}{% endif %}</a>{% endif %}
+{%- endmacro -%}
+
 {% block content %}
 <a href="/search" class="back-link">&larr; Back to Search</a>
 
@@ -25,12 +45,12 @@
         {% set li = profile.legal_identity %}
         {% if li %}
         <div class="card-rows">
-            <div class="card-row"><span class="row-label">Legal Name</span><span class="row-value">{{ li.legal_name.value if li.legal_name else '-' }}</span></div>
-            <div class="card-row"><span class="row-label">Legal Form</span><span class="row-value">{{ li.legal_form.value if li.legal_form else '-' }}</span></div>
-            <div class="card-row"><span class="row-label">Address</span><span class="row-value">{{ li.registered_address.value if li.registered_address else '-' }}</span></div>
-            <div class="card-row"><span class="row-label">Status</span><span class="row-value">{{ li.registration_status.value if li.registration_status else '-' }}</span></div>
-            <div class="card-row"><span class="row-label">Registered</span><span class="row-value">{{ li.registration_date.value if li.registration_date else '-' }}</span></div>
-            <div class="card-row"><span class="row-label">Activity</span><span class="row-value">{{ li.activity_description.value if li.activity_description else '-' }}</span></div>
+            <div class="card-row"><span class="row-label">Legal Name</span><span class="row-value">{{ li.legal_name.value if li.legal_name else '-' }} {{ src_link(li.legal_name) }}</span></div>
+            <div class="card-row"><span class="row-label">Legal Form</span><span class="row-value">{{ li.legal_form.value if li.legal_form else '-' }} {{ src_link(li.legal_form) }}</span></div>
+            <div class="card-row"><span class="row-label">Address</span><span class="row-value">{{ li.registered_address.value if li.registered_address else '-' }} {{ src_link(li.registered_address) }}</span></div>
+            <div class="card-row"><span class="row-label">Status</span><span class="row-value">{{ li.registration_status.value if li.registration_status else '-' }} {{ src_link(li.registration_status) }}</span></div>
+            <div class="card-row"><span class="row-label">Registered</span><span class="row-value">{{ li.registration_date.value if li.registration_date else '-' }} {{ src_link(li.registration_date) }}</span></div>
+            <div class="card-row"><span class="row-label">Activity</span><span class="row-value">{{ li.activity_description.value if li.activity_description else '-' }} {{ src_link(li.activity_description) }}</span></div>
             {% if li.industry_codes %}
             <div class="card-row"><span class="row-label">NACE Codes</span><span class="row-value">{% for ic in li.industry_codes %}{{ ic.code }} ({{ ic.description }}){% if not loop.last %}, {% endif %}{% endfor %}</span></div>
             {% endif %}
@@ -45,13 +65,20 @@
         {% if aa and aa.status == 'available' %}
         <div class="card-rows">
             <div class="card-row"><span class="row-label">Filing Year</span><span class="row-value">{{ aa.latest_filing_year or '-' }}</span></div>
-            <div class="card-row"><span class="row-label">Revenue</span><span class="row-value fin">{{ '{:,.0f}'.format(aa.revenue.value) if aa.revenue and aa.revenue.value else '-' }} {{ aa.currency or '' }}</span></div>
-            <div class="card-row"><span class="row-label">Operating Profit</span><span class="row-value fin">{{ '{:,.0f}'.format(aa.operating_profit.value) if aa.operating_profit and aa.operating_profit.value else '-' }} {{ aa.currency or '' }}</span></div>
-            <div class="card-row"><span class="row-label">Total Assets</span><span class="row-value fin">{{ '{:,.0f}'.format(aa.total_assets.value) if aa.total_assets and aa.total_assets.value else '-' }} {{ aa.currency or '' }}</span></div>
-            <div class="card-row"><span class="row-label">Total Equity</span><span class="row-value fin">{{ '{:,.0f}'.format(aa.total_equity.value) if aa.total_equity and aa.total_equity.value else '-' }} {{ aa.currency or '' }}</span></div>
-            <div class="card-row"><span class="row-label">Total Debt</span><span class="row-value fin">{{ '{:,.0f}'.format(aa.total_debt.value) if aa.total_debt and aa.total_debt.value else '-' }} {{ aa.currency or '' }}</span></div>
-            <div class="card-row"><span class="row-label">Employees</span><span class="row-value">{{ aa.employees.value if aa.employees and aa.employees.value else '-' }}</span></div>
+            <div class="card-row"><span class="row-label">Revenue</span><span class="row-value fin">{{ '{:,.0f}'.format(aa.revenue.value) if aa.revenue and aa.revenue.value else '-' }} {{ aa.currency or '' }} {{ src_link(aa.revenue) }}</span></div>
+            <div class="card-row"><span class="row-label">Operating Profit</span><span class="row-value fin">{{ '{:,.0f}'.format(aa.operating_profit.value) if aa.operating_profit and aa.operating_profit.value else '-' }} {{ aa.currency or '' }} {{ src_link(aa.operating_profit) }}</span></div>
+            <div class="card-row"><span class="row-label">Total Assets</span><span class="row-value fin">{{ '{:,.0f}'.format(aa.total_assets.value) if aa.total_assets and aa.total_assets.value else '-' }} {{ aa.currency or '' }} {{ src_link(aa.total_assets) }}</span></div>
+            <div class="card-row"><span class="row-label">Total Equity</span><span class="row-value fin">{{ '{:,.0f}'.format(aa.total_equity.value) if aa.total_equity and aa.total_equity.value else '-' }} {{ aa.currency or '' }} {{ src_link(aa.total_equity) }}</span></div>
+            <div class="card-row"><span class="row-label">Total Debt</span><span class="row-value fin">{{ '{:,.0f}'.format(aa.total_debt.value) if aa.total_debt and aa.total_debt.value else '-' }} {{ aa.currency or '' }} {{ src_link(aa.total_debt) }}</span></div>
+            <div class="card-row"><span class="row-label">Employees</span><span class="row-value">{{ aa.employees.value if aa.employees and aa.employees.value else '-' }} {{ src_link(aa.employees) }}</span></div>
         </div>
+        {% if aa.yoy_summary %}
+        <div class="yoy-summary">
+            <h4 class="sub-title">Year-over-Year Summary</h4>
+            <p>{{ aa.yoy_summary.text }}</p>
+            {% if aa.yoy_summary.source_url %}<a href="{{ aa.yoy_summary.source_url }}" target="_blank" class="src-badge">&#x1f517; {{ aa.yoy_summary.date or '' }}</a>{% endif %}
+        </div>
+        {% endif %}
         {% else %}<p class="muted">{{ aa.accounting_obligation or 'Not available' }}</p>{% endif %}
     </div>
 
@@ -65,6 +92,7 @@
             <div class="role-item">
                 <span class="role-name">{{ role.name or '-' }}</span>
                 <span class="role-type">{{ role.role or role.type or '-' }}</span>
+                {% if role.source %}<a href="{{ role.source }}" target="_blank" class="src-badge">&#x1f517;{% if role.retrieved_at %} {{ role.retrieved_at[:10] }}{% endif %}</a>{% endif %}
             </div>
             {% endfor %}
             {% if lw.roles|length > 10 %}<p class="muted">+ {{ lw.roles|length - 10 }} more</p>{% endif %}
@@ -77,6 +105,52 @@
         {% endfor %}
         {% endif %}
     </div>
+
+    <!-- Website & Social Profiles -->
+    {% set wp = profile.website_profiles %}
+    {% if wp and (wp.social_profiles or wp.news_items) %}
+    <div class="profile-card">
+        <h3 class="card-title">Website & Social</h3>
+        {% if wp.social_profiles %}
+        <h4 class="sub-title">Social Profiles</h4>
+        <div class="social-links">
+            {% for sp in wp.social_profiles %}
+            <a href="{{ sp.url }}" target="_blank" class="social-chip">{{ sp.platform }} <span class="src-badge">&#x1f517; {{ sp.date or '' }}</span></a>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% if wp.news_items %}
+        <h4 class="sub-title">Recent News</h4>
+        <div class="news-list">
+            {% for ni in wp.news_items[:5] %}
+            <div class="news-item">
+                <a href="{{ ni.url }}" target="_blank">{{ ni.title }}</a>
+                <span class="news-date">{{ ni.publish_date or ni.date or '' }}</span>
+                {% if ni.source_url %}<a href="{{ ni.source_url }}" target="_blank" class="src-badge">&#x1f517;</a>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Hiring Activity / Jobs -->
+    {% set ha = profile.hiring_activity %}
+    {% if ha and ha.job_listings %}
+    <div class="profile-card">
+        <h3 class="card-title">Open Jobs</h3>
+        <div class="jobs-list">
+            {% for job in ha.job_listings[:10] %}
+            <div class="job-item">
+                <a href="{{ job.url }}" target="_blank">{{ job.title }}</a>
+                {% if job.location %}<span class="job-loc">{{ job.location }}</span>{% endif %}
+                <span class="news-date">{{ job.date or '' }}</span>
+                {% if job.source_url %}<a href="{{ job.source_url }}" target="_blank" class="src-badge">&#x1f517;</a>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Evidence -->
     <div class="profile-card">
