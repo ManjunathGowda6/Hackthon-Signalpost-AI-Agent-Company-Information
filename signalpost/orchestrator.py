@@ -82,6 +82,9 @@ class Orchestrator:
         previous_profiles = self._load_previous()
 
         # Calculate adaptive budget per company
+        # Dynamic budget cap: 1950 for <=100 companies (Builderr daily test limit)
+        if total <= 100 and self.budget.max_requests <= 2000:
+            self.budget.max_requests = min(self.budget.max_requests, 1950)
         budget_per_company = max(1, self.budget.max_requests // max(total, 1))
         logger.info("batch_start", total=total, workers=self.max_workers,
                      budget=self.budget.max_requests,
