@@ -19,6 +19,8 @@ for d in [SNAPSHOTS_DIR, PROFILES_DIR, CACHE_DIR, OUTPUT_DIR]:
 
 # API Keys
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
 # Brreg API (no auth needed)
 BRREG_BASE_URL = "https://data.brreg.no"

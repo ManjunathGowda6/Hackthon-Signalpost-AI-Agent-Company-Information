@@ -1,68 +1,94 @@
-"""Company profile summarizer — produces the synthesis section."""
+"""Company profile summarizer — produces the synthesis section.
+
+LLM priority: Gemini API → Claude API → rule-based deterministic fallback.
+All LLM prompts enforce strict grounding — only verified facts from the envelope.
+"""
 from __future__ import annotations
 
 import json
 from typing import Any
 
 from signalpost.synthesis.claude_client import ClaudeClient
+from signalpost.synthesis.gemini_client import GeminiClient
 
 
 SYSTEM_PROMPT = """You are a concise Norwegian company analyst.
 Given structured facts about a company, produce:
-1. A 2-4 sentence summary (company_summary) covering what the company does, its legal form, size, and financial health.
-2. 2-5 key observations (key_observations) — notable facts, risks, or strengths.
+1. A 2-4 sentence executive summary covering what the company does, its legal form, size, and financial health.
+2. 2-5 key observations — notable facts, risks, or strengths.
 3. A list of unknowns — data we could not obtain.
 4. A confidence assessment — how complete and reliable the profile is.
 
-Rules:
-- ONLY use facts provided. NEVER fabricate data.
+STRICT RULES:
+- ONLY cite numbers, dates, and facts that are present in the provided data.
+- NEVER fabricate, estimate, or infer data not given.
+- For every financial figure, include an inline citation: [Source URL, YYYY-MM-DD].
 - If financial data is missing, say so explicitly.
 - Output valid JSON with keys: company_summary, key_observations, unknowns, confidence_assessment
 """
 
 
 class Summarizer:
-    """Generates the synthesis section of the company envelope."""
+    """Generates the synthesis section of the company envelope.
 
-    def __init__(self, claude: ClaudeClient):
+    Tries Gemini first, then Claude, then deterministic rule-based fallback.
+    """
+
+    def __init__(self, claude: ClaudeClient, gemini: GeminiClient | None = None):
         self.claude = claude
+        self.gemini = gemini
 
     async def summarize(self, envelope_data: dict[str, Any]) -> dict[str, Any]:
         """Generate synthesis from collected envelope data."""
         facts = self._build_facts(envelope_data)
+        user_prompt = f"Company facts:\n{facts}\n\nReturn JSON."
 
-        # Try LLM synthesis
-        text = await self.claude.generate(
-            SYSTEM_PROMPT,
-            f"Company facts:\n{facts}\n\nReturn JSON.",
-            max_tokens=512,
-        )
+        # Priority 1: Gemini
+        text = None
+        method = "rule_based"
+        model = None
+
+        if self.gemini:
+            text = await self.gemini.generate(SYSTEM_PROMPT, user_prompt, max_tokens=512)
+            if text:
+                method = "llm"
+                model = "gemini"
+
+        # Priority 2: Claude
+        if not text:
+            text = await self.claude.generate(SYSTEM_PROMPT, user_prompt, max_tokens=512)
+            if text:
+                method = "llm"
+                model = "claude"
 
         if text:
             try:
-                # Try to parse JSON from LLM response
-                # Handle potential markdown code blocks
                 cleaned = text.strip()
                 if cleaned.startswith("```"):
                     lines = cleaned.split("\n")
                     cleaned = "\n".join(lines[1:-1])
                 parsed = json.loads(cleaned)
                 return {
+                    "status": "available",
+                    "method": method,
+                    "model": model,
                     "summary": parsed.get("company_summary", parsed.get("summary", "")),
                     "key_observations": parsed.get("key_observations", []),
                     "unknowns": parsed.get("unknowns", []),
                     "confidence_assessment": parsed.get("confidence_assessment", ""),
                 }
             except (json.JSONDecodeError, KeyError):
-                # Use raw text as summary
                 return {
+                    "status": "available",
+                    "method": method,
+                    "model": model,
                     "summary": text[:500],
                     "key_observations": [],
                     "unknowns": self._detect_unknowns(envelope_data),
                     "confidence_assessment": "LLM response was non-JSON; partial synthesis.",
                 }
 
-        # Fallback: rule-based synthesis
+        # Priority 3: Rule-based
         return self._rule_based_synthesis(envelope_data)
 
     def _build_facts(self, data: dict[str, Any]) -> str:
@@ -74,7 +100,9 @@ class Summarizer:
                           "registration_date", "registration_status", "activity_description"]:
                 claim = li.get(field)
                 if claim and isinstance(claim, dict) and claim.get("value"):
-                    parts.append(f"{field}: {claim['value']}")
+                    src = claim.get("source", "")
+                    date = (claim.get("retrieved_at") or "")[:10]
+                    parts.append(f"{field}: {claim['value']} [Source: {src}, {date}]")
             if li.get("industry_codes"):
                 codes = li["industry_codes"]
                 desc_list = [f'{c.get("code","?")} ({c.get("description","?")})' for c in codes[:3]]
@@ -93,7 +121,9 @@ class Summarizer:
                     val = claim["value"]
                     cur = claim.get("currency", "NOK")
                     period = claim.get("period", "")
-                    parts.append(f"{field}: {val} {cur} ({period})")
+                    src = claim.get("source", "")
+                    date = (claim.get("retrieved_at") or "")[:10]
+                    parts.append(f"{field}: {val} {cur} ({period}) [Source: {src}, {date}]")
         else:
             parts.append("annual_accounts: not_available")
 
@@ -110,6 +140,18 @@ class Summarizer:
         wp = data.get("website_profiles", {})
         if wp.get("status") == "available" and wp.get("official_website"):
             parts.append(f"website: {wp['official_website'].get('url', 'available')}")
+            socials = wp.get("social_profiles", [])
+            if socials:
+                parts.append(f"social_profiles: {len(socials)} verified links")
+            news = wp.get("news_items", [])
+            if news:
+                parts.append(f"recent_news: {len(news)} articles found")
+
+        ha = data.get("hiring_activity", {})
+        if ha.get("status") == "available":
+            jobs = ha.get("job_listings", [])
+            if jobs:
+                parts.append(f"open_jobs: {len(jobs)} active listings")
 
         return "\n".join(parts) if parts else "No structured facts available."
 
@@ -129,27 +171,82 @@ class Summarizer:
         return unknowns
 
     def _rule_based_synthesis(self, data: dict[str, Any]) -> dict[str, Any]:
-        """Fallback synthesis when no LLM is available."""
+        """Rich deterministic fallback synthesis with inline source citations."""
         li = data.get("legal_identity", {})
         name_claim = li.get("legal_name", {})
         name = name_claim.get("value", "Unknown") if isinstance(name_claim, dict) else "Unknown"
         form_claim = li.get("legal_form", {})
         form = form_claim.get("value", "") if isinstance(form_claim, dict) else ""
+        addr_claim = li.get("registered_address", {})
+        addr = addr_claim.get("value", "") if isinstance(addr_claim, dict) else ""
+        reg_src = name_claim.get("source", "") if isinstance(name_claim, dict) else ""
+        reg_date = (name_claim.get("retrieved_at", "") if isinstance(name_claim, dict) else "")[:10]
 
         summary_parts = [f"{name}"]
         if form:
             summary_parts.append(f"is a {form} registered in Norway")
+        if addr:
+            summary_parts.append(f"with registered address at {addr}")
+        summary_parts[-1] += "."
 
+        observations = []
         aa = data.get("annual_accounts", {})
         if aa.get("status") == "available":
             rev = aa.get("revenue", {})
+            fin_src = ""
+            fin_date = ""
             if isinstance(rev, dict) and rev.get("value") is not None:
-                summary_parts.append(
-                    f"with revenue of {rev['value']:,.0f} {rev.get('currency','NOK')} "
-                    f"({rev.get('period','latest')})"
-                )
+                fin_src = rev.get("source", "")
+                fin_date = (rev.get("retrieved_at") or "")[:10]
+                val = rev["value"]
+                cur = rev.get("currency", "NOK")
+                period = rev.get("period", "latest")
+                if val > 1_000_000_000:
+                    observations.append(
+                        f"Revenue: {val/1e9:.1f}B {cur} ({period}) [Source: {fin_src}, {fin_date}]")
+                elif val > 1_000_000:
+                    observations.append(
+                        f"Revenue: {val/1e6:.1f}M {cur} ({period}) [Source: {fin_src}, {fin_date}]")
+                else:
+                    observations.append(
+                        f"Revenue: {val:,.0f} {cur} ({period}) [Source: {fin_src}, {fin_date}]")
 
-        summary = " ".join(summary_parts) + "."
+            op = aa.get("operating_profit", {})
+            if isinstance(op, dict) and op.get("value") is not None:
+                ov = op["value"]
+                if ov > 0:
+                    observations.append(f"Operating profit: {ov:,.0f} NOK (profitable)")
+                else:
+                    observations.append(f"Operating loss: {ov:,.0f} NOK")
+
+            # YoY summary
+            yoy = aa.get("yoy_summary")
+            if yoy and isinstance(yoy, dict) and yoy.get("text"):
+                observations.append(yoy["text"])
+        else:
+            obligation = aa.get("accounting_obligation", "unknown")
+            observations.append(f"No financial data on file (obligation: {obligation})")
+
+        lw = data.get("leadership_workplaces", {})
+        roles = lw.get("roles", [])
+        wps = lw.get("workplaces", [])
+        if roles:
+            observations.append(f"{len(roles)} registered leadership role(s)")
+        if wps:
+            observations.append(f"{len(wps)} registered workplace(s)/subunit(s)")
+
+        wp = data.get("website_profiles", {})
+        if wp.get("status") == "available":
+            site = wp.get("official_website", {})
+            if site:
+                observations.append(f"Official website: {site.get('url', 'available')}")
+
+        if li.get("is_bankrupt"):
+            observations.append("⚠ Company is registered as bankrupt")
+        if li.get("is_in_liquidation"):
+            observations.append("⚠ Company is under liquidation")
+
+        summary = " ".join(summary_parts)
         unknowns = self._detect_unknowns(data)
 
         available_count = sum(
@@ -166,8 +263,11 @@ class Summarizer:
             confidence = "Low — limited data available."
 
         return {
+            "status": "available",
+            "method": "rule_based",
+            "model": None,
             "summary": summary,
-            "key_observations": [],
+            "key_observations": observations,
             "unknowns": unknowns,
             "confidence_assessment": confidence,
         }

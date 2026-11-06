@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signalpost Explorer — Norwegian Company Intelligence</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        brand: { 50:'#eff6ff', 100:'#dbeafe', 200:'#bfdbfe', 300:'#93c5fd', 400:'#60a5fa', 500:'#3b82f6', 600:'#2563eb', 700:'#1d4ed8', 800:'#1e40af', 900:'#1e3a5f' },
+        surface: { DEFAULT:'#0f172a', card:'#1e293b', elevated:'#334155', border:'#475569' },
+        accent: { green:'#22c55e', red:'#ef4444', amber:'#f59e0b', cyan:'#06b6d4' },
+      }
+    }
+  }
+}
+</script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+* { font-family: 'Inter', system-ui, sans-serif; }
+body { background: #0f172a; color: #e2e8f0; }
+/* custom scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+
+.chip { @apply px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all duration-200 border select-none; }
+.chip-off { @apply bg-surface-card border-surface-border text-slate-400 hover:border-brand-400 hover:text-brand-300; }
+.chip-on  { @apply bg-brand-600/20 border-brand-500 text-brand-300; }
+
+.card-hover { @apply transition-all duration-200 hover:border-brand-500/50 hover:shadow-lg hover:shadow-brand-500/5; }
+.source-badge { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium cursor-pointer transition-colors; }
+.source-available { @apply bg-green-500/15 text-green-400 border border-green-500/30 hover:bg-green-500/25; }
+.source-not-available { @apply bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/25; }
+.source-blocked { @apply bg-amber-500/15 text-amber-400 border border-amber-500/30 hover:bg-amber-500/25; }
+
+.tab-btn { @apply px-4 py-2 text-sm font-medium rounded-lg transition-colors; }
+.tab-active { @apply bg-brand-600 text-white; }
+.tab-inactive { @apply text-slate-400 hover:text-white hover:bg-surface-elevated; }
+
+.drawer-overlay { @apply fixed inset-0 bg-black/60 z-50 transition-opacity; }
+.drawer-panel { @apply fixed bg-surface-card border-surface-border shadow-2xl z-50 overflow-y-auto transition-transform; }
+@media (min-width: 768px) { .drawer-panel { @apply right-0 top-0 h-full border-l w-[420px]; } }
+@media (max-width: 767px) { .drawer-panel { @apply bottom-0 left-0 right-0 border-t rounded-t-2xl max-h-[85vh]; animation: slideUp 0.3s ease-out; } }
+
+.fade-in { animation: fadeIn 0.25s ease-out; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+.slide-up { animation: slideUp 0.3s ease-out; }
+@keyframes slideUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
+
+/* Mobile bottom bar */
+.compare-bar { @apply fixed bottom-0 left-0 right-0 bg-surface-card border-t border-surface-border p-3 z-40 slide-up; }
+
+/* Profile section */
+.profile-section { @apply bg-surface-card rounded-xl border border-surface-border p-4 md:p-6 mb-4; }
+.profile-section h3 { @apply text-lg font-semibold text-white mb-3 flex items-center gap-2; }
+
+.skeleton { @apply animate-pulse bg-surface-elevated rounded; }
+</style>
+</head>
+<body class="h-full">
+
+<div id="app"></div>
+
+<script>
+// ──────────────────────────────────────────────────────────
+// Signalpost Explorer — Single Page Application
+// ──────────────────────────────────────────────────────────
+
+const API = '/explorer/api';
+const state = {
+  view: 'directory',       // directory | profile | compare
+  query: '',
+  sector: '',
+  form: '',
+  hasFilters: new Set(),
+  results: [],
+  total: 0,
+  page: 1,
+  pages: 1,
+  loading: false,
+  sectors: [],
+  forms: [],
+
+  // Profile
+  profileOrg: null,
+  profile: null,
+  profileLoading: false,
+
+  // Compare
+  compareA: null,
+  compareB: null,
+  compareDataA: null,
+  compareDataB: null,
+  compareLoading: false,
+  compareSelections: [],   // [{orgnr, name}]
+
+  // Source Inspector
+  sourceDrawer: null,      // { source, retrieved_at, status, period, ... }
+
+  // Suggestions
+  suggestions: [],
+  suggestFocused: false,
+};
+
+let searchTimer = null;
+let suggestTimer = null;
+
+// ── API helpers ──
+async function api(path) {
+  const r = await fetch(API + path);
+  if (!r.ok) throw new Error(`API ${r.status}`);
+  return r.json();
+}
+
+async function doSearch() {
+  state.loading = true;
+  render();
+  const params = new URLSearchParams();
+  if (state.query) params.set('q', state.query);
+  if (state.sector) params.set('sector', state.sector);
+  if (state.form) params.set('form', state.form);
+  if (state.hasFilters.size) params.set('has', [...state.hasFilters].join(','));
+  params.set('page', state.page);
+  params.set('size', 20);
+  try {
+    const data = await api('/search?' + params);
+    state.results = data.results;
+    state.total = data.total;
+    state.pages = data.pages;
+    state.page = data.page;
+  } catch (e) { console.error(e); }
+  state.loading = false;
+  render();
+}
+
+async function loadProfile(org) {
+  state.view = 'profile';
+  state.profileOrg = org;
+  state.profileLoading = true;
+  state.profile = null;
+  render();
+  try {
+    state.profile = await api('/profile/' + org);
+  } catch (e) { console.error(e); }
+  state.profileLoading = false;
+  render();
+  window.scrollTo(0, 0);
+}
+
+async function loadCompare() {
+  if (state.compareSelections.length < 2) return;
+  state.view = 'compare';
+  state.compareLoading = true;
+  state.compareDataA = null;
+  state.compareDataB = null;
+  render();
+  try {
+    const data = await api(`/compare?a=${state.compareSelections[0].orgnr}&b=${state.compareSelections[1].orgnr}`);
+    state.compareDataA = data.a;
+    state.compareDataB = data.b;
+  } catch (e) { console.error(e); }
+  state.compareLoading = false;
+  render();
+  window.scrollTo(0, 0);
+}
+
+async function loadMeta() {
+  try {
+    const [sectors, forms] = await Promise.all([api('/sectors'), api('/forms')]);
+    state.sectors = sectors;
+    state.forms = forms;
+  } catch (e) { console.error(e); }
+}
+
+async function fetchSuggestions(q) {
+  if (q.length < 2) { state.suggestions = []; render(); return; }
+  try {
+    state.suggestions = await api('/suggest?q=' + encodeURIComponent(q));
+  } catch (e) { state.suggestions = []; }
+  render();
+}
+
+// ── Formatters ──
+function fmtNum(v) {
+  if (v == null) return 'N/A';
+  if (typeof v === 'string') return v;
+  if (Math.abs(v) >= 1e12) return `NOK ${(v/1e12).toFixed(1)}T`;
+  if (Math.abs(v) >= 1e9) return `NOK ${(v/1e9).toFixed(1)}B`;
+  if (Math.abs(v) >= 1e6) return `NOK ${(v/1e6).toFixed(1)}M`;
+  if (Math.abs(v) >= 1e3) return `NOK ${(v/1e3).toFixed(0)}K`;
+  return v.toLocaleString();
+}
+function fmtDate(iso) {
+  if (!iso) return '—';
+  return iso.substring(0, 10);
+}
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+function escAttr(s) {
+  // Escape for use inside single-quoted HTML attributes (onclick='...')
+  return esc(s).replace(/'/g, '&#39;');
+}
+
+// ── Source badge ──
+const _sourceRegistry = [];
+function sourceBadge(claim, label) {
+  if (!claim) return '';
+  const st = claim.status || 'not_available';
+  const cls = st === 'available' ? 'source-available' : st === 'blocked' ? 'source-blocked' : 'source-not-available';
+  const icon = st === 'available' ? '✓' : st === 'blocked' ? '⚠' : '✗';
+  let srcName = 'Unknown';
+  if (claim.source) {
+    try { srcName = new URL(claim.source).hostname.replace('data.brreg.no','Brreg').replace('www.',''); }
+    catch(e) { srcName = claim.source.substring(0,20); }
+  }
+  const date = fmtDate(claim.retrieved_at);
+  const idx = _sourceRegistry.length;
+  _sourceRegistry.push(claim);
+  return `<button class="source-badge ${cls}" onclick="_openSource(${idx})" title="Click to inspect source">
+    <span>${icon}</span>
+    <span>${esc(srcName)}</span>
+    <span class="opacity-60">${date}</span>
+  </button>`;
+}
+
+function _openSource(idx) {
+  state.sourceDrawer = _sourceRegistry[idx];
+  render();
+}
+
+function closeSourceDrawer() {
+  state.sourceDrawer = null;
+  render();
+}
+
+// ── Toggle compare selection ──
+function toggleCompare(orgnr, name) {
+  const idx = state.compareSelections.findIndex(s => s.orgnr === orgnr);
+  if (idx >= 0) {
+    state.compareSelections.splice(idx, 1);
+  } else if (state.compareSelections.length < 2) {
+    state.compareSelections.push({ orgnr, name });
+  } else {
+    // Replace the first one
+    state.compareSelections.shift();
+    state.compareSelections.push({ orgnr, name });
+  }
+  render();
+}
+
+function isCompareSelected(orgnr) {
+  return state.compareSelections.some(s => s.orgnr === orgnr);
+}
+
+// ── Navigate ──
+function goDirectory() {
+  state.view = 'directory';
+  render();
+}
+
+// ──────────────────────────────────────────────────────────
+//  RENDER
+// ──────────────────────────────────────────────────────────
+function render() {
+  _sourceRegistry.length = 0;
+  const app = document.getElementById('app');
+  const hadFocus = document.activeElement?.id === 'searchInput';
+  const selStart = hadFocus ? document.activeElement.selectionStart : null;
+  app.innerHTML = renderHeader() +
+    (state.view === 'directory' ? renderDirectory() :
+     state.view === 'profile' ? renderProfile() :
+     renderCompareView()) +
+    renderSourceDrawer() +
+    renderCompareBar();
+  // Restore search input focus & cursor after re-render
+  if (hadFocus) {
+    const inp = document.getElementById('searchInput');
+    if (inp) { inp.focus(); if (selStart !== null) inp.setSelectionRange(selStart, selStart); }
+  }
+}
+
+// ── Header ──
+function renderHeader() {
+  const tabBtn = (label, view) => {
+    const active = state.view === view;
+    return `<button class="tab-btn ${active ? 'tab-active' : 'tab-inactive'}"
+      onclick="${view === 'directory' ? 'goDirectory()' : view === 'compare' ? 'goCompareTab()' : ''}">${label}</button>`;
+  };
+  return `
+  <header class="sticky top-0 z-30 bg-surface/80 backdrop-blur-xl border-b border-surface-border">
+    <div class="max-w-7xl mx-auto px-4 py-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="goDirectory()">
+          <div class="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">S</div>
+          <div>
+            <h1 class="text-lg font-bold text-white leading-tight">Signalpost Explorer</h1>
+            <p class="text-[10px] text-slate-500 leading-none">Norwegian Company Intelligence</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1">
+          ${tabBtn('Directory', 'directory')}
+          ${tabBtn('Compare', 'compare')}
+        </div>
+      </div>
+    </div>
+  </header>`;
+}
+
+// ── Directory View ──
+function renderDirectory() {
+  return `
+  <main class="max-w-7xl mx-auto px-4 py-6 pb-28">
+    ${renderSearchBar()}
+    ${renderFilters()}
+    ${renderResultsHeader()}
+    ${state.loading ? renderSkeleton() : renderCards()}
+    ${renderPagination()}
+  </main>`;
+}
+
+function renderSearchBar() {
+  return `
+  <div class="relative mb-4">
+    <div class="relative">
+      <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      <input id="searchInput" type="text" value="${esc(state.query)}"
+        placeholder="Search by company name or 9-digit orgnr…"
+        class="w-full pl-12 pr-4 py-3.5 bg-surface-card border border-surface-border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-sm"
+        oninput="onSearchInput(this.value)"
+        onfocus="state.suggestFocused=true; render()"
+        onblur="setTimeout(()=>{state.suggestFocused=false; state.suggestions=[]; render()}, 200)"
+      >
+      ${state.query ? `<button onclick="state.query=''; state.page=1; doSearch(); document.getElementById('searchInput').value=''" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">✕</button>` : ''}
+    </div>
+    ${state.suggestions.length && state.suggestFocused ? renderSuggestions() : ''}
+  </div>`;
+}
+
+function renderSuggestions() {
+  return `
+  <div class="absolute top-full left-0 right-0 mt-1 bg-surface-card border border-surface-border rounded-xl shadow-xl z-20 overflow-hidden">
+    ${state.suggestions.map(s => `
+      <button class="w-full text-left px-4 py-2.5 hover:bg-surface-elevated flex items-center justify-between transition-colors"
+        onmousedown="selectSuggestion('${escAttr(s.orgnr)}', '${escAttr(s.name)}')">
+        <div>
+          <span class="text-sm text-white font-medium">${esc(s.name)}</span>
+          <span class="text-xs text-slate-500 ml-2">${esc(s.orgnr)}</span>
+        </div>
+        <span class="text-[10px] text-slate-500">${esc(s.municipality)} · ${esc(s.form)}</span>
+      </button>
+    `).join('')}
+  </div>`;
+}
+
+function renderFilters() {
+  const sectorChips = state.sectors.slice(0, 12).map(s => {
+    const on = state.sector === s.code;
+    return `<button class="chip ${on ? 'chip-on' : 'chip-off'}" onclick="toggleSector('${s.code}')">${esc(s.label)} <span class="opacity-50">${s.count}</span></button>`;
+  }).join('');
+
+  const formChips = ['AS','ASA','SF','KOMM','ENK','NUF'].map(f => {
+    const on = state.form === f;
+    return `<button class="chip ${on ? 'chip-on' : 'chip-off'}" onclick="toggleForm('${f}')">${f}</button>`;
+  }).join('');
+
+  const dataChips = [
+    { key: 'website', label: 'Has Website', icon: '🌐' },
+    { key: 'financials', label: 'Has Financials', icon: '📊' },
+    { key: 'news', label: 'Has News', icon: '📰' },
+    { key: 'jobs', label: 'Has Jobs', icon: '💼' },
+    { key: 'social', label: 'Has Social', icon: '🔗' },
+  ].map(d => {
+    const on = state.hasFilters.has(d.key);
+    return `<button class="chip ${on ? 'chip-on' : 'chip-off'}" onclick="toggleHas('${d.key}')">${d.icon} ${d.label}</button>`;
+  }).join('');
+
+  return `
+  <div class="space-y-2 mb-5">
+    <div class="flex flex-wrap gap-1.5">${sectorChips}</div>
+    <div class="flex flex-wrap gap-1.5">
+      ${formChips}
+      <span class="border-l border-surface-border mx-1"></span>
+      ${dataChips}
+    </div>
+  </div>`;
+}
+
+function renderResultsHeader() {
+  return `
+  <div class="flex items-center justify-between mb-3">
+    <p class="text-sm text-slate-400">${state.total.toLocaleString()} companies found</p>
+    ${state.sector || state.form || state.hasFilters.size ?
+      `<button onclick="clearFilters()" class="text-xs text-brand-400 hover:text-brand-300">Clear filters</button>` : ''}
+  </div>`;
+}
+
+function renderCards() {
+  if (!state.results.length && !state.loading) {
+    return `<div class="text-center py-16 text-slate-500">
+      <p class="text-4xl mb-4">🔍</p>
+      <p class="text-lg">No companies match your search</p>
+      <p class="text-sm mt-2">Try a different name or adjust your filters</p>
+    </div>`;
+  }
+  return `<div class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+    ${state.results.map(renderCard).join('')}
+  </div>`;
+}
+
+function renderCard(c) {
+  const selected = isCompareSelected(c.orgnr);
+  return `
+  <div class="bg-surface-card border border-surface-border rounded-xl p-4 card-hover fade-in relative">
+    <div class="flex items-start justify-between mb-2">
+      <div class="flex-1 min-w-0 cursor-pointer" onclick="loadProfile('${c.orgnr}')">
+        <h3 class="text-sm font-semibold text-white truncate">${esc(c.name)}</h3>
+        <p class="text-xs text-slate-500 mt-0.5">${esc(c.orgnr)} · ${esc(c.municipality)}</p>
+      </div>
+      <button onclick="toggleCompare('${c.orgnr}','${escAttr(c.name)}')"
+        class="ml-2 p-1.5 rounded-lg transition-colors ${selected ? 'bg-brand-600 text-white' : 'bg-surface-elevated text-slate-400 hover:text-white'}"
+        title="${selected ? 'Remove from compare' : 'Add to compare'}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="flex flex-wrap gap-1.5 mb-3">
+      ${c.legal_form ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-brand-600/20 text-brand-300 font-medium">${esc(c.legal_form)}</span>` : ''}
+      ${c.sector ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-surface-elevated text-slate-400">${esc(c.sector)}</span>` : ''}
+    </div>
+    <div class="grid grid-cols-3 gap-2 text-center">
+      <div>
+        <p class="text-[10px] text-slate-500 uppercase tracking-wider">Revenue</p>
+        <p class="text-xs font-semibold text-white mt-0.5">${c.revenue || 'N/A'}</p>
+      </div>
+      <div>
+        <p class="text-[10px] text-slate-500 uppercase tracking-wider">Employees</p>
+        <p class="text-xs font-semibold text-white mt-0.5">${c.employees ? c.employees.toLocaleString() : 'N/A'}</p>
+      </div>
+      <div>
+        <p class="text-[10px] text-slate-500 uppercase tracking-wider">Sources</p>
+        <p class="text-xs font-semibold text-accent-green mt-0.5">${c.source_count} verified</p>
+      </div>
+    </div>
+    <div class="flex gap-1 mt-3">
+      ${c.has_website ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-green-500/10 text-green-400">🌐 Web</span>' : ''}
+      ${c.has_financials ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400">📊 Fin</span>' : ''}
+      ${c.has_news ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400">📰 News</span>' : ''}
+      ${c.has_jobs ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400">💼 Jobs</span>' : ''}
+    </div>
+  </div>`;
+}
+
+function renderSkeleton() {
+  return `<div class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+    ${Array(6).fill(`
+      <div class="bg-surface-card border border-surface-border rounded-xl p-4">
+        <div class="skeleton h-4 w-3/4 mb-2"></div>
+        <div class="skeleton h-3 w-1/2 mb-4"></div>
+        <div class="grid grid-cols-3 gap-2">
+          <div class="skeleton h-8 rounded"></div>
+          <div class="skeleton h-8 rounded"></div>
+          <div class="skeleton h-8 rounded"></div>
+        </div>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function renderPagination() {
+  if (state.pages <= 1) return '';
+  const pages = [];
+  for (let i = Math.max(1, state.page - 2); i <= Math.min(state.pages, state.page + 2); i++) {
+    pages.push(i);
+  }
+  return `
+  <div class="flex items-center justify-center gap-1 mt-6">
+    ${state.page > 1 ? `<button onclick="goPage(${state.page-1})" class="px-3 py-2 text-sm bg-surface-card border border-surface-border rounded-lg text-slate-400 hover:text-white">←</button>` : ''}
+    ${pages.map(p => `<button onclick="goPage(${p})" class="px-3 py-2 text-sm rounded-lg ${p === state.page ? 'bg-brand-600 text-white' : 'bg-surface-card border border-surface-border text-slate-400 hover:text-white'}">${p}</button>`).join('')}
+    ${state.page < state.pages ? `<button onclick="goPage(${state.page+1})" class="px-3 py-2 text-sm bg-surface-card border border-surface-border rounded-lg text-slate-400 hover:text-white">→</button>` : ''}
+  </div>`;
+}
+
+// ── Profile View ──
+function renderProfile() {
+  if (state.profileLoading || !state.profile) {
+    return `<main class="max-w-4xl mx-auto px-4 py-6">
+      <button onclick="goDirectory()" class="text-sm text-brand-400 hover:text-brand-300 mb-4 flex items-center gap-1">← Back to directory</button>
+      <div class="space-y-4">
+        ${Array(4).fill('<div class="profile-section"><div class="skeleton h-6 w-1/3 mb-4"></div><div class="skeleton h-4 w-full mb-2"></div><div class="skeleton h-4 w-2/3"></div></div>').join('')}
+      </div>
+    </main>`;
+  }
+  const p = state.profile;
+  const o = p.overview;
+  return `
+  <main class="max-w-4xl mx-auto px-4 py-6 pb-28">
+    <button onclick="goDirectory()" class="text-sm text-brand-400 hover:text-brand-300 mb-4 flex items-center gap-1">← Back to directory</button>
+
+    <!-- Company Header -->
+    <div class="bg-gradient-to-r from-brand-900/40 to-surface-card border border-surface-border rounded-xl p-5 md:p-8 mb-4 fade-in">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <h2 class="text-xl md:text-2xl font-bold text-white">${esc(o.name)}</h2>
+            ${o.is_bankrupt ? '<span class="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs rounded font-medium">⚠ BANKRUPT</span>' : ''}
+          </div>
+          <p class="text-sm text-slate-400">${esc(o.orgnr)} · ${esc(o.municipality)} · ${esc(o.sector || '')}</p>
+          ${o.synthesis ? `<p class="text-sm text-slate-300 mt-3 max-w-2xl">${esc(o.synthesis)}</p>` : ''}
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="toggleCompare('${o.orgnr}','${escAttr(o.name)}')"
+            class="px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isCompareSelected(o.orgnr) ? 'bg-brand-600 text-white' : 'bg-surface-elevated text-slate-300 hover:text-white'}">
+            ${isCompareSelected(o.orgnr) ? '✓ In Compare' : '+ Compare'}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Observations -->
+    ${o.key_observations && o.key_observations.length ? `
+    <div class="profile-section fade-in">
+      <h3>💡 Key Observations</h3>
+      <ul class="space-y-1.5">
+        ${o.key_observations.map(obs => `<li class="text-sm text-slate-300 flex items-start gap-2"><span class="text-brand-400 mt-0.5">•</span>${esc(obs)}</li>`).join('')}
+      </ul>
+    </div>` : ''}
+
+    <!-- Overview & Identity -->
+    <div class="profile-section fade-in">
+      <h3>🏢 Overview & Legal Identity</h3>
+      <div class="grid gap-3 md:grid-cols-2">
+        ${profileRow('Legal Form', o.legal_form)}
+        ${profileRow('Registered Address', o.registered_address)}
+        ${profileRow('Registration Date', o.registration_date)}
+        ${profileRow('Status', o.registration_status)}
+        ${profileRow('Activity', o.activity_description)}
+        ${o.industry_codes.length ? `<div class="md:col-span-2"><p class="text-xs text-slate-500 mb-1">NACE Industry Codes</p><div class="flex flex-wrap gap-1">${o.industry_codes.map(ic => `<span class="text-xs px-2 py-0.5 bg-surface-elevated rounded text-slate-300">${esc(ic.code)} — ${esc(ic.description)}</span>`).join('')}</div></div>` : ''}
+      </div>
+    </div>
+
+    <!-- Financials -->
+    ${renderFinancialsSection(p.financials)}
+
+    <!-- Leadership -->
+    ${renderLeadershipSection(p.leadership)}
+
+    <!-- Website & Social -->
+    ${renderWebsiteSection(p.website)}
+
+    <!-- Jobs -->
+    ${renderJobsSection(p.jobs)}
+
+    <!-- Evidence -->
+    ${renderEvidenceSection(p.evidence)}
+  </main>`;
+}
+
+function profileRow(label, claim) {
+  if (!claim || (!claim.value && claim.status === 'not_available')) return '';
+  return `
+  <div class="flex items-start justify-between gap-2 py-2 border-b border-surface-border/50">
+    <div>
+      <p class="text-[10px] text-slate-500 uppercase tracking-wider">${esc(label)}</p>
+      <p class="text-sm text-white mt-0.5">${esc(String(claim.value || 'N/A'))}</p>
+    </div>
+    ${sourceBadge(claim, label)}
+  </div>`;
+}
+
+function financialRow(label, claim) {
+  if (!claim) return '';
+  return `
+  <tr class="border-b border-surface-border/30">
+    <td class="py-2.5 text-sm text-slate-400">${esc(label)}</td>
+    <td class="py-2.5 text-sm text-white font-medium text-right">${esc(claim.display || fmtNum(claim.value))}</td>
+    <td class="py-2.5 text-right">${sourceBadge(claim, label)}</td>
+  </tr>`;
+}
+
+function renderFinancialsSection(fin) {
+  if (fin.status !== 'available') {
+    return `<div class="profile-section fade-in">
+      <h3>📊 Financial Data</h3>
+      <p class="text-sm text-slate-500">No financial data available for this company.</p>
+    </div>`;
+  }
+  return `
+  <div class="profile-section fade-in">
+    <h3>📊 Multi-Year Financials${fin.latest_filing_year ? ` <span class="text-xs text-slate-500 font-normal">(${fin.latest_filing_year}${fin.currency ? ' · ' + fin.currency : ''})</span>` : ''}</h3>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-surface-border">
+            <th class="text-left text-[10px] text-slate-500 uppercase tracking-wider py-2">Metric</th>
+            <th class="text-right text-[10px] text-slate-500 uppercase tracking-wider py-2">Value</th>
+            <th class="text-right text-[10px] text-slate-500 uppercase tracking-wider py-2">Source</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${financialRow('Revenue', fin.revenue)}
+          ${financialRow('Operating Profit', fin.operating_profit)}
+          ${financialRow('Profit Before Tax', fin.profit_before_tax)}
+          ${financialRow('Net Income', fin.net_income)}
+          ${financialRow('Total Assets', fin.total_assets)}
+          ${financialRow('Total Equity', fin.total_equity)}
+          ${financialRow('Total Debt', fin.total_debt)}
+          ${financialRow('Employees', fin.employees)}
+        </tbody>
+      </table>
+    </div>
+    ${fin.yoy_summary ? `
+    <div class="mt-4 p-3 bg-surface-elevated/50 rounded-lg">
+      <p class="text-xs text-slate-500 uppercase mb-1">Year-over-Year Summary</p>
+      <p class="text-sm text-slate-300">${esc(JSON.stringify(fin.yoy_summary))}</p>
+    </div>` : ''}
+    ${fin.historical_summary && fin.historical_summary.length ? `
+    <div class="mt-4">
+      <p class="text-xs text-slate-500 uppercase mb-2">Historical Data</p>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead><tr class="border-b border-surface-border">${Object.keys(fin.historical_summary[0] || {}).map(k => `<th class="text-left py-1 text-slate-500">${esc(k)}</th>`).join('')}</tr></thead>
+          <tbody>${fin.historical_summary.map(row => `<tr class="border-b border-surface-border/20">${Object.values(row).map(v => `<td class="py-1 text-slate-300">${esc(String(v))}</td>`).join('')}</tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>` : ''}
+  </div>`;
+}
+
+function renderLeadershipSection(lead) {
+  if (!lead.roles.length) {
+    return `<div class="profile-section fade-in">
+      <h3>👥 Leadership & Board Roles</h3>
+      <p class="text-sm text-slate-500">No leadership data available.</p>
+    </div>`;
+  }
+  return `
+  <div class="profile-section fade-in">
+    <h3>👥 Leadership & Board Roles <span class="text-xs text-slate-500 font-normal">(${lead.roles.length} roles)</span></h3>
+    <div class="grid gap-2 md:grid-cols-2">
+      ${lead.roles.map(r => {
+        const name = Array.isArray(r.name) ? r.name.join(', ') : r.name;
+        return `
+        <div class="flex items-center justify-between p-3 bg-surface-elevated/30 rounded-lg border border-surface-border/30">
+          <div>
+            <p class="text-sm text-white font-medium">${esc(name)}</p>
+            <p class="text-xs text-slate-400">${esc(r.role || '')}</p>
+          </div>
+          ${r.source ? sourceBadge({source: r.source, retrieved_at: r.retrieved_at, status: 'available'}, r.role) : ''}
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+function renderWebsiteSection(web) {
+  return `
+  <div class="profile-section fade-in">
+    <h3>🌐 Website & Social Profiles</h3>
+    ${web.official_website ? `
+    <div class="mb-3 p-3 bg-surface-elevated/30 rounded-lg border border-surface-border/30 flex items-center justify-between">
+      <div>
+        <p class="text-xs text-slate-500 uppercase">Official Website</p>
+        <a href="${web.official_website.url?.startsWith('http') ? esc(web.official_website.url) : 'https://' + esc(web.official_website.url || '')}"
+          target="_blank" class="text-sm text-brand-400 hover:text-brand-300">${esc(web.official_website.url || 'N/A')}</a>
+      </div>
+      ${web.official_website.source ? sourceBadge({source: web.official_website.source || 'brreg', retrieved_at: web.official_website.retrieved_at, status: 'available'}, 'Website') : ''}
+    </div>` : '<p class="text-sm text-slate-500 mb-3">No website on file.</p>'}
+
+    ${web.social_profiles.length ? `
+    <p class="text-xs text-slate-500 uppercase mb-2">Social Profiles</p>
+    <div class="flex flex-wrap gap-2 mb-3">
+      ${web.social_profiles.map(sp => `
+        <a href="${esc(sp.url || '#')}" target="_blank" class="px-3 py-1.5 bg-surface-elevated rounded-lg text-sm text-brand-400 hover:text-brand-300 border border-surface-border/30">
+          ${esc(sp.platform || sp.url || 'Social')}
+        </a>
+      `).join('')}
+    </div>` : ''}
+
+    ${web.news_items.length ? `
+    <p class="text-xs text-slate-500 uppercase mb-2 mt-4">News & Publications (${web.news_items.length})</p>
+    <div class="space-y-2">
+      ${web.news_items.slice(0, 10).map(ni => `
+        <div class="p-3 bg-surface-elevated/30 rounded-lg border border-surface-border/30">
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex-1 min-w-0">
+              <a href="${esc(ni.url || '#')}" target="_blank" class="text-sm text-white hover:text-brand-300 font-medium">${esc(ni.title || ni.headline || 'News')}</a>
+              <p class="text-xs text-slate-500 mt-0.5">${fmtDate(ni.published_date || ni.date)}</p>
+            </div>
+            ${ni.source ? sourceBadge({source: ni.source || ni.url, retrieved_at: ni.retrieved_at || ni.published_date, status: 'available'}, 'News') : ''}
+          </div>
+        </div>
+      `).join('')}
+    </div>` : ''}
+  </div>`;
+}
+
+function renderJobsSection(jobs) {
+  return `
+  <div class="profile-section fade-in">
+    <h3>💼 Open Jobs</h3>
+    ${jobs.listings.length ? `
+    <div class="space-y-2">
+      ${jobs.listings.map(j => `
+        <div class="p-3 bg-surface-elevated/30 rounded-lg border border-surface-border/30">
+          <p class="text-sm text-white font-medium">${esc(j.title || j.position || 'Position')}</p>
+          <p class="text-xs text-slate-400">${esc(j.location || '')} ${j.deadline ? '· Deadline: ' + fmtDate(j.deadline) : ''}</p>
+        </div>
+      `).join('')}
+    </div>` : `<p class="text-sm text-slate-500">${jobs.status === 'not_applicable' ? 'Not applicable for this company type.' : 'No open job listings found.'}</p>`}
+  </div>`;
+}
+
+function renderEvidenceSection(ev) {
+  return `
+  <div class="profile-section fade-in">
+    <h3>🔍 Source Verification & Evidence</h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+      <div class="text-center p-3 bg-surface-elevated/30 rounded-lg">
+        <p class="text-xl font-bold text-white">${ev.total_claims}</p>
+        <p class="text-[10px] text-slate-500 uppercase">Total Claims</p>
+      </div>
+      <div class="text-center p-3 bg-surface-elevated/30 rounded-lg">
+        <p class="text-xl font-bold text-accent-green">${ev.claims_with_source}</p>
+        <p class="text-[10px] text-slate-500 uppercase">Sourced</p>
+      </div>
+      <div class="text-center p-3 bg-surface-elevated/30 rounded-lg">
+        <p class="text-xl font-bold text-brand-400">${ev.source_summary.length}</p>
+        <p class="text-[10px] text-slate-500 uppercase">Unique Sources</p>
+      </div>
+      <div class="text-center p-3 bg-surface-elevated/30 rounded-lg">
+        <p class="text-xl font-bold text-white">${ev.content_hash ? '✓' : '—'}</p>
+        <p class="text-[10px] text-slate-500 uppercase">Hash Verified</p>
+      </div>
+    </div>
+    ${ev.source_summary.length ? `
+    <p class="text-xs text-slate-500 uppercase mb-2">Source Breakdown</p>
+    <div class="space-y-1.5">
+      ${ev.source_summary.map(s => `
+        <div class="flex items-center justify-between p-2.5 bg-surface-elevated/30 rounded-lg border border-surface-border/30">
+          <div class="flex items-center gap-2 flex-1 min-w-0">
+            <span class="w-2 h-2 rounded-full bg-accent-green flex-shrink-0"></span>
+            <a href="${esc(s.source || '#')}" target="_blank" class="text-xs text-brand-400 hover:text-brand-300 truncate">${esc(s.source || 'Unknown')}</a>
+          </div>
+          <div class="flex items-center gap-3 flex-shrink-0">
+            <span class="text-[10px] text-slate-500">${esc(s.type || '')}</span>
+            <span class="text-xs font-medium text-white">${s.claim_count} claims</span>
+          </div>
+        </div>
+      `).join('')}
+    </div>` : ''}
+    ${ev.content_hash ? `<p class="text-xs text-slate-500 mt-3">Content Hash: <code class="text-slate-400">${esc(ev.content_hash)}</code></p>` : ''}
+  </div>`;
+}
+
+// ── Source Inspector Drawer ──
+function renderSourceDrawer() {
+  if (!state.sourceDrawer) return '';
+  const s = state.sourceDrawer;
+  const statusLabel = s.status === 'available' ? '✅ Available' : s.status === 'blocked' ? '⚠️ Blocked' : '❌ Not Available';
+  const statusColor = s.status === 'available' ? 'text-green-400' : s.status === 'blocked' ? 'text-amber-400' : 'text-red-400';
+
+  // Mobile: slide-up sheet. Desktop: right drawer.
+  return `
+  <div class="drawer-overlay" onclick="closeSourceDrawer()"></div>
+  <div class="drawer-panel p-6">
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-lg font-bold text-white flex items-center gap-2">🔍 Source Inspector</h3>
+      <button onclick="closeSourceDrawer()" class="p-1.5 rounded-lg hover:bg-surface-elevated text-slate-400 hover:text-white">✕</button>
+    </div>
+
+    <div class="space-y-5">
+      <div>
+        <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Verification Status</p>
+        <p class="text-lg font-semibold ${statusColor}">${statusLabel}</p>
+      </div>
+
+      <div>
+        <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Source URL</p>
+        ${s.source ? `<a href="${esc(s.source)}" target="_blank" class="text-sm text-brand-400 hover:text-brand-300 break-all">${esc(s.source)}</a>` : '<p class="text-sm text-slate-500">No source URL</p>'}
+      </div>
+
+      <div>
+        <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Retrieved / Published</p>
+        <p class="text-sm text-white">${s.retrieved_at ? fmtDate(s.retrieved_at) + ' ' + (s.retrieved_at.substring(11,19) || '') : 'Unknown'}</p>
+      </div>
+
+      ${s.period ? `<div>
+        <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Reporting Period</p>
+        <p class="text-sm text-white">${esc(s.period)}</p>
+      </div>` : ''}
+
+      ${s.currency ? `<div>
+        <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Currency</p>
+        <p class="text-sm text-white">${esc(s.currency)}</p>
+      </div>` : ''}
+
+      ${s.confidence != null ? `<div>
+        <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Confidence</p>
+        <div class="flex items-center gap-2">
+          <div class="flex-1 h-2 bg-surface-elevated rounded-full overflow-hidden">
+            <div class="h-full bg-brand-500 rounded-full" style="width:${(s.confidence * 100)}%"></div>
+          </div>
+          <span class="text-xs text-white font-medium">${(s.confidence * 100).toFixed(0)}%</span>
+        </div>
+      </div>` : ''}
+
+      ${s.value != null ? `<div>
+        <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Raw Value</p>
+        <pre class="text-xs text-slate-300 bg-surface-elevated p-3 rounded-lg overflow-x-auto">${typeof s.value === 'object' ? esc(JSON.stringify(s.value, null, 2)) : esc(String(s.value))}</pre>
+      </div>` : ''}
+    </div>
+
+    ${s.source ? `
+    <div class="mt-6 pt-4 border-t border-surface-border">
+      <a href="${esc(s.source)}" target="_blank" class="w-full flex items-center justify-center gap-2 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-sm font-medium transition-colors">
+        Open External Source ↗
+      </a>
+    </div>` : ''}
+  </div>`;
+}
+
+// ── Compare Bar (mobile sticky bottom) ──
+function renderCompareBar() {
+  if (!state.compareSelections.length || state.view === 'compare') return '';
+  return `
+  <div class="compare-bar md:fixed md:bottom-4 md:left-1/2 md:-translate-x-1/2 md:max-w-lg md:rounded-xl md:border md:border-surface-border md:shadow-xl">
+    <div class="flex items-center justify-between gap-3">
+      <div class="flex-1 min-w-0">
+        <p class="text-xs text-slate-400 mb-1">Compare (${state.compareSelections.length}/2)</p>
+        <div class="flex gap-2 overflow-x-auto">
+          ${state.compareSelections.map(s => `
+            <span class="flex items-center gap-1 px-2 py-1 bg-brand-600/20 border border-brand-500/30 rounded text-xs text-brand-300 flex-shrink-0">
+              ${esc(s.name)}
+              <button onclick="toggleCompare('${s.orgnr}','${escAttr(s.name)}')" class="hover:text-white">✕</button>
+            </span>
+          `).join('')}
+        </div>
+      </div>
+      <button onclick="loadCompare()" class="px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-medium hover:bg-brand-500 disabled:opacity-50 flex-shrink-0"
+        ${state.compareSelections.length < 2 ? 'disabled' : ''}>
+        Compare →
+      </button>
+    </div>
+  </div>`;
+}
+
+// ── Compare View ──
+function renderCompareView() {
+  return `
+  <main class="max-w-5xl mx-auto px-4 py-6 pb-28">
+    <button onclick="goDirectory()" class="text-sm text-brand-400 hover:text-brand-300 mb-4 flex items-center gap-1">← Back to directory</button>
+    <h2 class="text-xl font-bold text-white mb-4">Side-by-Side Comparison</h2>
+
+    <!-- Company selectors -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+      ${renderCompareSelector(0)}
+      ${renderCompareSelector(1)}
+    </div>
+
+    ${state.compareSelections.length === 2 && !state.compareLoading && !state.compareDataA ?
+      `<div class="text-center"><button onclick="loadCompare()" class="px-6 py-3 bg-brand-600 text-white rounded-xl font-medium hover:bg-brand-500">Load Comparison</button></div>` : ''}
+
+    ${state.compareLoading ? `
+      <div class="space-y-3">
+        ${Array(5).fill('<div class="skeleton h-16 rounded-xl"></div>').join('')}
+      </div>` : ''}
+
+    ${state.compareDataA && state.compareDataB ? renderCompareTable() : ''}
+  </main>`;
+}
+
+function renderCompareSelector(idx) {
+  const sel = state.compareSelections[idx];
+  return `
+  <div class="bg-surface-card border border-surface-border rounded-xl p-4">
+    <p class="text-xs text-slate-500 uppercase mb-2">Company ${idx === 0 ? 'A' : 'B'}</p>
+    ${sel ? `
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-semibold text-white">${esc(sel.name)}</p>
+          <p class="text-xs text-slate-500">${esc(sel.orgnr)}</p>
+        </div>
+        <button onclick="toggleCompare('${sel.orgnr}','${escAttr(sel.name)}')" class="text-xs text-red-400 hover:text-red-300">Remove</button>
+      </div>
+    ` : `
+      <p class="text-sm text-slate-500">Select a company from the directory</p>
+    `}
+  </div>`;
+}
+
+function renderCompareTable() {
+  const a = state.compareDataA;
+  const b = state.compareDataB;
+
+  const rows = [
+    ['Legal Status', a.overview.registration_status?.value, b.overview.registration_status?.value, a.overview.registration_status, b.overview.registration_status],
+    ['Founded Date', a.overview.registration_date?.value, b.overview.registration_date?.value, a.overview.registration_date, b.overview.registration_date],
+    ['Employees', a.overview.employees?.toLocaleString(), b.overview.employees?.toLocaleString(), null, null],
+    ['Latest Revenue', a.financials.revenue?.display, b.financials.revenue?.display, a.financials.revenue, b.financials.revenue],
+    ['Operating Result', a.financials.operating_profit?.display, b.financials.operating_profit?.display, a.financials.operating_profit, b.financials.operating_profit],
+    ['Total Assets', a.financials.total_assets?.display, b.financials.total_assets?.display, a.financials.total_assets, b.financials.total_assets],
+    ['Total Equity', a.financials.total_equity?.display, b.financials.total_equity?.display, a.financials.total_equity, b.financials.total_equity],
+    ['Website', a.website?.official_website?.url || '—', b.website?.official_website?.url || '—', null, null],
+    ['Social Profiles', (a.website?.social_profiles?.length || 0) + ' profiles', (b.website?.social_profiles?.length || 0) + ' profiles', null, null],
+    ['News Items', (a.website?.news_items?.length || 0) + ' articles', (b.website?.news_items?.length || 0) + ' articles', null, null],
+    ['Open Jobs', (a.jobs?.listings?.length || 0) + ' listings', (b.jobs?.listings?.length || 0) + ' listings', null, null],
+    ['Verified Sources', (a.evidence?.source_summary?.length || 0) + ' sources', (b.evidence?.source_summary?.length || 0) + ' sources', null, null],
+    ['Total Claims', a.evidence?.total_claims, b.evidence?.total_claims, null, null],
+  ];
+
+  // Mobile: stacked cards. Desktop: table.
+  return `
+  <!-- Desktop table -->
+  <div class="hidden md:block">
+    <div class="bg-surface-card border border-surface-border rounded-xl overflow-hidden fade-in">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-surface-border bg-surface-elevated/30">
+            <th class="text-left py-3 px-4 text-xs text-slate-500 uppercase">Metric</th>
+            <th class="text-center py-3 px-4 text-xs text-brand-400 uppercase font-semibold">${esc(a.overview.name)}</th>
+            <th class="text-center py-3 px-4 text-xs text-accent-cyan uppercase font-semibold">${esc(b.overview.name)}</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(([label, va, vb, claimA, claimB]) => `
+            <tr class="border-b border-surface-border/30 hover:bg-surface-elevated/20">
+              <td class="py-3 px-4 text-sm text-slate-400">${esc(label)}</td>
+              <td class="py-3 px-4 text-sm text-white text-center">
+                ${esc(String(va || 'N/A'))}
+                ${claimA ? `<div class="mt-1">${sourceBadge(claimA, label)}</div>` : ''}
+              </td>
+              <td class="py-3 px-4 text-sm text-white text-center">
+                ${esc(String(vb || 'N/A'))}
+                ${claimB ? `<div class="mt-1">${sourceBadge(claimB, label)}</div>` : ''}
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Mobile stacked cards -->
+  <div class="md:hidden space-y-3 fade-in">
+    ${rows.map(([label, va, vb, claimA, claimB]) => `
+      <div class="bg-surface-card border border-surface-border rounded-xl p-3">
+        <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-2">${esc(label)}</p>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <p class="text-[10px] text-brand-400 mb-0.5">${esc(a.overview.name).substring(0,20)}</p>
+            <p class="text-sm text-white font-medium">${esc(String(va || 'N/A'))}</p>
+            ${claimA ? `<div class="mt-1">${sourceBadge(claimA, label)}</div>` : ''}
+          </div>
+          <div>
+            <p class="text-[10px] text-accent-cyan mb-0.5">${esc(b.overview.name).substring(0,20)}</p>
+            <p class="text-sm text-white font-medium">${esc(String(vb || 'N/A'))}</p>
+            ${claimB ? `<div class="mt-1">${sourceBadge(claimB, label)}</div>` : ''}
+          </div>
+        </div>
+      </div>
+    `).join('')}
+  </div>
+
+  <!-- Quick links to profiles -->
+  <div class="grid grid-cols-2 gap-3 mt-4">
+    <button onclick="loadProfile('${esc(a.overview.orgnr)}')" class="py-2 bg-surface-card border border-surface-border rounded-xl text-sm text-brand-400 hover:text-brand-300 text-center">View ${esc(a.overview.name)} Profile →</button>
+    <button onclick="loadProfile('${esc(b.overview.orgnr)}')" class="py-2 bg-surface-card border border-surface-border rounded-xl text-sm text-accent-cyan hover:text-cyan-300 text-center">View ${esc(b.overview.name)} Profile →</button>
+  </div>`;
+}
+
+// ── Event Handlers ──
+function onSearchInput(val) {
+  state.query = val;
+  state.page = 1;
+  clearTimeout(searchTimer);
+  clearTimeout(suggestTimer);
+  searchTimer = setTimeout(doSearch, 350);
+  suggestTimer = setTimeout(() => fetchSuggestions(val), 200);
+}
+
+function selectSuggestion(orgnr, name) {
+  state.suggestions = [];
+  state.suggestFocused = false;
+  loadProfile(orgnr);
+}
+
+function toggleSector(code) {
+  state.sector = state.sector === code ? '' : code;
+  state.page = 1;
+  doSearch();
+}
+
+function toggleForm(f) {
+  state.form = state.form === f ? '' : f;
+  state.page = 1;
+  doSearch();
+}
+
+function toggleHas(key) {
+  if (state.hasFilters.has(key)) state.hasFilters.delete(key);
+  else state.hasFilters.add(key);
+  state.page = 1;
+  doSearch();
+}
+
+function clearFilters() {
+  state.sector = '';
+  state.form = '';
+  state.hasFilters.clear();
+  state.page = 1;
+  doSearch();
+}
+
+function goPage(p) {
+  state.page = p;
+  doSearch();
+  window.scrollTo(0, 0);
+}
+
+function goCompareTab() {
+  state.view = 'compare';
+  render();
+}
+
+// ── Init ──
+(async function init() {
+  await loadMeta();
+  await doSearch();
+})();
+</script>
+
+</body>
+</html>

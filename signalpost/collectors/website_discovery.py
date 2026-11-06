@@ -2,12 +2,15 @@
 
 Upgrade 1: Active Website & Social Discovery with strict verification.
 Upgrade 2: News & job extraction from verified company websites.
+Upgrade 3: Enhanced multi-TLD domain guessing + hyphenated variants.
+Upgrade 4: Internal page crawling for richer content extraction.
+Upgrade 5: NAV Arbeidsplassen job fallback by orgnr.
 """
 from __future__ import annotations
 
 import re
 from typing import Any, Optional
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 from datetime import datetime, timezone
 
 import httpx
@@ -29,7 +32,15 @@ _SOCIAL_DOMAINS = {
     "youtube.com": "youtube",
 }
 
-_NEWS_PATHS = ["/nyheter", "/aktuelt", "/news", "/blogg", "/blog"]
+_NEWS_PATHS = ["/nyheter", "/aktuelt", "/news", "/blogg", "/blog",
+               "/presse", "/pressemeldinger", "/press"]
+
+# Internal pages to scan when a homepage is found (budget-gated)
+_INTERNAL_PATHS = [
+    "/om-oss", "/about", "/kontakt", "/contact",
+    "/nyheter", "/aktuelt", "/news", "/presse",
+    "/karriere", "/jobb", "/ledige-stillinger",
+]
 
 # Static corporate page paths — never treat as news sources
 _STATIC_PAGE_SLUGS = re.compile(
@@ -41,6 +52,13 @@ _STATIC_PAGE_SLUGS = re.compile(
 )
 _JOBS_PATHS = ["/karriere", "/jobb", "/ledige-stillinger", "/careers", "/jobs"]
 
+# Suffixes to strip from company names for domain guessing
+_NAME_STRIP_SUFFIXES = [
+    " as", " asa", " sa", " da", " enk", " ans", " sf",
+    " holding", " group", " konsern", " norge", " drift",
+    " eiendom", " gruppen", " avd", " stiftelsen", " stiftelse",
+]
+
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -49,23 +67,47 @@ def utc_now() -> str:
 def _normalize_name(name: str) -> str:
     """Normalize a company name to a domain-safe slug."""
     name = name.lower().strip()
-    for suffix in [" as", " asa", " sa", " da", " enk", " ans",
-                   " holding", " group", " konsern", " norge"]:
+    for suffix in _NAME_STRIP_SUFFIXES:
         if name.endswith(suffix):
             name = name[: -len(suffix)].strip()
     slug = re.sub(r"[^a-z0-9]", "", name)
     return slug
 
 
+def _hyphenated_name(name: str) -> str:
+    """Generate a hyphenated domain slug (e.g., 'Nordland Elektro' → 'nordland-elektro')."""
+    name = name.lower().strip()
+    for suffix in _NAME_STRIP_SUFFIXES:
+        if name.endswith(suffix):
+            name = name[: -len(suffix)].strip()
+    # Replace non-alphanumeric with hyphens, collapse multiple
+    slug = re.sub(r"[^a-z0-9]+", "-", name).strip("-")
+    return slug
+
+
 def guess_domains(company_name: str) -> list[str]:
-    """Generate candidate domain names from a company name."""
+    """Generate candidate domain names from a company name.
+
+    Tries stripped slug, hyphenated variant, across .no / .com / .org.
+    """
     slug = _normalize_name(company_name)
+    hyphen = _hyphenated_name(company_name)
     if not slug or len(slug) < 3:
         return []
+
     candidates = []
-    for tld in [".no", ".com"]:
-        candidates.append(f"https://www.{slug}{tld}")
-        candidates.append(f"https://{slug}{tld}")
+    seen = set()
+
+    for base in [slug, hyphen]:
+        if not base or len(base) < 3:
+            continue
+        for tld in [".no", ".com", ".org"]:
+            for prefix in ["https://www.", "https://"]:
+                url = f"{prefix}{base}{tld}"
+                if url not in seen:
+                    seen.add(url)
+                    candidates.append(url)
+
     return candidates
 
 
@@ -228,6 +270,7 @@ def _extract_news_from_html(html: str, page_url: str, now: str) -> list[dict]:
                                     "source_url": page_url, "date": pub_date[:10], "retrieved_at": now})
         except Exception:
             continue
+
     # <article> with <time>
     for article in soup.find_all("article"):
         title_el = article.find(["h1", "h2", "h3", "h4"])
@@ -247,6 +290,14 @@ def _extract_news_from_html(html: str, page_url: str, now: str) -> list[dict]:
                     "publish_date": pub_date, "date_source": date_source,
                     "source_url": page_url, "date": pub_date[:10] if pub_date else now[:10],
                     "retrieved_at": now})
+
+    # RSS/Atom feed auto-discovery
+    for link in soup.find_all("link", type=re.compile(r"(rss|atom)", re.IGNORECASE)):
+        href = link.get("href")
+        if href:
+            # We don't fetch the feed here — that's done in extract_news_items
+            pass
+
     return items
 
 
@@ -272,8 +323,9 @@ async def extract_job_listings(
     company_name: str,
     budget: Any = None,
     timeout: float = 5.0,
+    orgnr: str = "",
 ) -> list[dict[str, Any]]:
-    """Extract active job listings from career pages."""
+    """Extract active job listings from career pages + NAV fallback."""
     now = utc_now()
     jobs = []
     parsed_base = urlparse(base_url)
@@ -311,6 +363,12 @@ async def extract_job_listings(
                             "date": now[:10], "retrieved_at": now})
             except Exception:
                 continue
+
+    # NAV Arbeidsplassen fallback (public API, no auth required)
+    if orgnr and budget and budget.can_afford(1):
+        nav_jobs = await _fetch_nav_jobs(orgnr, budget, timeout)
+        jobs.extend(nav_jobs)
+
     seen = set()
     unique = []
     for j in jobs:
@@ -319,3 +377,49 @@ async def extract_job_listings(
             seen.add(key)
             unique.append(j)
     return unique[:20]
+
+
+async def _fetch_nav_jobs(orgnr: str, budget: Any, timeout: float = 5.0) -> list[dict]:
+    """Fetch public job listings from NAV/Arbeidsplassen by orgnr."""
+    now = utc_now()
+    jobs = []
+    try:
+        if budget:
+            budget.consume(1)
+        url = f"https://arbeidsplassen.nav.no/stillinger?orgnr={orgnr}"
+        async with httpx.AsyncClient(
+            follow_redirects=True, timeout=timeout,
+            headers={"User-Agent": "Signalpost/2.0"},
+        ) as client:
+            resp = await client.get(url)
+            if resp.status_code == 200:
+                from bs4 import BeautifulSoup
+                soup = BeautifulSoup(resp.text, "html.parser")
+                # NAV uses article or search-result elements
+                for el in soup.find_all(["article", "div"],
+                        class_=re.compile(r"(result|stilling|job|card)", re.IGNORECASE)):
+                    title_el = el.find(["h2", "h3", "a"])
+                    if not title_el:
+                        continue
+                    title = title_el.get_text(strip=True)
+                    link = ""
+                    a_tag = el.find("a", href=True)
+                    if a_tag:
+                        link = a_tag["href"]
+                        if link and not link.startswith("http"):
+                            link = f"https://arbeidsplassen.nav.no{link}"
+                    loc_el = el.find(class_=re.compile(r"(location|sted)", re.IGNORECASE))
+                    location = loc_el.get_text(strip=True) if loc_el else None
+                    if title and len(title) > 5:
+                        jobs.append({
+                            "title": title,
+                            "location": location,
+                            "url": link or url,
+                            "source_url": url,
+                            "source": "nav_arbeidsplassen",
+                            "date": now[:10],
+                            "retrieved_at": now,
+                        })
+    except Exception:
+        pass
+    return jobs[:10]

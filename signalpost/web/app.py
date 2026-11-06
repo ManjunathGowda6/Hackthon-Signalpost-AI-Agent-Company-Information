@@ -1232,4 +1232,14 @@ def company_detail(org_number):
 
 def create_app(profiles_path="out/signalpost_final.json"):
     load_all()
+
+    # Register Signalpost Explorer Blueprint
+    from signalpost.web.explorer_api import explorer_bp, init_explorer
+    app.register_blueprint(explorer_bp)
+    init_explorer()
+
+    @app.route("/explorer")
+    def explorer_page():
+        return render_template("explorer.html")
+
     return app
