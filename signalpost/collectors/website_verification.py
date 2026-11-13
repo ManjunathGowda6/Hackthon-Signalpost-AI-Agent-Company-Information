@@ -386,7 +386,10 @@ def validate_news_item(
     url: Optional[str] = None,
 ) -> tuple[bool, str]:
     """Return (keep, reason) for a candidate news item."""
-    if title and _NAV_LABELS.match(title.strip()):
+    if not title or len(title.strip()) < 5:
+        return False, f"title too short: '{title}'"
+
+    if _NAV_LABELS.match(title.strip()):
         return False, f"navigation/static label: '{title}'"
 
     if not publish_date:
@@ -398,13 +401,12 @@ def validate_news_item(
             if normalised == forbidden.lower().replace(" ", "").replace("-", "").replace("_", ""):
                 return False, f"date source '{date_source}' is forbidden (not a true publish date)"
 
-    if publish_date:
-        try:
-            parsed = _date.fromisoformat(publish_date[:10])
-            if parsed > _date.today():
-                return False, f"future date: {publish_date}"
-        except (ValueError, TypeError):
-            pass
+    try:
+        parsed = _date.fromisoformat(publish_date[:10])
+        if parsed > _date.today():
+            return False, f"future date: {publish_date}"
+    except (ValueError, TypeError):
+        return False, f"invalid ISO date format: '{publish_date}'"
 
     return True, "valid news item"
 
