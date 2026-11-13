@@ -19,6 +19,11 @@ from urllib.parse import urlparse, urljoin
 import httpx
 from bs4 import BeautifulSoup
 
+ROOT_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT_DIR))
+DATASET_PATH = ROOT_DIR / "out" / "signalpost_1000.json"
+FINAL_PATH = ROOT_DIR / "out" / "signalpost_final.json"
+
 from signalpost.collectors.website_verification import (
     verify_social_link,
     validate_news_item,
@@ -41,13 +46,6 @@ from signalpost.collectors.website_discovery import (
     _fetch_nav_jobs,
 )
 from scripts.run_clean_and_summarize import build_buyer_first_summary
-
-if sys.platform == "win32":
-    sys.stdout.reconfigure(encoding="utf-8")
-
-ROOT_DIR = Path(__file__).resolve().parent.parent
-DATASET_PATH = ROOT_DIR / "out" / "signalpost_1000.json"
-FINAL_PATH = ROOT_DIR / "out" / "signalpost_final.json"
 
 
 def utc_now() -> str:
