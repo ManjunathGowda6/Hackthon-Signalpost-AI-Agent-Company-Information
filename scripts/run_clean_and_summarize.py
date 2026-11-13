@@ -277,21 +277,28 @@ def main():
         ver_method = p.get("verification_method") or p.get("website_verification") or ""
         is_verified = "orgnr" in str(ver_method).lower() or bool(p.get("brreg_hjemmeside"))
 
-        # Explicitly clean ARCON AS and any single-word unverified guessed domain
-        tokens = core_tokens(name)
-        if name.upper() == "ARCON AS" or (web and not is_verified and len(tokens) == 1 and len(tokens[0]) <= 6):
-            if web:
-                p["website"] = None
-                if "hjemmeside" in p:
-                    p["hjemmeside"] = None
-                p["social_links"] = []
-                p["news"] = []
-                # Keep nested structures synchronized
-                wp["official_website"] = None
-                wp["social_profiles"] = []
-                wp["news_items"] = []
-                wp["status"] = "not_found"
-                removed_websites += 1
+        # Strict Website Verification:
+        # A website is ONLY kept if:
+        # 1. It came from Brreg official registry (brreg_hjemmeside == True) with no conflicting orgnr, OR
+        # 2. It was verified by exact 9-digit orgnr (orgnr_verified == True), OR
+        # 3. It is an official Norwegian municipality domain (e.g. *.kommune.no for KOMMUNE).
+        # ALL other unverified guessed domains (which cause wrong-company matches) MUST be purged!
+        is_kommune_site = "KOMMUNE" in name.upper() and web and ".kommune.no" in web.lower()
+        should_keep_website = is_verified or is_kommune_site
+
+        if web and not should_keep_website:
+            p["website"] = None
+            if "hjemmeside" in p:
+                p["hjemmeside"] = None
+            p["social_links"] = []
+            p["news"] = []
+            # Keep nested structures synchronized
+            wp["official_website"] = None
+            wp["social_profiles"] = []
+            wp["news_items"] = []
+            wp["status"] = "not_found"
+            removed_websites += 1
+            web = None
 
         # Filter social handles with extra words
         socials = p.get("social_links") or []
