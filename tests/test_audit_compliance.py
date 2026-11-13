@@ -566,6 +566,121 @@ check("14.5 100% of summaries start with buyer fact + (Source: ...) in Sentence 
       f"{s1_missing_source} missing Source in Sentence 1" if s1_missing_source else "100% compliant")
 
 
+# ═══════════════════════════════════════════════════════════
+# 15. V4.2 STAGE 5 AUDIT CHECKS
+# ═══════════════════════════════════════════════════════════
+print("\n── 15. V4.2 STAGE 5 AUDIT CHECKS ──")
+
+from datetime import date as _compliance_date
+from urllib.parse import urlparse as _urlparse
+from signalpost.collectors.website_discovery import (
+    _PARKED_DOMAINS,
+    _GENERIC_JOB_TITLES,
+)
+from signalpost.collectors.website_verification import _NAV_LABELS
+
+# 15.1 Zero parked domains
+parked_count = 0
+for p in profiles:
+    wp = p.get("website_profiles") or {}
+    ow = wp.get("official_website") or {}
+    w_url = ow.get("url", "") if isinstance(ow, dict) else (p.get("website") or p.get("hjemmeside") or "")
+    if w_url:
+        dom = _urlparse(w_url).netloc.lower()
+        if any(pd in dom for pd in _PARKED_DOMAINS):
+            parked_count += 1
+check("15.1 Zero parked domains", parked_count == 0,
+      f"{parked_count} parked domains" if parked_count else "0 parked domains")
+
+# 15.2 Zero invalid social URLs (root-only, personal profiles /in/, posts/events/groups)
+invalid_social_count = 0
+for p in profiles:
+    wp = p.get("website_profiles") or {}
+    socials = wp.get("social_profiles") or p.get("social_links") or []
+    for s in socials:
+        s_url = s if isinstance(s, str) else (s.get("url") or s.get("source_url") or "")
+        s_lower = s_url.lower()
+        # Check personal linkedin /in/
+        if "linkedin.com/in/" in s_lower:
+            invalid_social_count += 1
+            continue
+        # Check post/event/group
+        if _re_test.search(r'/(posts|events|groups|hashtag|share|sharer|intent|dialog|login|help|privacy|terms)(/|$)', s_lower):
+            invalid_social_count += 1
+            continue
+        # Check root-only
+        parsed_s = _urlparse(s_url)
+        slug = parsed_s.path.strip("/")
+        if not slug or slug in {"company", "profile", "home", "feed", "share", "pages", "group", "in"}:
+            invalid_social_count += 1
+check("15.2 Zero invalid social URLs (root-only, personal, posts/events)", invalid_social_count == 0,
+      f"{invalid_social_count} invalid social URLs" if invalid_social_count else "0 invalid social URLs")
+
+# 15.3 100% of news have valid title, source_url, date (<= today)
+invalid_news_count = 0
+news_items_count = 0
+for p in profiles:
+    wp = p.get("website_profiles") or {}
+    news_list = wp.get("news_items") or p.get("news") or []
+    for n in news_list:
+        if isinstance(n, dict):
+            news_items_count += 1
+            title = n.get("title", "")
+            s_url = n.get("source_url") or n.get("url") or ""
+            dt = n.get("date") or n.get("publish_date") or ""
+            if not title or len(title) < 5 or not s_url or not dt:
+                invalid_news_count += 1
+            elif dt:
+                try:
+                    if _compliance_date.fromisoformat(dt[:10]) > _compliance_date.today():
+                        invalid_news_count += 1
+                except Exception:
+                    invalid_news_count += 1
+check("15.3 100% of news have valid title, source_url, date (<= today)", invalid_news_count == 0,
+      f"{invalid_news_count} invalid news items" if invalid_news_count else f"all {news_items_count} news items valid")
+
+# 15.4 100% of jobs have valid title, source_url, date (<= today)
+invalid_jobs_count = 0
+jobs_items_count = 0
+for p in profiles:
+    ha = p.get("hiring_activity") or {}
+    jobs_list = ha.get("job_listings") or ha.get("active_listings") or p.get("jobs") or []
+    for j in jobs_list:
+        if isinstance(j, dict):
+            jobs_items_count += 1
+            title = j.get("title", "")
+            s_url = j.get("source_url") or j.get("url") or ""
+            dt = j.get("date") or j.get("retrieved_at") or ""
+            if not title or len(title) < 3 or not s_url or not dt:
+                invalid_jobs_count += 1
+            elif dt:
+                try:
+                    if _compliance_date.fromisoformat(dt[:10]) > _compliance_date.today():
+                        invalid_jobs_count += 1
+                except Exception:
+                    invalid_jobs_count += 1
+check("15.4 100% of jobs have valid title, source_url, date (<= today)", invalid_jobs_count == 0,
+      f"{invalid_jobs_count} invalid job items" if invalid_jobs_count else f"all {jobs_items_count} job items valid")
+
+# 15.5 Zero generic nav titles in news/jobs
+generic_title_count = 0
+for p in profiles:
+    wp = p.get("website_profiles") or {}
+    for n in wp.get("news_items") or p.get("news") or []:
+        if isinstance(n, dict):
+            t = n.get("title", "").strip()
+            if _NAV_LABELS.match(t):
+                generic_title_count += 1
+    ha = p.get("hiring_activity") or {}
+    for j in (ha.get("job_listings") or ha.get("active_listings") or p.get("jobs") or []):
+        if isinstance(j, dict):
+            t = j.get("title", "").strip()
+            if _GENERIC_JOB_TITLES.match(t) or _NAV_LABELS.match(t):
+                generic_title_count += 1
+check("15.5 Zero generic nav titles in news/jobs", generic_title_count == 0,
+      f"{generic_title_count} generic titles" if generic_title_count else "0 generic titles")
+
+
 
 # ═══════════════════════════════════════════════════════════
 # FINAL REPORT
