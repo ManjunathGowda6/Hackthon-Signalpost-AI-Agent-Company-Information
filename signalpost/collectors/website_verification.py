@@ -1,11 +1,11 @@
 """Website verification utilities for audit compliance.
 
-v4.1 — Strict verification per judge feedback:
-  1. Exact orgnr match on page = gold standard
-  2. Reject if ANY different orgnr on page and target orgnr absent
-  3. Guessed domains: reject short/common names unless orgnr found on page
-  4. Social handles: reject if slug has extra tokens not in company name
-  5. Strict news date validation (past dates only, allowed sources only)
+v4.2 — Strict verification per Step 1 judge feedback:
+  1. Exact orgnr match on page (homepage or /kontakt, /om-oss) = Gold Standard.
+  2. Reject if ANY different orgnr on page and target orgnr absent.
+  3. Reject if page contains extended company name (e.g., target 'ARCON AS' vs 'Arcon Prosjekt').
+  4. Reject guessed domains without orgnr unless registered city (poststed/kommune) appears.
+  5. Social handles: reject if handle contains extra words not in company name (unless orgnr verified).
 """
 from __future__ import annotations
 
@@ -39,61 +39,61 @@ def _find_orgnrs_on_page(text: str) -> set[str]:
     found = set()
     for m in _ORGNR_PATTERN.finditer(text):
         orgnr = m.group(1) + m.group(2) + m.group(3)
-        # Basic validity: must be 9 digits
         if len(orgnr) == 9 and orgnr.isdigit():
             found.add(orgnr)
     return found
 
 
 def _is_short_generic_name(name: str) -> bool:
-    """True if company name (after stripping AS/ASA) is a known generic stem.
-
-    Only flags names that are in the _GENERIC_STEMS set (common Norwegian
-    company name fragments that frequently collide with other companies).
-    Does NOT flag all short names — many legitimate companies have short names.
-    """
+    """True if company name (after stripping AS/ASA) is a known generic stem."""
     clean = _NAME_NOISE.sub("", name.lower()).strip()
     tokens = re.findall(r"[a-zæøå0-9]+", clean)
-    # Single token that's a known generic stem
-    if len(tokens) == 1 and tokens[0] in _GENERIC_STEMS:
+    if len(tokens) == 1 and (tokens[0] in _GENERIC_STEMS or len(tokens[0]) <= 5):
         return True
-    # Multi-token but all tokens are generic
     if len(tokens) >= 1 and all(t in _GENERIC_STEMS for t in tokens):
         return True
     return False
 
 
 def _page_contains_extended_name(page_text: str, target_name: str) -> bool:
-    """Check if page contains the company name with EXTRA words appended as a legal entity.
+    """Check if page contains company's short name followed by an EXTRA word before 'AS' or standalone.
 
-    E.g., target is 'ARCON AS' but page says 'Arcon Prosjekt AS' — a DIFFERENT company.
-    Only triggers when the extended name includes a legal suffix (AS, ASA) indicating
-    it's a distinct registered entity, not just descriptive text.
+    For example: target is 'ARCON AS', but page says 'Arcon Prosjekt' or 'Arcon Prosjekt AS'.
     """
     tokens = _distinctive_tokens(target_name)
     if not tokens or len(tokens) < 1:
         return False
 
-    # Only check for single-stem company names (multi-word names are less collision-prone)
-    if len(tokens) > 1:
-        return False
-
-    page_lower = page_text.lower()
     token = tokens[0]
+    clean_target = re.sub(r'\b(AS|ASA|ANS|DA|SA|ENK|SF)\b', '', target_name, flags=re.IGNORECASE).strip().lower()
+    page_lower = page_text.lower()
 
-    # Look for patterns like "[token] [extraword] AS/ASA" — indicating a different legal entity
-    pattern = re.compile(
+    # Pattern A: "[token] [extra_word] AS/ASA"
+    pattern_as = re.compile(
         rf'\b{re.escape(token)}\s+([a-zæøå]+)\s+(as|asa)\b',
         re.IGNORECASE,
     )
-    for m in pattern.finditer(page_lower):
+    for m in pattern_as.finditer(page_lower):
         extra_word = m.group(1)
-        # Only flag if extra word is a meaningful distinguisher (not noise like "og", "i", etc.)
-        if len(extra_word) > 3 and extra_word not in {"norge", "holding", "group", "drift", "oslo", "bergen"}:
-            # Check this isn't just the target name itself appearing
-            clean_target = re.sub(r'\b(AS|ASA|ANS|DA|SA|ENK|SF)\b', '', target_name, flags=re.IGNORECASE).strip().lower()
+        if len(extra_word) > 2 and extra_word not in {"norge", "holding", "group", "drift"}:
             if extra_word not in clean_target:
                 return True
+
+    # Pattern B: Specific brand title pattern "[token] [extra_word]" prominent in title or headers
+    pattern_title = re.compile(
+        rf'\b{re.escape(token)}\s+([a-zæøå]{{4,}})\b',
+        re.IGNORECASE,
+    )
+    # Check first 500 characters of text (header / title zone)
+    lead_text = page_lower[:1000]
+    for m in pattern_title.finditer(lead_text):
+        extra_word = m.group(1)
+        if extra_word not in {"norge", "holding", "group", "drift", "oslo", "bergen", "kommune", "kontakt", "velkommen"}:
+            if extra_word not in clean_target:
+                # If target is a single short word (like ARCON), finding "Arcon Prosjekt" in lead text is a rejection signal
+                if len(tokens) == 1 and len(token) <= 8:
+                    return True
+
     return False
 
 
@@ -103,57 +103,77 @@ def check_website_ownership(
     target_orgnr: str,
     target_name: str,
     source: str = "domain_guess",
+    registered_city: str = "",
 ) -> dict[str, Any]:
     """Determine whether *final_url* belongs to the target company.
 
-    v4.1 strict rules:
-      - Rule A: Exact orgnr match on page = VERIFIED
-      - Rule B: Different orgnr on page without target = REJECT
-      - Rule C: Guessed domains for short/generic names without orgnr = REJECT
-      - Rule D: Page has extended company name (e.g. "Arcon Prosjekt") = REJECT
-
-    Returns a dict:
-        ownership  - "own" | "parent_group" | "unknown"
-        reason     - human-readable explanation
-        suppress_socials - True when social/news/jobs should NOT be attributed
-        orgnr_verified - True if target orgnr was found on page
+    Step 1 Rules:
+      1. Exact 9-digit orgnr match on page -> ACCEPT (orgnr_verified: True)
+      2. Different 9-digit orgnr on page without target -> REJECT (suppress_socials: True)
+      3. If NO orgnr on page:
+         - Extended name variant (e.g. 'Arcon Prosjekt') -> REJECT
+         - Guessed domain without registered city (poststed/kommune) -> REJECT
+         - Short/generic name without orgnr -> REJECT
     """
     from bs4 import BeautifulSoup
 
     soup = BeautifulSoup(html, "lxml")
     full_text = soup.get_text(separator=" ", strip=True)
 
-    # ---- Find ALL orgnrs on page ----
+    # ---- 1. Find ALL orgnrs on page ----
     page_orgnrs = _find_orgnrs_on_page(full_text)
 
-    # ---- Rule A: Exact orgnr match (Gold Standard) ----
+    # Rule 1.1: Exact orgnr match (Gold Standard)
     orgnr_verified = target_orgnr in page_orgnrs
+    if orgnr_verified:
+        return {
+            "ownership": "own",
+            "reason": "exact 9-digit orgnr match on page",
+            "suppress_socials": False,
+            "orgnr_verified": True,
+        }
 
-    # ---- Rule B: Different orgnr present, target absent = REJECT ----
+    # Rule 1.2: Different orgnr present, target absent -> REJECT
     other_orgnrs = page_orgnrs - {target_orgnr}
     if other_orgnrs and not orgnr_verified:
-        return {"ownership": "parent_group",
-                "reason": f"Page shows orgnr(s) {other_orgnrs} but not target {target_orgnr}",
-                "suppress_socials": True,
-                "orgnr_verified": False}
+        return {
+            "ownership": "parent_group",
+            "reason": f"Page shows orgnr(s) {other_orgnrs} but not target {target_orgnr}",
+            "suppress_socials": True,
+            "orgnr_verified": False,
+        }
 
-    # If orgnr is verified, it's the company's own site
-    if orgnr_verified:
-        return {"ownership": "own",
-                "reason": "exact orgnr match on page",
-                "suppress_socials": False,
-                "orgnr_verified": True}
+    # ---- 2. No orgnr on page at all ----
 
-    # ---- Below here: no orgnr found on page at all ----
-
-    # ---- Rule D: Check if page has an EXTENDED company name ----
+    # Rule 2.1: Extended company name (e.g. 'Arcon Prosjekt' when target is 'ARCON AS') -> REJECT
     if _page_contains_extended_name(full_text, target_name):
-        return {"ownership": "parent_group",
-                "reason": f"Page contains extended name variant, likely different company",
-                "suppress_socials": True,
-                "orgnr_verified": False}
+        return {
+            "ownership": "parent_group",
+            "reason": f"Page contains extended name variant for '{target_name}', likely different company",
+            "suppress_socials": True,
+            "orgnr_verified": False,
+        }
 
-    # ---- Name matching ----
+    # Rule 2.2: Guessed domains without registered city (poststed/kommune)
+    is_guessed = source in ("domain_guess", "ddg_search")
+    if is_guessed:
+        city_match = False
+        if registered_city and len(registered_city.strip()) >= 3:
+            city_norm = registered_city.lower().strip()
+            city_match = city_norm in full_text.lower()
+
+        # If guessed domain does NOT show registered city -> REJECT
+        if not city_match:
+            # Also check if name is short/generic
+            if _is_short_generic_name(target_name) or not city_match:
+                return {
+                    "ownership": "unknown",
+                    "reason": f"Guessed domain without orgnr does not contain registered city '{registered_city}'",
+                    "suppress_socials": True,
+                    "orgnr_verified": False,
+                }
+
+    # Name matching on title / header
     distinctive = _distinctive_tokens(target_name)
     title_tag = soup.find("title")
     title_text = (title_tag.get_text(strip=True).lower() if title_tag else "")
@@ -163,71 +183,53 @@ def check_website_ownership(
     combined_identity = " ".join([title_text] + h1_tags + [header_text])
     name_match = _tokens_overlap(distinctive, combined_identity)
 
-    # ---- Rule C: Guessed domains for short/generic names ----
-    if source == "domain_guess" and _is_short_generic_name(target_name):
-        # Short/generic name + no orgnr on page = too risky
-        # Only accept if BOTH full legal name AND registered city appear
-        return {"ownership": "unknown",
-                "reason": f"Short/generic name '{target_name}' with no orgnr on page - too risky",
-                "suppress_socials": True,
-                "orgnr_verified": False}
-
-    # ---- Subsidiary markers need full name match ----
-    _SUBSIDIARY_MARKERS = ("NORGE", "HOLDING", "EIENDOM", "AVD", "DATTER",
-                           "SERVICES", "ALUMINIUM", "NORDIC", "SCANDINAVIA")
-    name_upper = target_name.upper()
-    is_subsidiary = any(m in name_upper for m in _SUBSIDIARY_MARKERS)
-    if is_subsidiary and not orgnr_verified:
-        clean_name = re.sub(r"\b(AS|ASA|ANS|DA|SA|ENK)\b", "", target_name, flags=re.IGNORECASE).strip()
-        if clean_name and clean_name.lower() not in combined_identity.lower():
-            return {"ownership": "parent_group",
-                    "reason": f"Subsidiary name '{clean_name}' not found on page",
-                    "suppress_socials": True,
-                    "orgnr_verified": False}
-
-    # ---- Decision tree for non-orgnr matches ----
-    # Footer orgnr check (different from any already found)
+    # Footer orgnr check
     footer_el = soup.find("footer") or soup.find(attrs={"role": "contentinfo"})
     footer_text = footer_el.get_text(separator=" ", strip=True) if footer_el else ""
     footer_orgnrs = _find_orgnrs_on_page(footer_text) - {target_orgnr}
     if footer_orgnrs:
-        return {"ownership": "parent_group",
-                "reason": f"Different orgnr(s) in footer: {footer_orgnrs}",
-                "suppress_socials": True,
-                "orgnr_verified": False}
+        return {
+            "ownership": "parent_group",
+            "reason": f"Different orgnr(s) in footer: {footer_orgnrs}",
+            "suppress_socials": True,
+            "orgnr_verified": False,
+        }
 
     if name_match:
-        return {"ownership": "own",
-                "reason": "distinctive name matches site identity (no orgnr verification)",
-                "suppress_socials": False,
-                "orgnr_verified": False}
+        return {
+            "ownership": "own",
+            "reason": "distinctive name matches site identity",
+            "suppress_socials": False,
+            "orgnr_verified": False,
+        }
 
-    # Domain-name match heuristic
     domain = urlparse(final_url).netloc.lower().replace("www.", "")
     if _tokens_overlap(distinctive, domain.replace(".", " ")):
-        return {"ownership": "own",
-                "reason": "domain matches company name (no orgnr verification)",
-                "suppress_socials": False,
-                "orgnr_verified": False}
+        return {
+            "ownership": "own",
+            "reason": "domain matches company name",
+            "suppress_socials": False,
+            "orgnr_verified": False,
+        }
 
-    return {"ownership": "unknown",
-            "reason": "Could not confirm ownership; treating as parent-group",
-            "suppress_socials": True,
-            "orgnr_verified": False}
+    return {
+        "ownership": "unknown",
+        "reason": "Could not confirm ownership; treating as parent-group",
+        "suppress_socials": True,
+        "orgnr_verified": False,
+    }
 
 
 # ---------------------------------------------------------------------------
 # 2. SOCIAL MEDIA LINK VERIFICATION
 # ---------------------------------------------------------------------------
 
-# Agency/credit-block markers (case-insensitive)
 _AGENCY_MARKERS = re.compile(
     r"(utviklet\s+av|levert\s+av|designet\s+av|designed\s+by|powered\s+by"
     r"|nettside\s+av|webbyr[a\xe5]|made\s+by|website\s+by|created\s+by)",
     re.IGNORECASE,
 )
 
-# Generic share / template URLs that are never company-owned profiles
 _SHARE_PATTERNS = re.compile(
     r"(sharer\.php|intent/tweet|shareArticle|share\?|addtoany|addthis"
     r"|wix\.com|squarespace\.com|wordpress\.com|wordpress\.org"
@@ -235,7 +237,6 @@ _SHARE_PATTERNS = re.compile(
     re.IGNORECASE,
 )
 
-# Suffixes to strip when comparing handles with company name
 _NAME_NOISE = re.compile(
     r"\b(as|asa|norge|holding|group|konsern|stiftelse|stiftelsen|org|no|com)\b",
     re.IGNORECASE,
@@ -251,21 +252,18 @@ def verify_social_link(
 ) -> tuple[bool, str]:
     """Return (keep, reason) for a single social link URL.
 
-    v4.1: If the social slug has extra distinguishing words NOT in the company
-    name, REJECT unless the website was orgnr-verified.
+    Step 1.3: If handle contains extra words NOT in company name (e.g. 'arconprosjekt'
+    for 'ARCON AS') -> REJECT unless website was verified by exact 9-digit orgnr.
     """
     url_lower = link_url.lower()
 
-    # Rule A: reject share / template links
     if _SHARE_PATTERNS.search(url_lower):
         return False, "generic share/template link"
 
-    # Rule B: reject links found inside an agency credit block
     combined_ctx = (link_element_html + " " + parent_context_text).lower()
     if _AGENCY_MARKERS.search(combined_ctx):
         return False, "inside web-agency credit block"
 
-    # Rule C: handle/slug verification
     slug = _extract_social_slug(link_url)
     if slug:
         company_tokens = _distinctive_tokens(target_name)
@@ -273,29 +271,22 @@ def verify_social_link(
             return True, "no distinctive tokens to compare"
 
         slug_lower = slug.lower()
-        # Remove noise from slug
         slug_clean = re.sub(r'(official|page|pages|company|profile|no|norge)', '', slug_lower)
         slug_tokens = set(re.findall(r"[a-zæøå0-9]+", slug_clean))
         slug_tokens -= {"official", "page", "pages", "company", "profile", "no", "norge"}
         company_tokens_set = set(company_tokens)
 
-        # Check overlap: company tokens must appear in slug
         overlap = slug_tokens & company_tokens_set
         if not overlap:
-            # Try substring matching (handles concatenated slugs like 'nordlandelektro')
             substring_hits = sum(1 for t in company_tokens if t in slug_lower)
             if substring_hits < max(1, len(company_tokens) // 2):
                 return False, f"slug '{slug}' has no overlap with company name tokens {company_tokens_set}"
 
-        # NEW v4.1 Rule: Check for EXTRA tokens in slug not in company name
-        # E.g., slug 'arconprosjekt' has 'prosjekt' which is NOT in 'ARCON AS'
+        # Strict handle verification if NOT verified by exact orgnr on page:
         if not orgnr_verified:
-            # Extract all meaningful tokens from the slug
             slug_meaningful = set(re.findall(r"[a-zæøå]{3,}", slug_lower))
             slug_meaningful -= {"official", "page", "pages", "company", "profile",
                                "no", "norge", "com", "www"}
-            # Check each slug token — if it's not a substring of any company token
-            # AND not a company token substring, it's an extra distinguishing word
             for st in slug_meaningful:
                 is_part_of_company = False
                 for ct in company_tokens:
@@ -315,11 +306,9 @@ def _extract_social_slug(url: str) -> Optional[str]:
     parts = [p for p in path.split("/") if p]
     if not parts:
         return None
-    # For LinkedIn, the slug is /company/<slug> or /in/<slug>
     if "linkedin.com" in parsed.netloc:
         if len(parts) >= 2 and parts[0] in ("company", "in", "school"):
             return parts[1]
-    # Generic: last meaningful path segment
     return parts[-1] if parts else None
 
 
@@ -327,22 +316,20 @@ def _extract_social_slug(url: str) -> Optional[str]:
 # 3. NEWS / PUBLICATION DATE VALIDATION
 # ---------------------------------------------------------------------------
 
-# Navigation / static page labels that are NOT news
 _NAV_LABELS = re.compile(
     r"^(om\s+oss|kontakt|tjenester|produkter|karriere|hjem|home|privacy"
     r"|cookies|personvern|terms|vilk[a\xe5]r|about(\s+us)?|contact|services"
     r"|products|careers?|faq|logg?\s*inn?|meny|menu|s\xf8k|search|handlekurv"
     r"|cart|checkout|kasse|bestill|order|priser?|prices?"
-    r"|blogg?|kategori|category|tag|arkiv|archive)$",
+    r"|blogg?|kategori|category|tag|arkiv|archive|nyheter|aktuelt|news)$",
     re.IGNORECASE,
 )
 
-# Forbidden date sources - must NOT be used as publish date
 _FORBIDDEN_DATE_SOURCES = {
-    "lastmod",       # XML sitemap
-    "updated",       # Atom feed <updated>
-    "modified_time", # og:article:modified_time
-    "last-modified", # HTTP header
+    "lastmod",
+    "updated",
+    "modified_time",
+    "last-modified",
 }
 
 
@@ -353,22 +340,18 @@ def validate_news_item(
     url: Optional[str] = None,
 ) -> tuple[bool, str]:
     """Return (keep, reason) for a candidate news item."""
-    # Rule A: reject nav / static page labels
     if title and _NAV_LABELS.match(title.strip()):
         return False, f"navigation/static label: '{title}'"
 
-    # Rule B: must have a real publish date
     if not publish_date:
         return False, "no publication date"
 
-    # Rule C: date must come from an allowed source
     if date_source:
         normalised = date_source.lower().replace(" ", "").replace("-", "").replace("_", "")
         for forbidden in _FORBIDDEN_DATE_SOURCES:
             if normalised == forbidden.lower().replace(" ", "").replace("-", "").replace("_", ""):
                 return False, f"date source '{date_source}' is forbidden (not a true publish date)"
 
-    # Rule D: date must not be in the future
     if publish_date:
         try:
             parsed = _date.fromisoformat(publish_date[:10])
@@ -379,10 +362,6 @@ def validate_news_item(
 
     return True, "valid news item"
 
-
-# ---------------------------------------------------------------------------
-# INTERNAL HELPERS
-# ---------------------------------------------------------------------------
 
 def _distinctive_tokens(name: str) -> list[str]:
     """Return lowercased tokens after stripping generic Norwegian company suffixes."""

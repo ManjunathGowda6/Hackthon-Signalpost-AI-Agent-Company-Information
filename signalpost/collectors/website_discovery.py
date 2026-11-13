@@ -204,11 +204,42 @@ async def _ddg_search_website(
         return []
 
 
+async def _check_subpages_for_orgnr(
+    client: httpx.AsyncClient,
+    base_url: str,
+    target_orgnr: str,
+    budget: Any = None,
+) -> tuple[bool, bool]:
+    """Check /kontakt, /contact, /om-oss, /about for target orgnr or conflicts.
+    Returns (target_found, conflict_found).
+    """
+    from signalpost.collectors.website_verification import _find_orgnrs_on_page
+    parsed = urlparse(base_url)
+    origin = f"{parsed.scheme}://{parsed.netloc}"
+    for sub_path in ["/kontakt", "/contact", "/om-oss", "/about"]:
+        if budget and not budget.can_afford(1):
+            break
+        try:
+            if budget:
+                budget.consume(1)
+            resp = await client.get(f"{origin}{sub_path}")
+            if resp.status_code == 200:
+                orgnrs = _find_orgnrs_on_page(resp.text)
+                if target_orgnr in orgnrs:
+                    return True, False
+                if orgnrs and target_orgnr not in orgnrs:
+                    return False, True
+        except Exception:
+            continue
+    return False, False
+
+
 async def discover_website(
     company_name: str,
     orgnr: str,
     budget: Any = None,
     timeout: float = 5.0,
+    registered_city: str = "",
 ) -> Optional[dict[str, Any]]:
     """Try to discover a company website via domain guessing + DDG fallback.
     Returns a dict with {url, ownership, html, source} if verified, else None.
@@ -241,8 +272,21 @@ async def discover_website(
                     target_orgnr=orgnr,
                     target_name=company_name,
                     final_url=final_url,
+                    source="domain_guess",
+                    registered_city=registered_city,
                 )
                 if ownership.get("ownership") == "own":
+                    # If not verified by orgnr on homepage, check subpages
+                    if not ownership.get("orgnr_verified") and budget and budget.can_afford(1):
+                        found_target, found_conflict = await _check_subpages_for_orgnr(
+                            client, final_url, orgnr, budget
+                        )
+                        if found_target:
+                            ownership["orgnr_verified"] = True
+                            ownership["reason"] = "exact 9-digit orgnr match on contact page"
+                        elif found_conflict:
+                            continue  # Different orgnr on subpage -> reject!
+
                     return {
                         "url": final_url,
                         "ownership": ownership,
@@ -254,7 +298,7 @@ async def discover_website(
                 continue
 
     # Phase 2: DDG fallback search (if budget allows)
-    if budget and budget.can_afford(2):  # 1 for DDG + 1 for verify
+    if budget and budget.can_afford(2):
         ddg_urls = await _ddg_search_website(company_name, orgnr, budget, timeout=8.0)
         async with httpx.AsyncClient(
             follow_redirects=True,
@@ -278,8 +322,19 @@ async def discover_website(
                         target_orgnr=orgnr,
                         target_name=company_name,
                         final_url=final_url,
+                        source="ddg_search",
+                        registered_city=registered_city,
                     )
                     if ownership.get("ownership") == "own":
+                        if not ownership.get("orgnr_verified") and budget and budget.can_afford(1):
+                            found_target, found_conflict = await _check_subpages_for_orgnr(
+                                client, final_url, orgnr, budget
+                            )
+                            if found_target:
+                                ownership["orgnr_verified"] = True
+                                ownership["reason"] = "exact 9-digit orgnr match on contact page"
+                            elif found_conflict:
+                                continue
                         return {
                             "url": final_url,
                             "ownership": ownership,
@@ -297,6 +352,7 @@ async def extract_social_links(
     html: str,
     company_name: str,
     base_url: str,
+    orgnr_verified: bool = False,
 ) -> list[dict[str, Any]]:
     """Extract verified social media links from a page's HTML."""
     from bs4 import BeautifulSoup
@@ -327,6 +383,7 @@ async def extract_social_links(
             link_element_html=a_html,
             target_name=company_name,
             parent_context_text=parent_text,
+            orgnr_verified=orgnr_verified,
         )
         if keep:
             found.append({
@@ -846,3 +903,8 @@ def _employer_matches(company_tokens: list[str], employer_name: str, original_na
     hits = sum(1 for t in company_tokens if t in emp_tokens or t in emp_lower)
     threshold = max(1, len(company_tokens) // 2)
     return hits >= threshold
+
+
+# Alias for compatibility with task spec
+extract_job_postings = extract_job_listings
+
