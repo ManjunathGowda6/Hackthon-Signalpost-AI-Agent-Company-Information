@@ -23409,7 +23409,7 @@
     "name": "SECURITAS AS",
     "legal_form": "AS",
     "municipality": "OSLO",
-    "website": "https://www.securitas.no",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:07:31.883942+00:00",
     "status": "available",
@@ -23704,55 +23704,10 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://www.securitas.no",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:07:23.325682+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
-      "social_profiles": [
-        {
-          "platform": "linkedin",
-          "url": "https://linkedin.com/company/securitas-norge",
-          "source_url": "https://www.securitas.no",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:07:25.011492Z",
-          "verification": "passed all checks"
-        },
-        {
-          "platform": "twitter",
-          "url": "https://twitter.com/securitasnorge",
-          "source_url": "https://www.securitas.no",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:07:25.011492Z",
-          "verification": "passed all checks"
-        },
-        {
-          "platform": "youtube",
-          "url": "https://www.youtube.com/securitasnorge",
-          "source_url": "https://www.securitas.no",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:07:25.011492Z",
-          "verification": "passed all checks"
-        },
-        {
-          "platform": "facebook",
-          "url": "https://www.facebook.com/securitasnorge",
-          "source_url": "https://www.securitas.no",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:07:25.011492Z",
-          "verification": "passed all checks"
-        },
-        {
-          "platform": "instagram",
-          "url": "https://www.instagram.com/securitasnorge/",
-          "source_url": "https://www.securitas.no",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:07:25.011492Z",
-          "verification": "passed all checks"
-        }
-      ],
+      "social_profiles": [],
       "news_items": [],
       "technologies": []
     },
@@ -23868,55 +23823,14 @@
     "updates": [],
     "jobs": [],
     "job_postings": [],
-    "social_links": [
-      {
-        "platform": "linkedin",
-        "url": "https://linkedin.com/company/securitas-norge",
-        "source_url": "https://www.securitas.no",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:07:25.011492Z",
-        "verification": "passed all checks"
-      },
-      {
-        "platform": "twitter",
-        "url": "https://twitter.com/securitasnorge",
-        "source_url": "https://www.securitas.no",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:07:25.011492Z",
-        "verification": "passed all checks"
-      },
-      {
-        "platform": "youtube",
-        "url": "https://www.youtube.com/securitasnorge",
-        "source_url": "https://www.securitas.no",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:07:25.011492Z",
-        "verification": "passed all checks"
-      },
-      {
-        "platform": "facebook",
-        "url": "https://www.facebook.com/securitasnorge",
-        "source_url": "https://www.securitas.no",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:07:25.011492Z",
-        "verification": "passed all checks"
-      },
-      {
-        "platform": "instagram",
-        "url": "https://www.instagram.com/securitasnorge/",
-        "source_url": "https://www.securitas.no",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:07:25.011492Z",
-        "verification": "passed all checks"
-      }
-    ],
+    "social_links": [],
     "ceo": "Martin Holmen",
     "daglig_leder": "Martin Holmen",
     "source_date": "2026-11-06",
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://www.securitas.no",
+    "hjemmeside": null,
     "summary": "In 2025, SECURITAS AS generated NOK 2075.7M in revenue with an operating result of NOK 104.3M operating in Etterforskningstjenester og private vakttjenester (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/920144950, 2026-11-06). Led by CEO Martin Holmen (orgnr 920144950)."
   },
   {
@@ -27133,7 +27047,7 @@
     "name": "HALLIBURTON AS",
     "legal_form": "AS",
     "municipality": "SOLA",
-    "website": "https://www.halliburton.com",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:07:54.625504+00:00",
     "status": "available",
@@ -27463,47 +27377,10 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://www.halliburton.com",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:07:31.086518+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
-      "social_profiles": [
-        {
-          "platform": "linkedin",
-          "url": "https://www.linkedin.com/company/halliburton",
-          "source_url": "https://www.halliburton.com",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:07:38.573716Z",
-          "verification": "passed all checks"
-        },
-        {
-          "platform": "youtube",
-          "url": "https://www.youtube.com/halliburton",
-          "source_url": "https://www.halliburton.com",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:07:38.573716Z",
-          "verification": "passed all checks"
-        },
-        {
-          "platform": "instagram",
-          "url": "https://www.instagram.com/halliburton",
-          "source_url": "https://www.halliburton.com",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:07:38.573716Z",
-          "verification": "passed all checks"
-        },
-        {
-          "platform": "facebook",
-          "url": "https://www.facebook.com/halliburton",
-          "source_url": "https://www.halliburton.com",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:07:38.573716Z",
-          "verification": "passed all checks"
-        }
-      ],
+      "social_profiles": [],
       "news_items": [],
       "technologies": []
     },
@@ -27666,47 +27543,14 @@
         "source_date": "2026-11-01"
       }
     ],
-    "social_links": [
-      {
-        "platform": "linkedin",
-        "url": "https://www.linkedin.com/company/halliburton",
-        "source_url": "https://www.halliburton.com",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:07:38.573716Z",
-        "verification": "passed all checks"
-      },
-      {
-        "platform": "youtube",
-        "url": "https://www.youtube.com/halliburton",
-        "source_url": "https://www.halliburton.com",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:07:38.573716Z",
-        "verification": "passed all checks"
-      },
-      {
-        "platform": "instagram",
-        "url": "https://www.instagram.com/halliburton",
-        "source_url": "https://www.halliburton.com",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:07:38.573716Z",
-        "verification": "passed all checks"
-      },
-      {
-        "platform": "facebook",
-        "url": "https://www.facebook.com/halliburton",
-        "source_url": "https://www.halliburton.com",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:07:38.573716Z",
-        "verification": "passed all checks"
-      }
-    ],
+    "social_links": [],
     "ceo": "Parijaat Sadanand Dixit",
     "daglig_leder": "Parijaat Sadanand Dixit",
     "source_date": "2026-11-06",
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://www.halliburton.com",
+    "hjemmeside": null,
     "summary": "In 2025, HALLIBURTON AS generated NOK 13400.5M in revenue with an operating result of NOK 746.6M operating in Boretjenester tilknyttet utvinning av råolje og naturgass (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/968967983, 2026-11-06). The company is actively hiring for \"Saved Jobs (0)\" (2 open role(s)). Led by CEO Parijaat Sadanand Dixit (orgnr 968967983)."
   },
   {
@@ -44288,7 +44132,7 @@
     "name": "FORSVARSMATERIELL",
     "legal_form": "ORGL",
     "municipality": "OSLO",
-    "website": "https://www.forsvarsmateriell.com",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:08:23.908299+00:00",
     "status": "available",
@@ -44419,12 +44263,8 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://www.forsvarsmateriell.com",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:08:06.332352+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
       "social_profiles": [],
       "news_items": [],
@@ -44494,7 +44334,7 @@
       "status": "available",
       "method": "rule_based",
       "model": null,
-      "summary": "FORSVARSMATERIELL delivers forsvarsaktiviteter solutions out of OSLO with 1672 employees (Source: Company Website & Brønnøysund Register, https://www.forsvarsmateriell.com, 2026-11-06). Led by CEO Gro Jære (orgnr 916075855).",
+      "summary": "FORSVARSMATERIELL is an active commercial provider in forsvarsaktiviteter based in OSLO employing 1672 staff (Source: Brønnøysund Enhetsregisteret, https://data.brreg.no/enhetsregisteret/api/enheter/916075855, 2026-11-06). Led by CEO Gro Jære (orgnr 916075855).",
       "key_observations": [
         "Key leadership: Gro Jære (Daglig leder/CEO)"
       ],
@@ -44522,8 +44362,8 @@
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://www.forsvarsmateriell.com",
-    "summary": "FORSVARSMATERIELL delivers forsvarsaktiviteter solutions out of OSLO with 1672 employees (Source: Company Website & Brønnøysund Register, https://www.forsvarsmateriell.com, 2026-11-06). Led by CEO Gro Jære (orgnr 916075855)."
+    "hjemmeside": null,
+    "summary": "FORSVARSMATERIELL is an active commercial provider in forsvarsaktiviteter based in OSLO employing 1672 staff (Source: Brønnøysund Enhetsregisteret, https://data.brreg.no/enhetsregisteret/api/enheter/916075855, 2026-11-06). Led by CEO Gro Jære (orgnr 916075855)."
   },
   {
     "organisation_number": "917330557",
@@ -56261,7 +56101,7 @@
     "name": "ONESUBSEA AS",
     "legal_form": "AS",
     "municipality": "BÆRUM",
-    "website": "https://www.onesubsea.slb.com/",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:08:37.507200+00:00",
     "status": "available",
@@ -56527,23 +56367,10 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://www.onesubsea.slb.com/",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:08:30.235861+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
-      "social_profiles": [
-        {
-          "platform": "linkedin",
-          "url": "https://www.linkedin.com/company/onesubsea/",
-          "source_url": "https://www.onesubsea.slb.com/",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:08:32.317715Z",
-          "verification": "passed all checks"
-        }
-      ],
+      "social_profiles": [],
       "news_items": [],
       "technologies": []
     },
@@ -56657,23 +56484,14 @@
     "updates": [],
     "jobs": [],
     "job_postings": [],
-    "social_links": [
-      {
-        "platform": "linkedin",
-        "url": "https://www.linkedin.com/company/onesubsea/",
-        "source_url": "https://www.onesubsea.slb.com/",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:08:32.317715Z",
-        "verification": "passed all checks"
-      }
-    ],
+    "social_links": [],
     "ceo": null,
     "daglig_leder": null,
     "source_date": "2026-11-06",
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://www.onesubsea.slb.com/",
+    "hjemmeside": null,
     "summary": "In 2025, ONESUBSEA AS generated NOK 14850.6M in revenue with an operating result of NOK 1109.2M operating in Andre tjenester tilknyttet utvinning av råolje og naturgass (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/929765001, 2026-11-06)."
   },
   {
@@ -60201,7 +60019,7 @@
     "name": "CERMAQ NORWAY AS",
     "legal_form": "AS",
     "municipality": "STEIGEN",
-    "website": "https://www.cermaq.no/",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:08:49.832482+00:00",
     "status": "available",
@@ -60436,31 +60254,10 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://www.cermaq.no/",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:08:40.097794+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
-      "social_profiles": [
-        {
-          "platform": "facebook",
-          "url": "https://www.facebook.com/cermaqnorway/",
-          "source_url": "https://www.cermaq.no/",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:08:42.108333Z",
-          "verification": "passed all checks"
-        },
-        {
-          "platform": "instagram",
-          "url": "https://www.instagram.com/cermaqnorway/",
-          "source_url": "https://www.cermaq.no/",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:08:42.108333Z",
-          "verification": "passed all checks"
-        }
-      ],
+      "social_profiles": [],
       "news_items": [],
       "technologies": []
     },
@@ -60575,31 +60372,14 @@
     "updates": [],
     "jobs": [],
     "job_postings": [],
-    "social_links": [
-      {
-        "platform": "facebook",
-        "url": "https://www.facebook.com/cermaqnorway/",
-        "source_url": "https://www.cermaq.no/",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:08:42.108333Z",
-        "verification": "passed all checks"
-      },
-      {
-        "platform": "instagram",
-        "url": "https://www.instagram.com/cermaqnorway/",
-        "source_url": "https://www.cermaq.no/",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:08:42.108333Z",
-        "verification": "passed all checks"
-      }
-    ],
+    "social_links": [],
     "ceo": "John Gunnar Glørstad",
     "daglig_leder": "John Gunnar Glørstad",
     "source_date": "2026-11-06",
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://www.cermaq.no/",
+    "hjemmeside": null,
     "summary": "In 2026, CERMAQ NORWAY AS generated NOK 6702.3M in revenue with an operating result of NOK 821.3M operating in Produksjon av fisk, bløtdyr, krepsdyr og pigghuder i sjø og brakkvann (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/961922976, 2026-11-06). Led by CEO John Gunnar Glørstad (orgnr 961922976)."
   },
   {
@@ -61279,7 +61059,7 @@
     "name": "SIEMENS ENERGY AS",
     "legal_form": "AS",
     "municipality": "OSLO",
-    "website": "https://www.siemensenergy.com",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:09:01.731949+00:00",
     "status": "available",
@@ -61550,31 +61330,10 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://www.siemensenergy.com",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:08:41.274462+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
-      "social_profiles": [
-        {
-          "platform": "facebook",
-          "url": "https://www.facebook.com/SiemensEnergy",
-          "source_url": "https://www.siemensenergy.com",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:08:55.646953Z",
-          "verification": "passed all checks"
-        },
-        {
-          "platform": "linkedin",
-          "url": "https://linkedin.com/showcase/siemens-energy",
-          "source_url": "https://www.siemensenergy.com",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:08:55.646953Z",
-          "verification": "passed all checks"
-        }
-      ],
+      "social_profiles": [],
       "news_items": [],
       "technologies": []
     },
@@ -61689,31 +61448,14 @@
     "updates": [],
     "jobs": [],
     "job_postings": [],
-    "social_links": [
-      {
-        "platform": "facebook",
-        "url": "https://www.facebook.com/SiemensEnergy",
-        "source_url": "https://www.siemensenergy.com",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:08:55.646953Z",
-        "verification": "passed all checks"
-      },
-      {
-        "platform": "linkedin",
-        "url": "https://linkedin.com/showcase/siemens-energy",
-        "source_url": "https://www.siemensenergy.com",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:08:55.646953Z",
-        "verification": "passed all checks"
-      }
-    ],
+    "social_links": [],
     "ceo": "Espen Bostadløkken",
     "daglig_leder": "Espen Bostadløkken",
     "source_date": "2026-11-06",
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://www.siemensenergy.com",
+    "hjemmeside": null,
     "summary": "In 2025, SIEMENS ENERGY AS generated NOK 5518.2M in revenue with an operating result of NOK 778.3M operating in Annen teknisk konsulentvirksomhet (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/915826946, 2026-11-06). Led by CEO Espen Bostadløkken (orgnr 915826946)."
   },
   {
@@ -86999,7 +86741,7 @@
     "name": "ADECCO SOLUTIONS AS",
     "legal_form": "AS",
     "municipality": "OSLO",
-    "website": "https://www.pontoonsolutions.com/en",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:10:03.160325+00:00",
     "status": "available",
@@ -87230,12 +86972,8 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://www.pontoonsolutions.com/en",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:09:42.827107+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
       "social_profiles": [],
       "news_items": [],
@@ -87358,7 +87096,7 @@
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://www.pontoonsolutions.com/en",
+    "hjemmeside": null,
     "summary": "In 2025, ADECCO SOLUTIONS AS generated NOK 342.2M in revenue with an operating result of NOK -25.0M operating in Utleie av arbeidskraft og andre personaladministrative tjenester (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/959934924, 2026-11-06). Led by CEO Erling Kornkveen (orgnr 959934924)."
   },
   {
@@ -120428,7 +120166,7 @@
     "name": "ALTI FORVALTNING AS",
     "legal_form": "AS",
     "municipality": "SURNADAL",
-    "website": "https://alti.no/alti-forvaltning/",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:11:16.137959+00:00",
     "status": "available",
@@ -120727,23 +120465,10 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://alti.no/alti-forvaltning/",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:10:55.662167+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
-      "social_profiles": [
-        {
-          "platform": "linkedin",
-          "url": "https://www.linkedin.com/company/alti-forvaltning-as",
-          "source_url": "https://alti.no/alti-forvaltning/",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:11:03.309704Z",
-          "verification": "passed all checks"
-        }
-      ],
+      "social_profiles": [],
       "news_items": [],
       "technologies": []
     },
@@ -120859,23 +120584,14 @@
     "updates": [],
     "jobs": [],
     "job_postings": [],
-    "social_links": [
-      {
-        "platform": "linkedin",
-        "url": "https://www.linkedin.com/company/alti-forvaltning-as",
-        "source_url": "https://alti.no/alti-forvaltning/",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:11:03.309704Z",
-        "verification": "passed all checks"
-      }
-    ],
+    "social_links": [],
     "ceo": "Aage Lilleberg",
     "daglig_leder": "Aage Lilleberg",
     "source_date": "2026-11-06",
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://alti.no/alti-forvaltning/",
+    "hjemmeside": null,
     "summary": "In 2025, ALTI FORVALTNING AS generated NOK 193.6M in revenue with an operating result of NOK 21.8M operating in Utleie av egen eller leid fast eiendom (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/919779535, 2026-11-06). Led by CEO Aage Lilleberg (orgnr 919779535)."
   },
   {
@@ -129427,7 +129143,7 @@
     "name": "SMARTLEGEN AS",
     "legal_form": "AS",
     "municipality": "OSLO",
-    "website": "https://smartlegen.no/",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:11:22.825749+00:00",
     "status": "available",
@@ -129696,12 +129412,8 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://smartlegen.no/",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:11:14.291065+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
       "social_profiles": [],
       "news_items": [],
@@ -129824,7 +129536,7 @@
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://smartlegen.no/",
+    "hjemmeside": null,
     "summary": "In 2025, SMARTLEGEN AS generated NOK 207.8M in revenue with an operating result of NOK -4.8M operating in Sykehjemstjenester (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/925589837, 2026-11-06). Led by CEO Julie Aas Alstedt (orgnr 925589837)."
   },
   {
@@ -145141,7 +144853,7 @@
     "name": "HAPRO ELECTRONICS AS",
     "legal_form": "AS",
     "municipality": "GRAN",
-    "website": "https://www.haproelectronics.no",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:12:16.890143+00:00",
     "status": "available",
@@ -145393,31 +145105,10 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://www.haproelectronics.no",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:11:48.469730+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
-      "social_profiles": [
-        {
-          "platform": "facebook",
-          "url": "https://www.facebook.com/HaproElectronics",
-          "source_url": "https://www.haproelectronics.no",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:11:52.637117Z",
-          "verification": "passed all checks"
-        },
-        {
-          "platform": "instagram",
-          "url": "https://www.instagram.com/haproelectronics/",
-          "source_url": "https://www.haproelectronics.no",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:11:52.637117Z",
-          "verification": "passed all checks"
-        }
-      ],
+      "social_profiles": [],
       "news_items": [],
       "technologies": []
     },
@@ -145532,31 +145223,14 @@
     "updates": [],
     "jobs": [],
     "job_postings": [],
-    "social_links": [
-      {
-        "platform": "facebook",
-        "url": "https://www.facebook.com/HaproElectronics",
-        "source_url": "https://www.haproelectronics.no",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:11:52.637117Z",
-        "verification": "passed all checks"
-      },
-      {
-        "platform": "instagram",
-        "url": "https://www.instagram.com/haproelectronics/",
-        "source_url": "https://www.haproelectronics.no",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:11:52.637117Z",
-        "verification": "passed all checks"
-      }
-    ],
+    "social_links": [],
     "ceo": "Lars Erik Hilsen",
     "daglig_leder": "Lars Erik Hilsen",
     "source_date": "2026-11-06",
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://www.haproelectronics.no",
+    "hjemmeside": null,
     "summary": "In 2025, HAPRO ELECTRONICS AS generated NOK 1195.8M in revenue with an operating result of NOK 76.9M operating in Produksjon av elektroniske komponenter (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/918684735, 2026-11-06). Led by CEO Lars Erik Hilsen (orgnr 918684735)."
   },
   {
@@ -169697,7 +169371,7 @@
     "name": "BAUTA MARITIME AS",
     "legal_form": "AS",
     "municipality": "VESTNES",
-    "website": "https://bautamaritime.no/",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:13:03.143120+00:00",
     "status": "available",
@@ -169921,12 +169595,8 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://bautamaritime.no/",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:12:50.557430+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
       "social_profiles": [],
       "news_items": [],
@@ -170050,7 +169720,7 @@
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://bautamaritime.no/",
+    "hjemmeside": null,
     "summary": "In 2025, BAUTA MARITIME AS generated NOK 394.3M in revenue with an operating result of NOK 32.7M operating in Bearbeiding av metaller (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/921881088, 2026-11-06). Led by CEO Daniel Holm Sundet (orgnr 921881088)."
   },
   {
@@ -175567,7 +175237,7 @@
     "name": "ALLER MEDIA AS",
     "legal_form": "AS",
     "municipality": "OSLO",
-    "website": "https://www.allermedia.com",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:13:18.659480+00:00",
     "status": "available",
@@ -175886,12 +175556,8 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://www.allermedia.com",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:13:10.553555+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
       "social_profiles": [],
       "news_items": [],
@@ -176015,7 +175681,7 @@
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://www.allermedia.com",
+    "hjemmeside": null,
     "summary": "In 2025, ALLER MEDIA AS generated NOK 867.0M in revenue with an operating result of NOK -8.8M operating in Utgivelse av blader og tidsskrifter (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/910119877, 2026-11-06). Led by CEO Bente Klemetsdal (orgnr 910119877)."
   },
   {
@@ -181199,7 +180865,7 @@
     "name": "AURIS HELSE AS",
     "legal_form": "AS",
     "municipality": "BERGEN",
-    "website": "https://www.aurishelse.no",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:13:23.481349+00:00",
     "status": "available",
@@ -181433,12 +181099,8 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://www.aurishelse.no",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:13:17.841154+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
       "social_profiles": [],
       "news_items": [],
@@ -181562,7 +181224,7 @@
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://www.aurishelse.no",
+    "hjemmeside": null,
     "summary": "In 2025, AURIS HELSE AS generated NOK 178.9M in revenue with an operating result of NOK 9.0M operating in Omsorgstjenester i botilbud for personer med utviklingshemming eller med tilsvarende funksjonsnedsettelse (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/931478079, 2026-11-06). Led by CEO Morten Anders Gohn (orgnr 931478079)."
   },
   {
@@ -207572,7 +207234,7 @@
     "name": "ABRI DIALOGUE AS",
     "legal_form": "AS",
     "municipality": "SANDNES",
-    "website": "https://abridialogue.no/",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:14:44.391417+00:00",
     "status": "available",
@@ -207826,31 +207488,10 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://abridialogue.no/",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:14:12.027912+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
-      "social_profiles": [
-        {
-          "platform": "facebook",
-          "url": "https://www.facebook.com/abridialogue",
-          "source_url": "https://abridialogue.no/",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:14:17.459078Z",
-          "verification": "passed all checks"
-        },
-        {
-          "platform": "linkedin",
-          "url": "https://www.linkedin.com/company/abridialogue/",
-          "source_url": "https://abridialogue.no/",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:14:17.459078Z",
-          "verification": "passed all checks"
-        }
-      ],
+      "social_profiles": [],
       "news_items": [],
       "technologies": []
     },
@@ -208057,31 +207698,14 @@
         "source_date": "2026-11-01"
       }
     ],
-    "social_links": [
-      {
-        "platform": "facebook",
-        "url": "https://www.facebook.com/abridialogue",
-        "source_url": "https://abridialogue.no/",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:14:17.459078Z",
-        "verification": "passed all checks"
-      },
-      {
-        "platform": "linkedin",
-        "url": "https://www.linkedin.com/company/abridialogue/",
-        "source_url": "https://abridialogue.no/",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:14:17.459078Z",
-        "verification": "passed all checks"
-      }
-    ],
+    "social_links": [],
     "ceo": "Kristoffer Hagelin",
     "daglig_leder": "Kristoffer Hagelin",
     "source_date": "2026-11-06",
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://abridialogue.no/",
+    "hjemmeside": null,
     "summary": "In 2025, ABRI DIALOGUE AS generated NOK 125.0M in revenue with an operating result of NOK -0.2M operating in Brukerstyrt personlig assistanse (bpa) (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/989214071, 2026-11-06). The company is actively hiring for \"+47  51 65 60 00\" (4 open role(s)). Led by CEO Kristoffer Hagelin (orgnr 989214071)."
   },
   {
@@ -210831,7 +210455,7 @@
     "name": "VIKEN BO OG OMSORG AS",
     "legal_form": "AS",
     "municipality": "OSLO",
-    "website": "https://www.vikenboogomsorg.no",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:14:27.014964+00:00",
     "status": "available",
@@ -211070,12 +210694,8 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://www.vikenboogomsorg.no",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:14:20.603841+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
       "social_profiles": [],
       "news_items": [],
@@ -211199,7 +210819,7 @@
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://www.vikenboogomsorg.no",
+    "hjemmeside": null,
     "summary": "In 2025, VIKEN BO OG OMSORG AS generated NOK 170.2M in revenue with an operating result of NOK -0.0M operating in Omsorgstjenester i botilbud for personer med psykiske helseproblemer og/eller rusmiddelproblemer (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/923661069, 2026-11-06). Led by CEO Morten Nybakk (orgnr 923661069)."
   },
   {
@@ -219660,7 +219280,7 @@
     "name": "LIFE TECHNOLOGIES AS",
     "legal_form": "AS",
     "municipality": "OSLO",
-    "website": "https://www.thermofisher.com/in/en/home.html",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:15:11.534515+00:00",
     "status": "available",
@@ -219951,12 +219571,8 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://www.thermofisher.com/in/en/home.html",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:14:41.062509+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
       "social_profiles": [],
       "news_items": [],
@@ -220079,7 +219695,7 @@
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://www.thermofisher.com/in/en/home.html",
+    "hjemmeside": null,
     "summary": "In 2025, LIFE TECHNOLOGIES AS generated NOK 2460.7M in revenue with an operating result of NOK 1447.8M operating in Produksjon av andre kjemiske produkter ikke nevnt annet sted (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/941218555, 2026-11-06). Led by CEO Anne Haugland (orgnr 941218555)."
   },
   {
@@ -220315,7 +219931,7 @@
     "name": "NORDICEPOD AS",
     "legal_form": "AS",
     "municipality": "HOLMESTRAND",
-    "website": "https://nordicepod.com/",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:14:58.816179+00:00",
     "status": "available",
@@ -220562,12 +220178,8 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://nordicepod.com/",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:14:43.565570+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
       "social_profiles": [],
       "news_items": [],
@@ -220691,7 +220303,7 @@
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://nordicepod.com/",
+    "hjemmeside": null,
     "summary": "In 2025, NORDICEPOD AS generated NOK 1767.6M in revenue with an operating result of NOK 122.3M operating in Produksjon av annet elektrisk utstyr (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/928650839, 2026-11-06). Led by CEO Leif Fredrik Lindberg Nordling (orgnr 928650839)."
   },
   {
@@ -220699,7 +220311,7 @@
     "name": "HAVILA SHIPPING ASA",
     "legal_form": "ASA",
     "municipality": "HERØY",
-    "website": "https://www.havilashipping.no",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:14:48.167182+00:00",
     "status": "available",
@@ -220971,31 +220583,10 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://www.havilashipping.no",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:14:43.693165+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
-      "social_profiles": [
-        {
-          "platform": "linkedin",
-          "url": "https://no.linkedin.com/company/havila-shipping-asa",
-          "source_url": "https://www.havilashipping.no",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:14:44.312424Z",
-          "verification": "passed all checks"
-        },
-        {
-          "platform": "facebook",
-          "url": "https://www.facebook.com/HavilaShipping/",
-          "source_url": "https://www.havilashipping.no",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:14:44.312424Z",
-          "verification": "passed all checks"
-        }
-      ],
+      "social_profiles": [],
       "news_items": [],
       "technologies": []
     },
@@ -221110,31 +220701,14 @@
     "updates": [],
     "jobs": [],
     "job_postings": [],
-    "social_links": [
-      {
-        "platform": "linkedin",
-        "url": "https://no.linkedin.com/company/havila-shipping-asa",
-        "source_url": "https://www.havilashipping.no",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:14:44.312424Z",
-        "verification": "passed all checks"
-      },
-      {
-        "platform": "facebook",
-        "url": "https://www.facebook.com/HavilaShipping/",
-        "source_url": "https://www.havilashipping.no",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:14:44.312424Z",
-        "verification": "passed all checks"
-      }
-    ],
+    "social_links": [],
     "ceo": "Njål Sævik",
     "daglig_leder": "Njål Sævik",
     "source_date": "2026-11-06",
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://www.havilashipping.no",
+    "hjemmeside": null,
     "summary": "In 2025, HAVILA SHIPPING ASA generated NOK 648.0M in revenue with an operating result of NOK 133.3M operating in Forsyning for offshore (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/882811972, 2026-11-06). Led by CEO Njål Sævik (orgnr 882811972)."
   },
   {
@@ -225982,7 +225556,7 @@
     "name": "ELITE CONSTRUCTION GROUP AS",
     "legal_form": "AS",
     "municipality": "KVINNHERAD",
-    "website": "https://www.eliteconstruction.com",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:15:01.907307+00:00",
     "status": "available",
@@ -226206,12 +225780,8 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://www.eliteconstruction.com",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:14:51.371631+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
       "social_profiles": [],
       "news_items": [],
@@ -226334,7 +225904,7 @@
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://www.eliteconstruction.com",
+    "hjemmeside": null,
     "summary": "In 2024, ELITE CONSTRUCTION GROUP AS generated NOK 162.1M in revenue with an operating result of NOK 4.3M operating in Produksjon av metallkonstruksjoner og deler (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/981369254, 2026-11-06). Led by CEO Tom Henning Rimestad (orgnr 981369254)."
   },
   {
@@ -229081,7 +228651,7 @@
     "name": "INNTRE KJELDSTAD AS",
     "legal_form": "AS",
     "municipality": "STEINKJER",
-    "website": "https://www.inntrekjeldstad.no",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:15:05.334375+00:00",
     "status": "available",
@@ -229354,12 +228924,8 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://www.inntrekjeldstad.no",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:14:58.897727+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
       "social_profiles": [],
       "news_items": [],
@@ -229483,7 +229049,7 @@
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://www.inntrekjeldstad.no",
+    "hjemmeside": null,
     "summary": "In 2025, INNTRE KJELDSTAD AS generated NOK 921.0M in revenue with an operating result of NOK 31.1M operating in Saging og høvling av tre (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/986044019, 2026-11-06). Led by CEO Gisle Tronstad (orgnr 986044019)."
   },
   {
@@ -229888,7 +229454,7 @@
     "name": "NV SERVICE AS",
     "legal_form": "AS",
     "municipality": "HARAM",
-    "website": "https://www.nvservice.com",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:15:03.342151+00:00",
     "status": "available",
@@ -230133,12 +229699,8 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://www.nvservice.com",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:14:59.335539+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
       "social_profiles": [],
       "news_items": [],
@@ -230262,7 +229824,7 @@
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://www.nvservice.com",
+    "hjemmeside": null,
     "summary": "In 2025, NV SERVICE AS generated NOK 95.2M in revenue with an operating result of NOK 2.9M operating in Bygging av sivile skip og flytende materiell (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/921352018, 2026-11-06). Led by CEO Tomasz Pawel Jakubiak (orgnr 921352018)."
   },
   {
@@ -250724,7 +250286,7 @@
     "name": "BLENDER AS",
     "legal_form": "AS",
     "municipality": "OSLO",
-    "website": "https://www.blender.no",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:15:50.365487+00:00",
     "status": "available",
@@ -250947,12 +250509,8 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://www.blender.no",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:15:43.346499+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
       "social_profiles": [],
       "news_items": [],
@@ -251075,7 +250633,7 @@
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://www.blender.no",
+    "hjemmeside": null,
     "summary": "In 2025, BLENDER AS generated NOK 226.1M in revenue with an operating result of NOK 0.0M operating in Drift av restauranter (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/884388732, 2026-11-06). Led by CEO Håvar Hansen (orgnr 884388732)."
   },
   {
@@ -257393,7 +256951,7 @@
     "name": "MARLINK AS",
     "legal_form": "AS",
     "municipality": "BÆRUM",
-    "website": "https://www.marlink.com/",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:16:08.368255+00:00",
     "status": "available",
@@ -257560,23 +257118,10 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://www.marlink.com/",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:15:56.757823+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
-      "social_profiles": [
-        {
-          "platform": "linkedin",
-          "url": "https://www.linkedin.com/company/marlink/",
-          "source_url": "https://www.marlink.com/",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:15:59.511126Z",
-          "verification": "passed all checks"
-        }
-      ],
+      "social_profiles": [],
       "news_items": [],
       "technologies": []
     },
@@ -257644,7 +257189,7 @@
       "status": "available",
       "method": "rule_based",
       "model": null,
-      "summary": "MARLINK AS delivers kabelbasert, satellittbasert og trådløs telekommunikasjon solutions out of BÆRUM with 213 employees (Source: Company Website & Brønnøysund Register, https://www.marlink.com/, 2026-11-06). Led by CEO Tore Morten Olsen (orgnr 990362688).",
+      "summary": "MARLINK AS is an active commercial provider in kabelbasert, satellittbasert og trådløs telekommunikasjon based in BÆRUM employing 213 staff (Source: Brønnøysund Enhetsregisteret, https://data.brreg.no/enhetsregisteret/api/enheter/990362688, 2026-11-06). Led by CEO Tore Morten Olsen (orgnr 990362688).",
       "key_observations": [
         "Online presence across 2 verified channel(s)",
         "Key leadership: Tore Morten Olsen (Daglig leder/CEO)"
@@ -257666,24 +257211,15 @@
     "updates": [],
     "jobs": [],
     "job_postings": [],
-    "social_links": [
-      {
-        "platform": "linkedin",
-        "url": "https://www.linkedin.com/company/marlink/",
-        "source_url": "https://www.marlink.com/",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:15:59.511126Z",
-        "verification": "passed all checks"
-      }
-    ],
+    "social_links": [],
     "ceo": "Tore Morten Olsen",
     "daglig_leder": "Tore Morten Olsen",
     "source_date": "2026-11-06",
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://www.marlink.com/",
-    "summary": "MARLINK AS delivers kabelbasert, satellittbasert og trådløs telekommunikasjon solutions out of BÆRUM with 213 employees (Source: Company Website & Brønnøysund Register, https://www.marlink.com/, 2026-11-06). Led by CEO Tore Morten Olsen (orgnr 990362688)."
+    "hjemmeside": null,
+    "summary": "MARLINK AS is an active commercial provider in kabelbasert, satellittbasert og trådløs telekommunikasjon based in BÆRUM employing 213 staff (Source: Brønnøysund Enhetsregisteret, https://data.brreg.no/enhetsregisteret/api/enheter/990362688, 2026-11-06). Led by CEO Tore Morten Olsen (orgnr 990362688)."
   },
   {
     "organisation_number": "945772042",
@@ -272492,7 +272028,7 @@
     "name": "GILJE TRE AS",
     "legal_form": "AS",
     "municipality": "GJESDAL",
-    "website": "https://www.gilje.no/",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:16:32.947705+00:00",
     "status": "available",
@@ -272785,23 +272321,10 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://www.gilje.no/",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:16:27.189024+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
-      "social_profiles": [
-        {
-          "platform": "facebook",
-          "url": "https://www.facebook.com/GiljeTre",
-          "source_url": "https://www.gilje.no/",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:16:28.476369Z",
-          "verification": "passed all checks"
-        }
-      ],
+      "social_profiles": [],
       "news_items": [],
       "technologies": []
     },
@@ -272916,23 +272439,14 @@
     "updates": [],
     "jobs": [],
     "job_postings": [],
-    "social_links": [
-      {
-        "platform": "facebook",
-        "url": "https://www.facebook.com/GiljeTre",
-        "source_url": "https://www.gilje.no/",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:16:28.476369Z",
-        "verification": "passed all checks"
-      }
-    ],
+    "social_links": [],
     "ceo": "Thor Eirik Gilje",
     "daglig_leder": "Thor Eirik Gilje",
     "source_date": "2026-11-06",
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://www.gilje.no/",
+    "hjemmeside": null,
     "summary": "In 2025, GILJE TRE AS generated NOK 570.1M in revenue with an operating result of NOK 8.8M operating in Produksjon av dører og vinduer i tre (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/951875392, 2026-11-06). Led by CEO Thor Eirik Gilje (orgnr 951875392)."
   },
   {
@@ -301756,7 +301270,7 @@
     "name": "ABMARKETING AS",
     "legal_form": "AS",
     "municipality": "OSLO",
-    "website": "https://abmarketing.no/",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:17:24.655721+00:00",
     "status": "available",
@@ -301989,12 +301503,8 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://abmarketing.no/",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:17:16.168986+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
       "social_profiles": [],
       "news_items": [],
@@ -302118,7 +301628,7 @@
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://abmarketing.no/",
+    "hjemmeside": null,
     "summary": "In 2025, ABMARKETING AS generated NOK 73.4M in revenue with an operating result of NOK 6.6M operating in Reklamebyråvirksomhet (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/924607386, 2026-11-06). Led by CEO Behzad Sorodi (orgnr 924607386)."
   },
   {
@@ -306508,7 +306018,7 @@
     "name": "ALLOS STIFTELSEN",
     "legal_form": "STI",
     "municipality": "LEVANGER",
-    "website": "https://www.allosstiftelsen.no",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:17:41.051990+00:00",
     "status": "available",
@@ -306762,12 +306272,8 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://www.allosstiftelsen.no",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:17:31.764058+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
       "social_profiles": [],
       "news_items": [],
@@ -306891,7 +306397,7 @@
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://www.allosstiftelsen.no",
+    "hjemmeside": null,
     "summary": "In 2025, ALLOS STIFTELSEN generated NOK 82.3M in revenue with an operating result of NOK 4.2M operating in Andre sosialtjenester uten botilbud ellers (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/928578518, 2026-11-06). Led by CEO Christer Brenne (orgnr 928578518)."
   },
   {
@@ -310941,7 +310447,7 @@
     "name": "ODFJELL DRILLING AS",
     "legal_form": "AS",
     "municipality": "BERGEN",
-    "website": "https://www.odfjelldrilling.no",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T14:17:46.568497+00:00",
     "status": "available",
@@ -311235,12 +310741,8 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://www.odfjelldrilling.no",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:17:39.532973+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
       "social_profiles": [],
       "news_items": [],
@@ -311363,7 +310865,7 @@
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://www.odfjelldrilling.no",
+    "hjemmeside": null,
     "summary": "In 2025, ODFJELL DRILLING AS generated NOK 1078.7M in revenue with an operating result of NOK 299.0M operating in Boretjenester tilknyttet utvinning av råolje og naturgass (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/984669151, 2026-11-06). Led by CEO Kjetil Gjersdal (orgnr 984669151)."
   },
   {
@@ -311371,7 +310873,7 @@
     "name": "OMEGA SUBSEA AS",
     "legal_form": "AS",
     "municipality": "BERGEN",
-    "website": "https://omegasubsea.com/",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T15:26:02.836311+00:00",
     "status": "available",
@@ -311616,31 +311118,10 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://omegasubsea.com/",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:17:40.629954+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
-      "social_profiles": [
-        {
-          "platform": "linkedin",
-          "url": "https://www.linkedin.com/company/omega-subsea/",
-          "source_url": "https://omegasubsea.com/",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:17:47.089265Z",
-          "verification": "passed all checks"
-        },
-        {
-          "platform": "facebook",
-          "url": "https://www.facebook.com/OmegaSubsea/",
-          "source_url": "https://omegasubsea.com/",
-          "date": "2026-11-01",
-          "retrieved_at": "2026-11-01T14:17:47.089265Z",
-          "verification": "passed all checks"
-        }
-      ],
+      "social_profiles": [],
       "news_items": [],
       "technologies": []
     },
@@ -311756,31 +311237,14 @@
     "updates": [],
     "jobs": [],
     "job_postings": [],
-    "social_links": [
-      {
-        "platform": "linkedin",
-        "url": "https://www.linkedin.com/company/omega-subsea/",
-        "source_url": "https://omegasubsea.com/",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:17:47.089265Z",
-        "verification": "passed all checks"
-      },
-      {
-        "platform": "facebook",
-        "url": "https://www.facebook.com/OmegaSubsea/",
-        "source_url": "https://omegasubsea.com/",
-        "date": "2026-11-01",
-        "retrieved_at": "2026-11-01T14:17:47.089265Z",
-        "verification": "passed all checks"
-      }
-    ],
+    "social_links": [],
     "ceo": "Trond Berge",
     "daglig_leder": "Trond Berge",
     "source_date": "2026-11-06",
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://omegasubsea.com/",
+    "hjemmeside": null,
     "summary": "In 2025, OMEGA SUBSEA AS generated NOK 874.5M in revenue with an operating result of NOK 146.1M operating in Boretjenester tilknyttet utvinning av råolje og naturgass (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/997898923, 2026-11-06). Led by CEO Trond Berge (orgnr 997898923)."
   },
   {
@@ -313379,7 +312843,7 @@
     "name": "EGERSUND NET AS",
     "legal_form": "AS",
     "municipality": "EIGERSUND",
-    "website": "https://www.akvagroup.no/egersundnet/hjem/",
+    "website": null,
     "profile_version": 1,
     "generated_at": "2026-11-01T15:26:02.918129+00:00",
     "status": "available",
@@ -313603,25 +313067,11 @@
       "workplaces": []
     },
     "website_profiles": {
-      "status": "available",
-      "official_website": {
-        "url": "https://www.akvagroup.no/egersundnet/hjem/",
-        "source": "domain_guess_verified",
-        "retrieved_at": "2026-11-01T14:17:46.568660+00:00"
-      },
+      "status": "not_found",
+      "official_website": null,
       "website_ownership": null,
       "social_profiles": [],
-      "news_items": [
-        {
-          "title": "AKVA group, Egersund Net",
-          "url": "https://www.akvagroup.no/egersundnet/hjem/",
-          "publish_date": "2022-10-11T10:02:28+02:00",
-          "date_source": "datePublished",
-          "source_url": "https://www.akvagroup.no/egersundnet/hjem/",
-          "date": "2022-10-11",
-          "retrieved_at": "2026-11-01T14:17:49.014071Z"
-        }
-      ],
+      "news_items": [],
       "technologies": []
     },
     "hiring_activity": {
@@ -313731,15 +313181,7 @@
       "source_url": "https://data.brreg.no/regnskapsregisteret/regnskap/976555708",
       "source_date": "2026-11-06"
     },
-    "news": [
-      {
-        "title": "AKVA group, Egersund Net",
-        "url": "https://www.akvagroup.no/egersundnet/hjem/",
-        "source_url": "https://www.akvagroup.no/egersundnet/hjem/",
-        "date": "2022-10-11T10:02:28+02:00",
-        "source_date": "2022-10-11T10:02:28+02:00"
-      }
-    ],
+    "news": [],
     "updates": [
       {
         "title": "AKVA group, Egersund Net",
@@ -313758,7 +313200,7 @@
     "website_source_date": "2026-11-06",
     "verification_method": "heuristic",
     "brreg_hjemmeside": false,
-    "hjemmeside": "https://www.akvagroup.no/egersundnet/hjem/",
+    "hjemmeside": null,
     "summary": "In 2025, EGERSUND NET AS generated NOK 907.6M in revenue with an operating result of NOK 140.9M operating in Produksjon av tauverk, rep, hyssing og nett (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/976555708, 2026-11-06). Recent company news includes \"AKVA group, Egersund Net\". Led by CEO Glenn Mo (orgnr 976555708)."
   },
   {
