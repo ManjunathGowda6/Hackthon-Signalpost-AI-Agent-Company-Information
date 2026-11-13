@@ -46,14 +46,19 @@ def _find_orgnrs_on_page(text: str) -> set[str]:
 
 
 def _is_short_generic_name(name: str) -> bool:
-    """True if company name (after stripping AS/ASA) is short/generic and collision-prone."""
+    """True if company name (after stripping AS/ASA) is a known generic stem.
+
+    Only flags names that are in the _GENERIC_STEMS set (common Norwegian
+    company name fragments that frequently collide with other companies).
+    Does NOT flag all short names — many legitimate companies have short names.
+    """
     clean = _NAME_NOISE.sub("", name.lower()).strip()
     tokens = re.findall(r"[a-zæøå0-9]+", clean)
-    # Single token and short
-    if len(tokens) <= 1 and len(clean) <= 8:
-        return True
     # Single token that's a known generic stem
     if len(tokens) == 1 and tokens[0] in _GENERIC_STEMS:
+        return True
+    # Multi-token but all tokens are generic
+    if len(tokens) >= 1 and all(t in _GENERIC_STEMS for t in tokens):
         return True
     return False
 
