@@ -2,30 +2,55 @@
 
 LLM priority: Gemini API → Claude API → rule-based deterministic fallback.
 All LLM prompts enforce strict grounding — only verified facts from the envelope.
+Buyer-first summary: Sentence 1 always opens with a high-value commercial fact and citation.
 """
 from __future__ import annotations
 
 import json
+import re
+from datetime import datetime, timezone
 from typing import Any
 
 from signalpost.synthesis.claude_client import ClaudeClient
 from signalpost.synthesis.gemini_client import GeminiClient
 
 
-SYSTEM_PROMPT = """You are a concise Norwegian company analyst.
+SYSTEM_PROMPT = """You are a concise Norwegian B2B company intelligence analyst.
 Given structured facts about a company, produce:
-1. A 2-4 sentence executive summary covering what the company does, its legal form, size, and financial health.
-2. 2-5 key observations — notable facts, risks, or strengths.
+1. A 2-4 sentence executive summary.
+   CRITICAL REQUIREMENT FOR SENTENCE 1:
+   - NEVER start Sentence 1 with registry boilerplate (do NOT start with orgnr, incorporation date, legal form "AS", or registered address).
+   - Sentence 1 MUST start with a high-value commercial fact a B2B buyer/partner wants, explicitly citing the source:
+     * Priority 1 (Financial Scale & Trajectory): If revenue is known, start with latest revenue, operating profit/margin, YoY growth, and primary commercial activity: "In [Year], [Company] generated NOK [X] in revenue [growth YoY] with an operating result of NOK [Y] ([margin]% margin), operating in [activity] (Source: [Regnskapsregisteret URL], [Date])."
+     * Priority 2 (Website Offering & Workforce): If financials missing but website/employees known: "[Company] operates in [activity/offering] with [N] registered employees (Source: [Source URL], [Date])."
+     * Priority 3 (Workforce & Leadership): Lead with employee scale, key leadership (CEO/Daglig leder), and commercial activity with exact source citation.
+   - Sentences 2-4: Follow with financial health (equity ratio, profitability), active hiring, recent dated news, and verified website/social channels.
+2. 2-5 key observations — notable commercial facts, strengths, or financial risks.
 3. A list of unknowns — data we could not obtain.
 4. A confidence assessment — how complete and reliable the profile is.
 
 STRICT RULES:
-- ONLY cite numbers, dates, and facts that are present in the provided data.
+- ONLY cite numbers, dates, and facts present in the provided data.
 - NEVER fabricate, estimate, or infer data not given.
-- For every financial figure, include an inline citation: [Source URL, YYYY-MM-DD].
-- If financial data is missing, say so explicitly.
+- For every financial figure, include an inline citation: (Source: URL, YYYY-MM-DD).
 - Output valid JSON with keys: company_summary, key_observations, unknowns, confidence_assessment
 """
+
+
+def _fmt(v: Any) -> str:
+    if v is None:
+        return "N/A"
+    try:
+        v = float(v)
+        if abs(v) >= 1e9:
+            return f"NOK {v/1e9:,.1f}B"
+        if abs(v) >= 1e6:
+            return f"NOK {v/1e6:,.1f}M"
+        if abs(v) >= 1e3:
+            return f"NOK {v/1e3:,.0f}K"
+        return f"NOK {v:,.0f}"
+    except Exception:
+        return str(v)
 
 
 class Summarizer:
@@ -124,6 +149,10 @@ class Summarizer:
                     src = claim.get("source", "")
                     date = (claim.get("retrieved_at") or "")[:10]
                     parts.append(f"{field}: {val} {cur} ({period}) [Source: {src}, {date}]")
+            yoy = aa.get("yoy_summary")
+            if yoy:
+                yoy_txt = yoy.get("text") if isinstance(yoy, dict) else str(yoy)
+                parts.append(f"yoy_summary: {yoy_txt}")
         else:
             parts.append("annual_accounts: not_available")
 
@@ -149,7 +178,7 @@ class Summarizer:
 
         ha = data.get("hiring_activity", {})
         if ha.get("status") == "available":
-            jobs = ha.get("job_listings", [])
+            jobs = ha.get("job_listings", []) or ha.get("active_listings", [])
             if jobs:
                 parts.append(f"open_jobs: {len(jobs)} active listings")
 
@@ -171,82 +200,201 @@ class Summarizer:
         return unknowns
 
     def _rule_based_synthesis(self, data: dict[str, Any]) -> dict[str, Any]:
-        """Rich deterministic fallback synthesis with inline source citations."""
+        """Buyer-first deterministic synthesis. Never starts with registry boilerplate."""
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
         li = data.get("legal_identity", {})
         name_claim = li.get("legal_name", {})
-        name = name_claim.get("value", "Unknown") if isinstance(name_claim, dict) else "Unknown"
+        name = name_claim.get("value", data.get("name", "Company")) if isinstance(name_claim, dict) else data.get("name", "Company")
+        org = data.get("organisation_number", "")
+        brreg = f"https://data.brreg.no/enhetsregisteret/api/enheter/{org}"
+        regn = f"https://data.brreg.no/regnskapsregisteret/regnskap/{org}"
+
         form_claim = li.get("legal_form", {})
         form = form_claim.get("value", "") if isinstance(form_claim, dict) else ""
-        addr_claim = li.get("registered_address", {})
-        addr = addr_claim.get("value", "") if isinstance(addr_claim, dict) else ""
-        reg_src = name_claim.get("source", "") if isinstance(name_claim, dict) else ""
-        reg_date = (name_claim.get("retrieved_at", "") if isinstance(name_claim, dict) else "")[:10]
+        muni = data.get("municipality", "")
 
-        summary_parts = [f"{name}"]
-        if form:
-            summary_parts.append(f"is a {form} registered in Norway")
-        if addr:
-            summary_parts.append(f"with registered address at {addr}")
-        summary_parts[-1] += "."
+        # NACE activity description
+        nace_desc = ""
+        ind_codes = li.get("industry_codes", [])
+        if ind_codes and isinstance(ind_codes, list):
+            for ic in ind_codes:
+                if isinstance(ic, dict) and ic.get("description"):
+                    nace_desc = ic["description"]
+                    break
+        act_claim = li.get("activity_description", {})
+        if isinstance(act_claim, dict) and act_claim.get("value"):
+            nace_desc = act_claim["value"]
 
-        observations = []
+        # Financials
         aa = data.get("annual_accounts", {})
+        rev_val = None
+        op_val = None
+        ta_val = None
+        te_val = None
+        year = aa.get("latest_filing_year")
         if aa.get("status") == "available":
             rev = aa.get("revenue", {})
-            fin_src = ""
-            fin_date = ""
             if isinstance(rev, dict) and rev.get("value") is not None:
-                fin_src = rev.get("source", "")
-                fin_date = (rev.get("retrieved_at") or "")[:10]
-                val = rev["value"]
-                cur = rev.get("currency", "NOK")
-                period = rev.get("period", "latest")
-                if val > 1_000_000_000:
-                    observations.append(
-                        f"Revenue: {val/1e9:.1f}B {cur} ({period}) [Source: {fin_src}, {fin_date}]")
-                elif val > 1_000_000:
-                    observations.append(
-                        f"Revenue: {val/1e6:.1f}M {cur} ({period}) [Source: {fin_src}, {fin_date}]")
-                else:
-                    observations.append(
-                        f"Revenue: {val:,.0f} {cur} ({period}) [Source: {fin_src}, {fin_date}]")
-
+                rev_val = rev["value"]
             op = aa.get("operating_profit", {})
             if isinstance(op, dict) and op.get("value") is not None:
-                ov = op["value"]
-                if ov > 0:
-                    observations.append(f"Operating profit: {ov:,.0f} NOK (profitable)")
-                else:
-                    observations.append(f"Operating loss: {ov:,.0f} NOK")
+                op_val = op["value"]
+            ta = aa.get("total_assets", {})
+            if isinstance(ta, dict) and ta.get("value") is not None:
+                ta_val = ta["value"]
+            te = aa.get("total_equity", {})
+            if isinstance(te, dict) and te.get("value") is not None:
+                te_val = te["value"]
 
-            # YoY summary
-            yoy = aa.get("yoy_summary")
-            if yoy and isinstance(yoy, dict) and yoy.get("text"):
-                observations.append(yoy["text"])
+        # Employees
+        emp = None
+        emp_claim = aa.get("employees", {})
+        if isinstance(emp_claim, dict) and emp_claim.get("value") is not None:
+            try:
+                emp = int(emp_claim["value"])
+            except Exception:
+                pass
+
+        # Website
+        wp = data.get("website_profiles", {})
+        website = None
+        if wp.get("status") == "available" and wp.get("official_website"):
+            website = wp["official_website"].get("url")
+        if not website:
+            website = data.get("website")
+
+        # Leadership
+        lw = data.get("leadership_workplaces", {})
+        roles = lw.get("roles", []) if isinstance(lw, dict) else []
+        ceo_name = ""
+        for r in roles:
+            if isinstance(r, dict):
+                role_type = (r.get("role", "") or "").lower()
+                if role_type in ("daglig leder", "administrerende direktør", "daglig leder/administrerende direktør"):
+                    ceo_name = r.get("name", "")
+                    break
+
+        yoy = aa.get("yoy_summary")
+        yoy_text = yoy.get("text") if isinstance(yoy, dict) else str(yoy or "")
+
+        socials = wp.get("social_profiles", []) if isinstance(wp, dict) else []
+        news = wp.get("news_items", []) if isinstance(wp, dict) else []
+        ha = data.get("hiring_activity", {})
+        jobs = (ha.get("job_listings", []) or ha.get("active_listings", [])) if isinstance(ha, dict) else []
+
+        parts = []
+        observations = []
+
+        # --- SENTENCE 1: BUYER-RELEVANT OPENING ---
+        if aa.get("status") == "available" and rev_val is not None:
+            yr_str = f"In {year}, " if year else ""
+            rev_str = _fmt(rev_val)
+            op_part = ""
+            if op_val is not None:
+                op_str = _fmt(op_val)
+                margin = ""
+                try:
+                    if float(rev_val) > 0:
+                        m = (float(op_val) / float(rev_val)) * 100
+                        margin = f" ({m:.0f}% margin)"
+                except Exception:
+                    pass
+                op_part = f" with an operating result of {op_str}{margin}"
+            yoy_part = ""
+            if yoy_text:
+                rev_m = re.search(r'revenue[:\s]*([\+\-]\d+%)', yoy_text, re.IGNORECASE)
+                if rev_m:
+                    yoy_part = f" ({rev_m.group(1)} YoY)"
+            activity_part = ""
+            if nace_desc:
+                activity_part = f", operating in {nace_desc.lower()}"
+            elif form:
+                activity_part = f", registered as {form}"
+            parts.append(
+                f"{yr_str}{name} generated {rev_str} in revenue{yoy_part}{op_part}{activity_part} "
+                f"(Source: {regn}, {today})."
+            )
+        elif website and emp and emp > 0:
+            offering = nace_desc if nace_desc else "commercial services"
+            parts.append(
+                f"{name} operates in {offering.lower()} with {emp} employees "
+                f"(Source: {brreg}, {today})."
+            )
+        elif emp and emp > 0:
+            act = nace_desc if nace_desc else "commercial activities"
+            ceo_p = f", led by {ceo_name}" if ceo_name else ""
+            parts.append(
+                f"{name} has {emp} registered employees{ceo_p}, active in {act.lower()} "
+                f"(Source: {brreg}, {today})."
+            )
+        else:
+            act = nace_desc if nace_desc else (f"a {form}" if form else "a Norwegian registered entity")
+            loc = f" in {muni}" if muni else ""
+            parts.append(f"{name} is {act}{loc} (Source: {brreg}, {today}).")
+
+        # --- FOLLOW-UP SENTENCES ---
+        if aa.get("status") == "available":
+            if te_val is not None and ta_val is not None:
+                try:
+                    eq_v, as_v = float(te_val), float(ta_val)
+                    if as_v > 0:
+                        ratio = (eq_v / as_v) * 100
+                        observations.append(f"Equity ratio: {ratio:.0f}% (Source: {regn})")
+                        if ratio > 50:
+                            observations.append(f"Strong equity ratio ({ratio:.0f}%)")
+                        elif ratio < 20:
+                            observations.append(f"Low equity ratio ({ratio:.0f}%) — financial risk")
+                except Exception:
+                    pass
+
+            if op_val is not None:
+                try:
+                    if float(op_val) > 0:
+                        observations.append("Profitable operations")
+                    else:
+                        observations.append("Operating at a loss")
+                except Exception:
+                    pass
+
+            if yoy_text and rev_val is None:
+                parts.append(f"Year-over-Year: {yoy_text}")
         else:
             obligation = aa.get("accounting_obligation", "unknown")
             observations.append(f"No financial data on file (obligation: {obligation})")
 
-        lw = data.get("leadership_workplaces", {})
-        roles = lw.get("roles", [])
-        wps = lw.get("workplaces", [])
-        if roles:
-            observations.append(f"{len(roles)} registered leadership role(s)")
-        if wps:
-            observations.append(f"{len(wps)} registered workplace(s)/subunit(s)")
+        if website:
+            parts.append(f"Official website: {website} (Source: {website}, {today}).")
 
-        wp = data.get("website_profiles", {})
-        if wp.get("status") == "available":
-            site = wp.get("official_website", {})
-            if site:
-                observations.append(f"Official website: {site.get('url', 'available')}")
+        if socials:
+            platforms = list(set(s.get("platform", "social") for s in socials[:5]))
+            parts.append(f"Active on {', '.join(platforms)} (Source: {website or brreg}, {today}).")
+            observations.append(f"Online presence across {len(socials)} platform(s)")
+
+        if news:
+            latest = news[0]
+            title = latest.get("title", "N/A")
+            pub = latest.get("publish_date", latest.get("date", "N/A"))
+            src = latest.get("url", website or brreg)
+            parts.append(f'Recent news: "{title}" ({pub}) (Source: {src}, {today}).')
+            observations.append(f"{len(news)} recent news article(s)")
+
+        if jobs:
+            parts.append(f"{len(jobs)} active job listing(s) (Source: arbeidsplassen.nav.no, {today}).")
+            observations.append("Currently hiring")
+
+        if ceo_name and "led by" not in parts[0]:
+            observations.append(f"CEO/Daglig leder: {ceo_name}")
+
+        if emp and emp > 0 and "employees" not in parts[0]:
+            observations.append(f"{emp} registered employees")
 
         if li.get("is_bankrupt"):
             observations.append("⚠ Company is registered as bankrupt")
         if li.get("is_in_liquidation"):
             observations.append("⚠ Company is under liquidation")
 
-        summary = " ".join(summary_parts)
+        summary = " ".join(parts)
         unknowns = self._detect_unknowns(data)
 
         available_count = sum(
@@ -254,7 +402,6 @@ class Summarizer:
                         "website_profiles", "hiring_activity"]
             if data.get(k, {}).get("status") == "available"
         )
-
         if available_count >= 4:
             confidence = "High — most sections have verified data."
         elif available_count >= 2:
