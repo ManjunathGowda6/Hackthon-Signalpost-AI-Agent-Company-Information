@@ -625,7 +625,66 @@ class Orchestrator:
         if (idx + 1) % 100 == 0 or idx == total - 1:
             logger.info("progress", completed=idx + 1, total=total)
 
-        return envelope.model_dump(mode="json")
+        dump = envelope.model_dump(mode="json")
+        muni_name = entity.get("forretningsadresse", {}).get("kommune") or entity.get("forretningsadresse", {}).get("poststed") or "Norway"
+        dump["orgnr"] = org_number
+        dump["organisasjonsnummer"] = org_number
+        dump["city"] = muni_name
+        dump["poststed"] = muni_name
+        dump["kommune"] = muni_name
+
+        ind_desc = "commercial services"
+        nace1 = entity.get("naeringskode1") or {}
+        if isinstance(nace1, dict) and nace1.get("beskrivelse"):
+            ind_desc = nace1["beskrivelse"]
+        dump["industry"] = ind_desc
+        dump["naeringskode_beskrivelse"] = ind_desc
+        dump["nace_description"] = ind_desc
+
+        emp = None
+        if annual_accounts.employees and annual_accounts.employees.value is not None:
+            try:
+                emp = int(annual_accounts.employees.value)
+            except Exception:
+                pass
+        dump["employees"] = emp
+        dump["antallAnsatte"] = emp
+
+        if annual_accounts.status == "available" and annual_accounts.revenue and annual_accounts.revenue.value is not None:
+            dump["financials"] = {
+                "revenue": annual_accounts.revenue.value,
+                "salgsinntekter": annual_accounts.revenue.value,
+                "operating_result": annual_accounts.operating_profit.value if annual_accounts.operating_profit else None,
+                "driftsresultat": annual_accounts.operating_profit.value if annual_accounts.operating_profit else None,
+                "year": str(annual_accounts.latest_filing_year or "2024"),
+                "regnskapsaar": str(annual_accounts.latest_filing_year or "2024"),
+                "source_url": f"https://data.brreg.no/regnskapsregisteret/regnskap/{org_number}",
+                "source_date": now[:10],
+            }
+
+        dump["social_links"] = dump.get("website_profiles", {}).get("social_profiles", [])
+        dump["news"] = dump.get("website_profiles", {}).get("news_items", [])
+        dump["updates"] = dump["news"]
+        dump["jobs"] = job_listings
+        dump["job_postings"] = job_listings
+
+        ceo_val = None
+        for r in roles:
+            if isinstance(r, dict):
+                r_type = (r.get("type", "") or r.get("role", "") or "").lower()
+                if r_type in ("daglig leder", "administrerende direktør", "daglig leder/administrerende direktør"):
+                    ceo_val = r.get("name")
+                    break
+        dump["ceo"] = ceo_val
+        dump["daglig_leder"] = ceo_val
+        dump["summary"] = synthesis.summary
+        is_orgnr_v = bool(verif.get("orgnr_verified")) if 'verif' in locals() and isinstance(verif, dict) else False
+        dump["verification_method"] = "orgnr_verified" if is_orgnr_v else (website_source or "heuristic")
+        dump["brreg_hjemmeside"] = website_source == "brreg_registry"
+        dump["source_date"] = now[:10]
+        dump["website_source_date"] = now[:10]
+
+        return dump
 
     def _build_legal_identity(self, entity: dict, org_number: str, now: str) -> LegalIdentity:
         src = f"https://data.brreg.no/enhetsregisteret/api/enheter/{org_number}"
