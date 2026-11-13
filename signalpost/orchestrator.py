@@ -551,6 +551,16 @@ class Orchestrator:
                     except Exception:
                         pass
 
+        # Fetch official NAV jobs using exact orgnr
+        if self.budget and self.budget.can_afford(1):
+            try:
+                from signalpost.collectors.website_discovery import _fetch_nav_jobs
+                nav_jobs = await _fetch_nav_jobs(org_number, self.budget)
+                if nav_jobs:
+                    job_listings = (job_listings or []) + nav_jobs
+            except Exception:
+                pass
+
         website_profiles = WebsiteProfiles(
             status="available" if website_url else "not_available",
             official_website={"url": website_url, "source": website_source,
