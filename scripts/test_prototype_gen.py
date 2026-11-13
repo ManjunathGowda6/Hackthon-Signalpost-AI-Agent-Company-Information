@@ -2,6 +2,8 @@ import sys
 import json
 from pathlib import Path
 
+ROOT_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT_DIR))
 sys.path.insert(0, r"C:\Users\nisar\Downloads\signalpost-starter-kit\signalpost-starter-kit")
 from scripts.build_prototype import build
 from scripts.test_research_suite import map_profile_for_eval
