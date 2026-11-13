@@ -93,10 +93,23 @@ def map_profile_for_eval(p):
             },
         }
 
-    row["evidence"] = ev
-    row["industry_label"] = row.get("industry")
+    # Top level fields required by starter kit compact()
+    ind_code = ""
+    for ic in row.get("legal_identity", {}).get("industry_codes", []):
+        if isinstance(ic, dict) and ic.get("code"):
+            ind_code = ic["code"]
+            break
+    row["industry_code"] = ind_code
+    row["industry_label"] = row.get("industry") or "commercial services"
+    row["bankrupt"] = bool(row.get("legal_identity", {}).get("is_bankrupt", False))
+    row["liquidating"] = bool(row.get("legal_identity", {}).get("is_in_liquidation", False))
     row["employees"] = row.get("employees")
     row["municipality"] = row.get("municipality") or row.get("city")
+    row["legal_form"] = row.get("legal_form") or "AS"
+    row["name"] = row.get("name") or "Company"
+    row["website"] = web_url or ""
+
+    row["evidence"] = ev
     return row
 
 mapped_data = [map_profile_for_eval(p) for p in data]
