@@ -401,12 +401,22 @@ def validate_news_item(
             if normalised == forbidden.lower().replace(" ", "").replace("-", "").replace("_", ""):
                 return False, f"date source '{date_source}' is forbidden (not a true publish date)"
 
+    parsed_date = None
     try:
-        parsed = _date.fromisoformat(publish_date[:10])
-        if parsed > _date.today():
-            return False, f"future date: {publish_date}"
+        parsed_date = _date.fromisoformat(publish_date[:10])
     except (ValueError, TypeError):
-        return False, f"invalid ISO date format: '{publish_date}'"
+        from email.utils import parsedate_to_datetime
+        try:
+            dt = parsedate_to_datetime(publish_date)
+            parsed_date = dt.date()
+        except Exception:
+            pass
+
+    if not parsed_date:
+        return False, f"invalid date format: '{publish_date}'"
+
+    if parsed_date > _date.today():
+        return False, f"future date: {publish_date}"
 
     return True, "valid news item"
 
