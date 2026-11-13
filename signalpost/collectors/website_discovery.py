@@ -365,6 +365,10 @@ async def discover_website(
                     html = resp.text
                     final_url = str(resp.url)
 
+                    # Stage 3: Parked / sink domain guard
+                    if _is_parked_domain(final_url, html):
+                        continue
+
                     # Check subpages for orgnr verification
                     found_target, found_conflict, subpage_htmls = await _check_subpages_for_orgnr(
                         client, final_url, orgnr, budget
