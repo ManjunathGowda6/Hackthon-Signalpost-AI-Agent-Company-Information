@@ -813,7 +813,10 @@ class Orchestrator:
     def _enrich_synthesis(self, synthesis_data: dict, entity: dict,
                           annual_accounts, roles: list, workplaces: list,
                           changes: list) -> dict:
-        """Build richer explanations for higher explanation score."""
+        """Build richer explanations for higher explanation score with buyer-first summary."""
+        from datetime import datetime, timezone
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
         name = entity.get("navn", "Company")
         form = entity.get("organisasjonsform", {}).get("beskrivelse", "")
         muni = entity.get("forretningsadresse", {}).get("kommune", "")
@@ -822,27 +825,50 @@ class Orchestrator:
         bankrupt = entity.get("konkurs", False)
         liquidating = entity.get("underAvvikling", False)
         website = entity.get("hjemmeside")
+        orgnr = entity.get("organisasjonsnummer", "")
+        brreg_url = f"https://data.brreg.no/enhetsregisteret/api/enheter/{orgnr}" if orgnr else "https://data.brreg.no"
+        regn_url = f"https://data.brreg.no/regnskapsregisteret/regnskap/{orgnr}" if orgnr else "https://data.brreg.no"
 
-        # Build comprehensive summary
-        parts = [f"{name} is a {form}" if form else f"{name}"]
-        if muni:
-            parts[0] += f" based in {muni}"
-        parts[0] += "."
+        # Check if summarizer already produced a buyer-first summary
+        existing_summary = synthesis_data.get("summary", "")
+        has_buyer_first = (
+            existing_summary
+            and not existing_summary.startswith(f"{name} is a")
+            and not existing_summary.startswith(f"{name} is registered")
+        )
 
-        if nace:
-            parts.append(f"Primary activity: {nace}.")
+        parts = []
+        if has_buyer_first:
+            summary = existing_summary
+        else:
+            # Build buyer-first summary: Sentence 1 leads with commercial facts
+            rev = getattr(annual_accounts, 'revenue', None) if annual_accounts.status == "available" else None
+            profit = getattr(annual_accounts, 'operating_profit', None) if annual_accounts.status == "available" else None
+            year = annual_accounts.latest_filing_year if annual_accounts.status == "available" else None
 
-        if employees is not None:
-            if employees == 0:
-                parts.append("No registered employees.")
-            elif employees < 10:
-                parts.append(f"Small company with {employees} employee(s).")
-            elif employees < 50:
-                parts.append(f"Medium-sized company with {employees} employees.")
-            elif employees < 250:
-                parts.append(f"Large company with {employees} employees.")
+            if rev and rev.value is not None:
+                yr_str = f"In {year}, " if year else ""
+                val = rev.value
+                rev_str = f"NOK {val/1e9:.1f}B" if val >= 1e9 else (f"NOK {val/1e6:.1f}M" if val >= 1e6 else f"NOK {val:,.0f}")
+                prof_part = ""
+                if profit and profit.value is not None:
+                    pval = profit.value
+                    p_str = f"NOK {pval/1e9:.1f}B" if abs(pval) >= 1e9 else (f"NOK {pval/1e6:.1f}M" if abs(pval) >= 1e6 else f"NOK {pval:,.0f}")
+                    prof_part = f" with an operating result of {p_str}"
+                act_part = f", operating in {nace.lower()}" if nace else (f", registered as {form}" if form else "")
+                parts.append(f"{yr_str}{name} generated {rev_str} in revenue{prof_part}{act_part} (Source: {regn_url}, {today}).")
+            elif employees is not None and employees > 0:
+                act = nace.lower() if nace else "commercial activities"
+                parts.append(f"{name} operates in {act} with {employees} registered employees (Source: {brreg_url}, {today}).")
             else:
-                parts.append(f"Major employer with {employees} employees.")
+                act = nace.lower() if nace else (f"a {form}" if form else "a Norwegian registered entity")
+                loc = f" in {muni}" if muni else ""
+                parts.append(f"{name} is active in {act}{loc} (Source: {brreg_url}, {today}).")
+
+            if website:
+                parts.append(f"Official website: {website} (Source: {website}, {today}).")
+
+            summary = " ".join(parts)
 
         observations = []
 
