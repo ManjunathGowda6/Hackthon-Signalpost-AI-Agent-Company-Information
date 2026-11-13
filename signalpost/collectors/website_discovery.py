@@ -59,7 +59,44 @@ _STATIC_PAGE_SLUGS = re.compile(
     r"|/esg|/csr|/annual-report|/arsrapport)(/|$)",
     re.IGNORECASE,
 )
-_JOBS_PATHS = ["/karriere", "/jobb", "/ledige-stillinger", "/careers", "/jobs"]
+_JOBS_PATHS = ["/karriere", "/jobb", "/ledige-stillinger", "/careers", "/jobs",
+               "/jobbe-hos-oss", "/bli-en-av-oss", "/vacancies", "/stillinger"]
+
+# Norwegian ATS platform domains — when found on career pages, use as job source
+_ATS_DOMAINS = {
+    "finn.no/job", "webcruiter.com", "teamtailor.com", "reachmee.com",
+    "jobbnorge.no", "recman.no", "easycruit.com", "hr-manager.net",
+    "cvpartner.com", "varbi.com",
+}
+
+# Parked / redirect-sink domains — reject these immediately
+_PARKED_DOMAINS = {
+    "sedoparking.com", "dan.com", "godaddy.com", "hugedomains.com",
+    "one.com", "domeneshop.no", "afternic.com", "sav.com", "undeveloped.com",
+    "namecheap.com", "name.com", "dynadot.com",
+}
+
+# Generic career-page titles to SKIP (not specific job roles)
+_GENERIC_JOB_TITLES = re.compile(
+    r"^(ledige\s+stillinger|karriere|jobb\s+hos\s+oss|careers?|jobs?"
+    r"|åpen\s+søknad|open\s+application|bli\s+en\s+av\s+oss"
+    r"|jobbe\s+hos\s+oss|se\s+alle\s+stillinger|alle\s+stillinger"
+    r"|våre\s+stillinger|join\s+(us|our\s+team)"
+    r"|send\s+(søknad|cv)|les\s+mer|read\s+more|søk\s+nå|apply\s+now)$",
+    re.IGNORECASE,
+)
+
+# Norwegian month names for date parsing
+_NO_MONTHS = {
+    "januar": "01", "februar": "02", "mars": "03", "april": "04",
+    "mai": "05", "juni": "06", "juli": "07", "august": "08",
+    "september": "09", "oktober": "10", "november": "11", "desember": "12",
+}
+_NO_DATE_PATTERN = re.compile(
+    r'(\d{1,2})\.\s*(' + '|'.join(_NO_MONTHS.keys()) + r')\s+(\d{4})',
+    re.IGNORECASE,
+)
+_DOT_DATE_PATTERN = re.compile(r'(\d{1,2})\.(\d{1,2})\.(\d{4})')
 
 # Suffixes to strip from company names for domain guessing
 _NAME_STRIP_SUFFIXES = [
