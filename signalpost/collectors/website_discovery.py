@@ -999,16 +999,43 @@ async def extract_job_listings(
                     if not title_el:
                         continue
                     title = title_el.get_text(strip=True)
+                    # Filter out generic career-page titles (e.g., "Ledige stillinger", "Karriere")
+                    if not title or len(title) <= 5 or _GENERIC_JOB_TITLES.match(title.strip()):
+                        continue
                     link = title_el.get("href", "") if title_el.name == "a" else ""
+                    if not link:
+                        a_sub = el.find("a", href=True)
+                        if a_sub:
+                            link = a_sub["href"]
                     if link and not link.startswith("http"):
                         link = f"{base}{link}"
                     loc_el = el.find(class_=re.compile(r"(location|sted|place)", re.IGNORECASE))
                     location = loc_el.get_text(strip=True) if loc_el else None
-                    if title and len(title) > 5:
-                        jobs.append({"title": title, "location": location,
-                            "url": link or f"{base}{path}",
-                            "source_url": f"{base}{path}",
-                            "date": now[:10], "retrieved_at": now})
+                    jobs.append({
+                        "title": title, "location": location,
+                        "url": link or f"{base}{path}",
+                        "source_url": f"{base}{path}",
+                        "date": now[:10], "retrieved_at": now,
+                    })
+
+                # Extract external ATS platform links (Finn.no, Webcruiter, Teamtailor, etc.)
+                for a_tag in soup.find_all("a", href=True):
+                    href = a_tag["href"].strip()
+                    if not href.startswith("http"):
+                        continue
+                    link_domain = urlparse(href).netloc.lower() + urlparse(href).path.lower()
+                    if any(ats in link_domain for ats in _ATS_DOMAINS):
+                        ats_title = a_tag.get_text(strip=True)
+                        if ats_title and len(ats_title) > 5 and not _GENERIC_JOB_TITLES.match(ats_title.strip()):
+                            jobs.append({
+                                "title": ats_title,
+                                "location": None,
+                                "url": href,
+                                "source_url": f"{base}{path}",
+                                "date": now[:10],
+                                "retrieved_at": now,
+                                "source": "ats_external_link",
+                            })
             except Exception:
                 continue
 
