@@ -584,6 +584,8 @@ async def extract_news_items(
                     link_text = a.get_text(strip=True)
                     if link_text and len(link_text) >= 12 and not _NAV_LABELS_FAST.match(link_text):
                         undated_article_urls.append((href, link_text))
+            except Exception:
+                continue
 
         # --- Layer 3: Deep Article Date Extraction (top 3 undated articles) ---
         # Deduplicate already-found titles
