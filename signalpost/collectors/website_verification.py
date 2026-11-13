@@ -282,49 +282,65 @@ def verify_social_link(
 ) -> tuple[bool, str]:
     """Return (keep, reason) for a single social link URL.
 
-    Step 1.3: If handle contains extra words NOT in company name (e.g. 'arconprosjekt'
-    for 'ARCON AS') -> REJECT unless website was verified by exact 9-digit orgnr.
+    Step 1.3 / Stage 3:
+      - Reject root-only social URLs (e.g. https://facebook.com/, https://linkedin.com/company/)
+      - Reject personal profiles (/in/), posts, events, groups, hashtags
+      - Reject if handle contains extra words NOT in company name unless orgnr_verified
     """
     url_lower = link_url.lower()
 
     if _SHARE_PATTERNS.search(url_lower):
         return False, "generic share/template link"
 
+    # Reject non-profile pages: posts, events, groups, hashtags, feed, etc.
+    if re.search(r'/(posts|events|groups|hashtag|share|sharer|intent|dialog|login|help|privacy|terms)(/|$)', url_lower):
+        return False, "non-profile page (post, event, group, hashtag, or utility)"
+
+    # Reject LinkedIn personal profiles (/in/)
+    if "linkedin.com/in/" in url_lower:
+        return False, "personal LinkedIn profile, not company page"
+
     combined_ctx = (link_element_html + " " + parent_context_text).lower()
     if _AGENCY_MARKERS.search(combined_ctx):
         return False, "inside web-agency credit block"
 
     slug = _extract_social_slug(link_url)
-    if slug:
-        company_tokens = _distinctive_tokens(target_name)
-        if not company_tokens:
-            return True, "no distinctive tokens to compare"
+    if not slug:
+        return False, "root-only or missing profile handle"
 
-        slug_lower = slug.lower()
-        slug_clean = re.sub(r'(official|page|pages|company|profile|no|norge)', '', slug_lower)
-        slug_tokens = set(re.findall(r"[a-zæøå0-9]+", slug_clean))
-        slug_tokens -= {"official", "page", "pages", "company", "profile", "no", "norge"}
-        company_tokens_set = set(company_tokens)
+    # Reject generic handles
+    if slug.lower() in {"company", "profile", "home", "feed", "share", "pages", "group", "in"}:
+        return False, f"generic/root handle '{slug}'"
 
-        overlap = slug_tokens & company_tokens_set
-        if not overlap:
-            substring_hits = sum(1 for t in company_tokens if t in slug_lower)
-            if substring_hits < max(1, len(company_tokens) // 2):
-                return False, f"slug '{slug}' has no overlap with company name tokens {company_tokens_set}"
+    company_tokens = _distinctive_tokens(target_name)
+    if not company_tokens:
+        return True, "no distinctive tokens to compare"
 
-        # Strict handle verification if NOT verified by exact orgnr on page:
-        if not orgnr_verified:
-            slug_meaningful = set(re.findall(r"[a-zæøå]{3,}", slug_lower))
-            slug_meaningful -= {"official", "page", "pages", "company", "profile",
-                               "no", "norge", "com", "www"}
-            for st in slug_meaningful:
-                is_part_of_company = False
-                for ct in company_tokens:
-                    if st in ct or ct in st:
-                        is_part_of_company = True
-                        break
-                if not is_part_of_company and len(st) > 3:
-                    return False, f"slug '{slug}' contains extra token '{st}' not in company name '{target_name}' (not orgnr-verified)"
+    slug_lower = slug.lower()
+    slug_clean = re.sub(r'(official|page|pages|company|profile|no|norge)', '', slug_lower)
+    slug_tokens = set(re.findall(r"[a-zæøå0-9]+", slug_clean))
+    slug_tokens -= {"official", "page", "pages", "company", "profile", "no", "norge"}
+    company_tokens_set = set(company_tokens)
+
+    overlap = slug_tokens & company_tokens_set
+    if not overlap:
+        substring_hits = sum(1 for t in company_tokens if t in slug_lower)
+        if substring_hits < max(1, len(company_tokens) // 2):
+            return False, f"slug '{slug}' has no overlap with company name tokens {company_tokens_set}"
+
+    # Strict handle verification if NOT verified by exact orgnr on page:
+    if not orgnr_verified:
+        slug_meaningful = set(re.findall(r"[a-zæøå]{3,}", slug_lower))
+        slug_meaningful -= {"official", "page", "pages", "company", "profile",
+                           "no", "norge", "com", "www"}
+        for st in slug_meaningful:
+            is_part_of_company = False
+            for ct in company_tokens:
+                if st in ct or ct in st:
+                    is_part_of_company = True
+                    break
+            if not is_part_of_company and len(st) > 3:
+                return False, f"slug '{slug}' contains extra token '{st}' not in company name '{target_name}' (not orgnr-verified)"
 
     return True, "passed all checks"
 
