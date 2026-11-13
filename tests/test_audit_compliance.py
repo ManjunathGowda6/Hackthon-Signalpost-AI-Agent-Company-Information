@@ -483,6 +483,74 @@ except Exception as e:
 
 
 # ═══════════════════════════════════════════════════════════
+# 14. V4.1 REGRESSION TESTS (Judge Feedback)
+# ═══════════════════════════════════════════════════════════
+print("\n── 14. V4.1 JUDGE FEEDBACK REGRESSIONS ──")
+
+# 14.1 ARCON AS must NOT have arcon.no or facebook.com/arconprosjekt
+arcon_ok = True
+for p in profiles:
+    if p.get("name", "").upper() == "ARCON AS":
+        if p.get("website") == "https://arcon.no" or p.get("website") == "https://www.arcon.no" or p.get("website") == "https://arcon.no/":
+            arcon_ok = False
+        wp_social = (p.get("website_profiles") or {}).get("social_profiles", [])
+        for s in wp_social:
+            if isinstance(s, dict) and "arconprosjekt" in s.get("url", "").lower():
+                arcon_ok = False
+        break
+check("14.1 ARCON AS has no arcon.no or arconprosjekt social", arcon_ok,
+      "Passed" if arcon_ok else "ARCON AS has wrong-company data")
+
+# 14.2 No social link slug has extra company-name tokens (unless orgnr-verified)
+from signalpost.collectors.website_verification import verify_social_link as _vs
+social_slug_violations = 0
+for p in profiles:
+    wp = p.get("website_profiles") or {}
+    ow = wp.get("official_website", {})
+    orgnr_v = isinstance(ow, dict) and ow.get("orgnr_verified", False)
+    for s in wp.get("social_profiles", []):
+        if isinstance(s, dict):
+            keep, reason = _vs(s.get("url", ""), "", p.get("name", ""), "", orgnr_verified=orgnr_v)
+            if not keep:
+                social_slug_violations += 1
+check("14.2 Zero social links with extra slug tokens", social_slug_violations == 0,
+      f"{social_slug_violations} violations" if social_slug_violations else "0 violations")
+
+# 14.3 Every summary starts with a buyer-relevant fact, not registry boilerplate
+boilerplate_starts = 0
+_BOILERPLATE_PATTERNS = [
+    r"^[A-ZÆØÅ\s]+ is a (aksjeselskap|allmennaksjeselskap|kommune|organisasjonsledd|andelslag|stiftelse)",
+    r"^[A-ZÆØÅ\s]+ is a .+, based in",
+    r"^[A-ZÆØÅ\s]+ is registered",
+]
+import re as _re_test
+for p in profiles:
+    syn = p.get("synthesis") or {}
+    summary = syn.get("summary", "") if isinstance(syn, dict) else ""
+    if summary:
+        for pat in _BOILERPLATE_PATTERNS:
+            if _re_test.match(pat, summary, _re_test.IGNORECASE):
+                boilerplate_starts += 1
+                break
+check("14.3 Zero summaries start with registry boilerplate",
+      boilerplate_starts == 0,
+      f"{boilerplate_starts} summaries start with boilerplate" if boilerplate_starts else "0 boilerplate")
+
+# 14.4 Every summary with financial data includes Source citation
+fin_without_source = 0
+for p in profiles:
+    aa = p.get("annual_accounts", {})
+    if aa.get("status") == "available" and isinstance(aa.get("revenue", {}), dict) and aa.get("revenue", {}).get("value"):
+        syn = p.get("synthesis") or {}
+        summary = syn.get("summary", "") if isinstance(syn, dict) else ""
+        if "Source:" not in summary and "source:" not in summary.lower():
+            fin_without_source += 1
+check("14.4 Summaries with financials include Source citation",
+      fin_without_source == 0,
+      f"{fin_without_source} missing Source" if fin_without_source else "all have Source")
+
+
+# ═══════════════════════════════════════════════════════════
 # FINAL REPORT
 # ═══════════════════════════════════════════════════════════
 total_tests = passed + failed
