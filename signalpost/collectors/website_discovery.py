@@ -454,21 +454,67 @@ async def extract_news_items(
 ) -> list[dict[str, Any]]:
     """Extract verified news items from a company website.
 
-    v4: Now auto-discovers RSS/Atom feeds and parses them for dated articles.
+    v5: WordPress JSON API + JSON-LD subpage scanning + Deep Article Date extraction
+        + RSS/Atom feed auto-discovery.
     """
     now = utc_now()
     news = list(_extract_news_from_html(html, base_url, now))
     parsed_base = urlparse(base_url)
     base = f"{parsed_base.scheme}://{parsed_base.netloc}"
+    base_domain = parsed_base.netloc.lower().replace("www.", "")
 
     # Discover RSS/Atom feed URLs from the homepage
     feed_urls = _discover_feed_urls(html, base)
 
     async with httpx.AsyncClient(
         follow_redirects=True, timeout=timeout, verify=False,
-        headers=_DEFAULT_HEADERS,
+        headers=_BROWSER_HEADERS,
     ) as client:
-        # Fetch and parse RSS/Atom feeds
+        # --- Layer 1: WordPress REST API probe ---
+        if not budget or budget.can_afford(1):
+            try:
+                if budget:
+                    budget.consume(1)
+                wp_resp = await client.get(
+                    f"{base}/wp-json/wp/v2/posts",
+                    params={"per_page": "5"},
+                    timeout=4.0,
+                )
+                if wp_resp.status_code == 200:
+                    import json as _json
+                    try:
+                        wp_posts = _json.loads(wp_resp.text)
+                        if isinstance(wp_posts, list):
+                            for post in wp_posts[:5]:
+                                if not isinstance(post, dict):
+                                    continue
+                                title_raw = post.get("title", {})
+                                title = (title_raw.get("rendered") or "") if isinstance(title_raw, dict) else str(title_raw)
+                                # Strip HTML tags from title
+                                title = re.sub(r'<[^>]+>', '', title).strip()
+                                title = re.sub(r'&[a-z]+;', '', title).strip()
+                                pub_date = (post.get("date") or "")[:10]
+                                link = post.get("link") or ""
+                                # Validate link is on company's own domain
+                                if link:
+                                    link_domain = urlparse(link).netloc.lower().replace("www.", "")
+                                    if link_domain != base_domain:
+                                        continue
+                                if title and len(title) >= 12 and pub_date:
+                                    keep, _ = validate_news_item(title, pub_date, "wp_api_date", link or base)
+                                    if keep and _news_passes_extra_checks(pub_date, link):
+                                        news.append({
+                                            "title": title, "url": link or base,
+                                            "publish_date": pub_date, "date_source": "wp_api",
+                                            "source_url": f"{base}/wp-json/wp/v2/posts",
+                                            "date": pub_date[:10], "retrieved_at": now,
+                                        })
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+
+        # --- Fetch and parse RSS/Atom feeds ---
         for feed_url in feed_urls:
             if budget and not budget.can_afford(1):
                 break
@@ -482,7 +528,8 @@ async def extract_news_items(
             except Exception:
                 continue
 
-        # Also check expanded news paths
+        # --- Check expanded news subpaths + JSON-LD on subpages ---
+        undated_article_urls = []
         for path in _NEWS_PATHS:
             if budget and not budget.can_afford(1):
                 break
@@ -490,19 +537,74 @@ async def extract_news_items(
                 if budget:
                     budget.consume(1)
                 resp = await client.get(f"{base}{path}")
-                if resp.status_code == 200:
-                    news.extend(_extract_news_from_html(resp.text, f"{base}{path}", now))
-                    # Also check for RSS feeds on news pages
-                    page_feeds = _discover_feed_urls(resp.text, base)
-                    for pf in page_feeds:
-                        if pf not in feed_urls and budget and budget.can_afford(1):
-                            budget.consume(1)
-                            try:
-                                fr = await client.get(pf)
-                                if fr.status_code == 200:
-                                    news.extend(_parse_feed_xml(fr.text, pf, now))
-                            except Exception:
-                                pass
+                if resp.status_code != 200:
+                    continue
+                page_html = resp.text
+                page_url = f"{base}{path}"
+
+                # Extract news from HTML (including JSON-LD on the subpage)
+                sub_news = list(_extract_news_from_html(page_html, page_url, now))
+                news.extend(sub_news)
+
+                # Also check for RSS feeds on news pages
+                page_feeds = _discover_feed_urls(page_html, base)
+                for pf in page_feeds:
+                    if pf not in feed_urls and budget and budget.can_afford(1):
+                        budget.consume(1)
+                        try:
+                            fr = await client.get(pf)
+                            if fr.status_code == 200:
+                                news.extend(_parse_feed_xml(fr.text, pf, now))
+                        except Exception:
+                            pass
+
+                # --- Layer 3: Collect article links that need deep date extraction ---
+                from bs4 import BeautifulSoup as _BS
+                sub_soup = _BS(page_html, "html.parser")
+                for a in sub_soup.find_all("a", href=True):
+                    href = a["href"]
+                    if not href.startswith("http"):
+                        href = urljoin(page_url, href)
+                    # Only follow links on the same domain
+                    if urlparse(href).netloc.lower().replace("www.", "") != base_domain:
+                        continue
+                    # Skip the listing page itself and known non-article paths
+                    if href.rstrip("/") == page_url.rstrip("/"):
+                        continue
+                    if _STATIC_PAGE_SLUGS.search(urlparse(href).path):
+                        continue
+                    link_text = a.get_text(strip=True)
+                    if link_text and len(link_text) >= 12 and not _NAV_LABELS_FAST.match(link_text):
+                        undated_article_urls.append((href, link_text))
+
+        # --- Layer 3: Deep Article Date Extraction (top 3 undated articles) ---
+        # Deduplicate already-found titles
+        found_titles = {n["title"].lower().strip() for n in news}
+        fetched_count = 0
+        for art_url, art_title in undated_article_urls:
+            if art_title.lower().strip() in found_titles:
+                continue
+            if fetched_count >= 3:
+                break
+            if budget and not budget.can_afford(1):
+                break
+            try:
+                if budget:
+                    budget.consume(1)
+                resp = await client.get(art_url)
+                if resp.status_code != 200:
+                    continue
+                fetched_count += 1
+                art_date = _extract_article_date(resp.text)
+                if art_date:
+                    keep, _ = validate_news_item(art_title, art_date, "deep_article", art_url)
+                    if keep and _news_passes_extra_checks(art_date, art_url):
+                        news.append({
+                            "title": art_title, "url": art_url,
+                            "publish_date": art_date, "date_source": "deep_article_extraction",
+                            "source_url": art_url, "date": art_date[:10], "retrieved_at": now,
+                        })
+                        found_titles.add(art_title.lower().strip())
             except Exception:
                 continue
 
