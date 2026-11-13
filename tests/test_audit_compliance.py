@@ -549,6 +549,23 @@ check("14.4 Summaries with financials include Source citation",
       fin_without_source == 0,
       f"{fin_without_source} missing Source" if fin_without_source else "all have Source")
 
+# 14.5 100% of summaries start with a buyer fact + (Source: ...) in Sentence 1
+s1_missing_source = 0
+for p in profiles:
+    syn = p.get("synthesis") or {}
+    summary = syn.get("summary", "") if isinstance(syn, dict) else ""
+    if not summary:
+        s1_missing_source += 1
+        continue
+    parts = summary.split(").")
+    s1 = parts[0] + ")." if len(parts) > 1 else summary
+    if "(Source:" not in s1 and "[Source:" not in s1 and "Source:" not in s1:
+        s1_missing_source += 1
+check("14.5 100% of summaries start with buyer fact + (Source: ...) in Sentence 1",
+      s1_missing_source == 0,
+      f"{s1_missing_source} missing Source in Sentence 1" if s1_missing_source else "100% compliant")
+
+
 
 # ═══════════════════════════════════════════════════════════
 # FINAL REPORT
