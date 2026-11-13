@@ -19,8 +19,12 @@ import httpx
 import structlog
 
 from signalpost.collectors.website_verification import (
-    check_website_ownership, verify_social_link, validate_news_item,
+    check_website_ownership,
+    verify_company_website,
+    verify_social_link,
+    validate_news_item,
     _distinctive_tokens,
+    _is_short_generic_name,
 )
 
 logger = structlog.get_logger()

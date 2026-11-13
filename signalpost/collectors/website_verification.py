@@ -97,86 +97,103 @@ def _page_contains_extended_name(page_text: str, target_name: str) -> bool:
     return False
 
 
-def check_website_ownership(
+def verify_company_website(
     html: str,
     final_url: str,
     target_orgnr: str,
     target_name: str,
     source: str = "domain_guess",
     registered_city: str = "",
+    subpage_htmls: Optional[list[str]] = None,
 ) -> dict[str, Any]:
-    """Determine whether *final_url* belongs to the target company.
+    """Strictly determine whether *final_url* belongs to the target company.
 
-    Step 1 Rules:
-      1. Exact 9-digit orgnr match on page -> ACCEPT (orgnr_verified: True)
+    Rules:
+      1. Exact 9-digit target orgnr match on page/subpages -> ACCEPT (orgnr_verified: True)
       2. Different 9-digit orgnr on page without target -> REJECT (suppress_socials: True)
-      3. If NO orgnr on page:
-         - Extended name variant (e.g. 'Arcon Prosjekt') -> REJECT
-         - Guessed domain without registered city (poststed/kommune) -> REJECT
-         - Short/generic name without orgnr -> REJECT
+      3. Official Brreg hjemmeside with no conflicting orgnr -> ACCEPT
+      4. If guessed domain without orgnr on page:
+         - Extended name variant (e.g. 'Arcon Prosjekt AS' for 'ARCON AS') -> REJECT
+         - Single-token or generic stem name without orgnr -> REJECT
+         - Requires multi-word distinctive name tokens matching identity/domain,
+           and registered city on page if specified.
     """
     from bs4 import BeautifulSoup
 
     soup = BeautifulSoup(html, "lxml")
     full_text = soup.get_text(separator=" ", strip=True)
 
-    # ---- 1. Find ALL orgnrs on page ----
-    page_orgnrs = _find_orgnrs_on_page(full_text)
+    all_texts = [full_text]
+    if subpage_htmls:
+        for sub_html in subpage_htmls:
+            try:
+                sub_soup = BeautifulSoup(sub_html, "lxml")
+                all_texts.append(sub_soup.get_text(separator=" ", strip=True))
+            except Exception:
+                pass
+    combined_text = " ".join(all_texts)
 
-    # Rule 1.1: Exact orgnr match (Gold Standard)
+    # ---- 1. Extract ALL 9-digit Norwegian orgnrs ----
+    page_orgnrs = _find_orgnrs_on_page(combined_text)
+
+    # Rule 1: Exact orgnr match (Gold Standard)
     orgnr_verified = target_orgnr in page_orgnrs
     if orgnr_verified:
         return {
+            "verified": True,
             "ownership": "own",
             "reason": "exact 9-digit orgnr match on page",
             "suppress_socials": False,
             "orgnr_verified": True,
         }
 
-    # Rule 1.2: Different orgnr present, target absent -> REJECT
+    # Rule 2: Different orgnr present, target absent -> REJECT
     other_orgnrs = page_orgnrs - {target_orgnr}
     if other_orgnrs and not orgnr_verified:
         return {
+            "verified": False,
             "ownership": "parent_group",
             "reason": f"Page shows orgnr(s) {other_orgnrs} but not target {target_orgnr}",
             "suppress_socials": True,
             "orgnr_verified": False,
         }
 
-    # ---- 2. No orgnr on page at all ----
-
-    # Rule 2.1: Extended company name (e.g. 'Arcon Prosjekt' when target is 'ARCON AS') -> REJECT
-    if _page_contains_extended_name(full_text, target_name):
+    # Rule 3: Official Brreg Website (hjemmeside)
+    is_brreg = source == "brreg_registry"
+    if is_brreg and not other_orgnrs:
         return {
+            "verified": True,
+            "ownership": "own",
+            "reason": "official brreg registry website with no conflicting orgnr",
+            "suppress_socials": False,
+            "orgnr_verified": False,
+        }
+
+    # ---- Rule 4: Guessed domains / DDG results without orgnr on page ----
+
+    # 4.1 Extended company name (e.g. 'Arcon Prosjekt' when target is 'ARCON AS') -> REJECT
+    if _page_contains_extended_name(combined_text, target_name):
+        return {
+            "verified": False,
             "ownership": "parent_group",
             "reason": f"Page contains extended name variant for '{target_name}', likely different company",
             "suppress_socials": True,
             "orgnr_verified": False,
         }
 
-    # Rule 2.2: Guessed domains without registered city (poststed/kommune)
-    is_guessed = source in ("domain_guess", "ddg_search")
-    if is_guessed:
-        if registered_city and len(registered_city.strip()) >= 3:
-            city_norm = registered_city.lower().strip()
-            city_match = city_norm in full_text.lower()
-            if not city_match:
-                return {
-                    "ownership": "unknown",
-                    "reason": f"Guessed domain without orgnr does not contain registered city '{registered_city}'",
-                    "suppress_socials": True,
-                    "orgnr_verified": False,
-                }
-        elif _is_short_generic_name(target_name):
-            return {
-                "ownership": "unknown",
-                "reason": f"Short/generic name '{target_name}' with no orgnr and no registered city on page",
-                "suppress_socials": True,
-                "orgnr_verified": False,
-            }
-
-    # Name matching on title / header
     distinctive = _distinctive_tokens(target_name)
+
+    # 4.2 Single-word or generic stem name without orgnr -> REJECT
+    if _is_short_generic_name(target_name) or len(distinctive) <= 1:
+        return {
+            "verified": False,
+            "ownership": "unknown",
+            "reason": f"Single/generic name '{target_name}' lacks exact orgnr verification on website",
+            "suppress_socials": True,
+            "orgnr_verified": False,
+        }
+
+    # 4.3 Multi-word legal name (>= 2 distinctive tokens)
     title_tag = soup.find("title")
     title_text = (title_tag.get_text(strip=True).lower() if title_tag else "")
     h1_tags = [h.get_text(strip=True).lower() for h in soup.find_all("h1")]
@@ -185,41 +202,52 @@ def check_website_ownership(
     combined_identity = " ".join([title_text] + h1_tags + [header_text])
     name_match = _tokens_overlap(distinctive, combined_identity)
 
-    # Footer orgnr check
-    footer_el = soup.find("footer") or soup.find(attrs={"role": "contentinfo"})
-    footer_text = footer_el.get_text(separator=" ", strip=True) if footer_el else ""
-    footer_orgnrs = _find_orgnrs_on_page(footer_text) - {target_orgnr}
-    if footer_orgnrs:
-        return {
-            "ownership": "parent_group",
-            "reason": f"Different orgnr(s) in footer: {footer_orgnrs}",
-            "suppress_socials": True,
-            "orgnr_verified": False,
-        }
-
-    if name_match:
-        return {
-            "ownership": "own",
-            "reason": "distinctive name matches site identity",
-            "suppress_socials": False,
-            "orgnr_verified": False,
-        }
-
     domain = urlparse(final_url).netloc.lower().replace("www.", "")
-    if _tokens_overlap(distinctive, domain.replace(".", " ")):
+    domain_match = _tokens_overlap(distinctive, domain.replace(".", " "))
+
+    # City check for guessed domain
+    city_norm = registered_city.lower().strip() if registered_city else ""
+    city_match = True
+    if city_norm and len(city_norm) >= 3:
+        city_match = city_norm in combined_text.lower()
+
+    if (name_match or domain_match) and city_match:
         return {
+            "verified": True,
             "ownership": "own",
-            "reason": "domain matches company name",
+            "reason": "multi-word distinctive name matches site identity and registered city",
             "suppress_socials": False,
             "orgnr_verified": False,
         }
 
     return {
+        "verified": False,
         "ownership": "unknown",
-        "reason": "Could not confirm ownership; treating as parent-group",
+        "reason": "Could not confirm ownership; treating as parent-group or unverified",
         "suppress_socials": True,
         "orgnr_verified": False,
     }
+
+
+def check_website_ownership(
+    html: str,
+    final_url: str,
+    target_orgnr: str,
+    target_name: str,
+    source: str = "domain_guess",
+    registered_city: str = "",
+    subpage_htmls: Optional[list[str]] = None,
+) -> dict[str, Any]:
+    """Determine whether *final_url* belongs to the target company."""
+    return verify_company_website(
+        html=html,
+        final_url=final_url,
+        target_orgnr=target_orgnr,
+        target_name=target_name,
+        source=source,
+        registered_city=registered_city,
+        subpage_htmls=subpage_htmls,
+    )
 
 
 # ---------------------------------------------------------------------------
