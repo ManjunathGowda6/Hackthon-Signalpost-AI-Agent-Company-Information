@@ -213,14 +213,15 @@ async def _check_subpages_for_orgnr(
     base_url: str,
     target_orgnr: str,
     budget: Any = None,
-) -> tuple[bool, bool]:
-    """Check /kontakt, /contact, /om-oss, /about for target orgnr or conflicts.
-    Returns (target_found, conflict_found).
+) -> tuple[bool, bool, list[str]]:
+    """Check /kontakt, /contact, /om-oss, /about, /personvern for target orgnr or conflicts.
+    Returns (target_found, conflict_found, subpage_htmls).
     """
     from signalpost.collectors.website_verification import _find_orgnrs_on_page
     parsed = urlparse(base_url)
     origin = f"{parsed.scheme}://{parsed.netloc}"
-    for sub_path in ["/kontakt", "/contact", "/om-oss", "/about"]:
+    subpage_htmls = []
+    for sub_path in ["/kontakt", "/contact", "/om-oss", "/about", "/personvern"]:
         if budget and not budget.can_afford(1):
             break
         try:
@@ -228,14 +229,15 @@ async def _check_subpages_for_orgnr(
                 budget.consume(1)
             resp = await client.get(f"{origin}{sub_path}")
             if resp.status_code == 200:
+                subpage_htmls.append(resp.text)
                 orgnrs = _find_orgnrs_on_page(resp.text)
                 if target_orgnr in orgnrs:
-                    return True, False
+                    return True, False, subpage_htmls
                 if orgnrs and target_orgnr not in orgnrs:
-                    return False, True
+                    return False, True, subpage_htmls
         except Exception:
             continue
-    return False, False
+    return False, False, subpage_htmls
 
 
 async def discover_website(
@@ -246,7 +248,7 @@ async def discover_website(
     registered_city: str = "",
 ) -> Optional[dict[str, Any]]:
     """Try to discover a company website via domain guessing + DDG fallback.
-    Returns a dict with {url, ownership, html, source} if verified, else None.
+    Returns a dict with {url, ownership, html, source} ONLY if strictly verified, else None.
     """
     candidates = guess_domains(company_name)
     if not candidates:
@@ -271,31 +273,31 @@ async def discover_website(
                     continue
                 html = resp.text
                 final_url = str(resp.url)
-                ownership = check_website_ownership(
+
+                # Check subpages for orgnr verification
+                subpage_htmls = []
+                found_target, found_conflict, subpage_htmls = await _check_subpages_for_orgnr(
+                    client, final_url, orgnr, budget
+                )
+                if found_conflict:
+                    continue  # Conflicting orgnr on subpage -> reject immediately!
+
+                ownership = verify_company_website(
                     html=html,
+                    final_url=final_url,
                     target_orgnr=orgnr,
                     target_name=company_name,
-                    final_url=final_url,
                     source="domain_guess",
                     registered_city=registered_city,
+                    subpage_htmls=subpage_htmls,
                 )
-                if ownership.get("ownership") == "own":
-                    # If not verified by orgnr on homepage, check subpages
-                    if not ownership.get("orgnr_verified") and budget and budget.can_afford(1):
-                        found_target, found_conflict = await _check_subpages_for_orgnr(
-                            client, final_url, orgnr, budget
-                        )
-                        if found_target:
-                            ownership["orgnr_verified"] = True
-                            ownership["reason"] = "exact 9-digit orgnr match on contact page"
-                        elif found_conflict:
-                            continue  # Different orgnr on subpage -> reject!
 
+                if ownership.get("verified"):
                     return {
                         "url": final_url,
                         "ownership": ownership,
                         "html": html,
-                        "source": "domain_guess",
+                        "source": "domain_guess_verified",
                         "retrieved_at": now,
                     }
             except Exception:
@@ -321,29 +323,30 @@ async def discover_website(
                         continue
                     html = resp.text
                     final_url = str(resp.url)
-                    ownership = check_website_ownership(
+
+                    # Check subpages for orgnr verification
+                    found_target, found_conflict, subpage_htmls = await _check_subpages_for_orgnr(
+                        client, final_url, orgnr, budget
+                    )
+                    if found_conflict:
+                        continue
+
+                    ownership = verify_company_website(
                         html=html,
+                        final_url=final_url,
                         target_orgnr=orgnr,
                         target_name=company_name,
-                        final_url=final_url,
                         source="ddg_search",
                         registered_city=registered_city,
+                        subpage_htmls=subpage_htmls,
                     )
-                    if ownership.get("ownership") == "own":
-                        if not ownership.get("orgnr_verified") and budget and budget.can_afford(1):
-                            found_target, found_conflict = await _check_subpages_for_orgnr(
-                                client, final_url, orgnr, budget
-                            )
-                            if found_target:
-                                ownership["orgnr_verified"] = True
-                                ownership["reason"] = "exact 9-digit orgnr match on contact page"
-                            elif found_conflict:
-                                continue
+
+                    if ownership.get("verified"):
                         return {
                             "url": final_url,
                             "ownership": ownership,
                             "html": html,
-                            "source": "ddg_search",
+                            "source": "ddg_search_verified",
                             "retrieved_at": now,
                         }
                 except Exception:
