@@ -64,28 +64,35 @@ def _is_short_generic_name(name: str) -> bool:
 
 
 def _page_contains_extended_name(page_text: str, target_name: str) -> bool:
-    """Check if page contains the company name with EXTRA words appended.
+    """Check if page contains the company name with EXTRA words appended as a legal entity.
 
-    E.g., target is 'ARCON AS' but page says 'Arcon Prosjekt AS' — this means
-    the page belongs to a DIFFERENT company with a similar but distinct name.
+    E.g., target is 'ARCON AS' but page says 'Arcon Prosjekt AS' — a DIFFERENT company.
+    Only triggers when the extended name includes a legal suffix (AS, ASA) indicating
+    it's a distinct registered entity, not just descriptive text.
     """
-    clean = re.sub(r'\b(AS|ASA|ANS|DA|SA|ENK|SF)\b', '', target_name, flags=re.IGNORECASE).strip()
     tokens = _distinctive_tokens(target_name)
     if not tokens or len(tokens) < 1:
         return False
 
-    # Look for patterns like "[company_token] [extra_word] AS" in page text
+    # Only check for single-stem company names (multi-word names are less collision-prone)
+    if len(tokens) > 1:
+        return False
+
     page_lower = page_text.lower()
-    for token in tokens:
-        # Find "token extraword as" or "token extraword"
-        pattern = re.compile(
-            rf'\b{re.escape(token)}\s+([a-zæøå]+)\s+(as|asa)\b',
-            re.IGNORECASE,
-        )
-        for m in pattern.finditer(page_lower):
-            extra_word = m.group(1)
-            # If the extra word is NOT in the target company name, it's a different company
-            if extra_word not in clean.lower() and len(extra_word) > 2:
+    token = tokens[0]
+
+    # Look for patterns like "[token] [extraword] AS/ASA" — indicating a different legal entity
+    pattern = re.compile(
+        rf'\b{re.escape(token)}\s+([a-zæøå]+)\s+(as|asa)\b',
+        re.IGNORECASE,
+    )
+    for m in pattern.finditer(page_lower):
+        extra_word = m.group(1)
+        # Only flag if extra word is a meaningful distinguisher (not noise like "og", "i", etc.)
+        if len(extra_word) > 3 and extra_word not in {"norge", "holding", "group", "drift", "oslo", "bergen"}:
+            # Check this isn't just the target name itself appearing
+            clean_target = re.sub(r'\b(AS|ASA|ANS|DA|SA|ENK|SF)\b', '', target_name, flags=re.IGNORECASE).strip().lower()
+            if extra_word not in clean_target:
                 return True
     return False
 
