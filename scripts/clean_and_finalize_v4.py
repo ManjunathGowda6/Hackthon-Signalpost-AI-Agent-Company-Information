@@ -18,16 +18,17 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from signalpost.collectors.website_verification import _NAV_LABELS
-from signalpost.collectors.website_discovery import _GENERIC_JOB_TITLES
-from scripts.run_clean_and_summarize import build_buyer_first_summary
+ROOT_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT_DIR))
+DATASET_PATH = ROOT_DIR / "out" / "signalpost_1000.json"
+FINAL_PATH = ROOT_DIR / "out" / "signalpost_final.json"
 
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8")
 
-ROOT_DIR = Path(__file__).resolve().parent.parent
-DATASET_PATH = ROOT_DIR / "out" / "signalpost_1000.json"
-FINAL_PATH = ROOT_DIR / "out" / "signalpost_final.json"
+from signalpost.collectors.website_verification import _NAV_LABELS
+from signalpost.collectors.website_discovery import _GENERIC_JOB_TITLES
+from scripts.run_clean_and_summarize import build_buyer_first_summary
 
 def is_valid_date(d_str: str) -> bool:
     if not d_str:
