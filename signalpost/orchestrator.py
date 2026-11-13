@@ -459,6 +459,7 @@ class Orchestrator:
         job_listings = []
         website_html = None
         website_source = "brreg_registry"
+        muni = entity.get("forretningsadresse", {}).get("kommune", "") or entity.get("forretningsadresse", {}).get("poststed", "")
 
         # Upgrade 1: If Brreg has no website, try domain guessing
         if not website_url and self.budget.can_afford(2):
@@ -468,6 +469,7 @@ class Orchestrator:
                 orgnr=org_number,
                 budget=self.budget,
                 timeout=5.0,
+                registered_city=muni,
             )
             if discovery:
                 website_url = discovery["url"]
@@ -494,23 +496,34 @@ class Orchestrator:
                     pass
 
             if website_html:
-                # Run ownership verification even for Brreg-listed sites
-                from signalpost.collectors.website_verification import check_website_ownership
-                ownership = check_website_ownership(
+                # Run strict verification for all websites (both Brreg-listed and discovered)
+                from signalpost.collectors.website_verification import verify_company_website
+                verif = verify_company_website(
                     html=website_html,
+                    final_url=website_url,
                     target_orgnr=org_number,
                     target_name=company_name,
-                    final_url=website_url,
+                    source=website_source,
+                    registered_city=muni,
                 )
-                suppress = ownership.get('suppress_socials', False)
-
-                if not suppress:
+                if not verif.get("verified"):
+                    logger.warning(
+                        "website_rejected_in_orchestrator",
+                        org=org_number,
+                        url=website_url,
+                        reason=verif.get("reason"),
+                    )
+                    website_url = None
+                    website_html = None
+                    website_source = None
+                else:
                     # Extract social links
                     try:
                         social_profiles = await extract_social_links(
                             html=website_html,
                             company_name=company_name,
                             base_url=website_url,
+                            orgnr_verified=verif.get("orgnr_verified", False),
                         )
                     except Exception:
                         pass
@@ -537,9 +550,6 @@ class Orchestrator:
                         )
                     except Exception:
                         pass
-                else:
-                    logger.debug("parent_site_suppressed", org=org_number,
-                                 reason=ownership.get("reason", ""))
 
         website_profiles = WebsiteProfiles(
             status="available" if website_url else "not_available",
