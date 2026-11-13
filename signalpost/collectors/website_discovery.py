@@ -820,6 +820,113 @@ def _news_passes_extra_checks(pub_date: Optional[str], url: Optional[str]) -> bo
     return True
 
 
+# Fast navigation label check for deep article link filtering
+_NAV_LABELS_FAST = re.compile(
+    r"^(om\s+oss|kontakt|tjenester|produkter|karriere|hjem|home|privacy"
+    r"|cookies|personvern|terms|vilk[aå]r|about(\s+us)?|contact|services"
+    r"|products|careers?|faq|logg?\s*inn?|meny|menu|s[øo]k|search|handlekurv"
+    r"|cart|checkout|kasse|bestill|order|priser?|prices?"
+    r"|les\s+mer|read\s+more|se\s+alle|vis\s+alle|last\s+inn\s+flere"
+    r"|neste|previous|forrige|eldre|nyere|arkiv|category|tag)$",
+    re.IGNORECASE,
+)
+
+
+def _extract_article_date(html: str) -> Optional[str]:
+    """Extract publish date from a single article page using multiple signals.
+
+    Checks: <meta article:published_time>, <time datetime>, JSON-LD datePublished,
+    and visible Norwegian date patterns (dd.mm.yyyy, 12. mai 2025).
+    """
+    from bs4 import BeautifulSoup as _BS
+    import json as _json
+
+    soup = _BS(html, "html.parser")
+
+    # Signal 1: <meta property="article:published_time">
+    meta = soup.find("meta", property="article:published_time")
+    if meta and meta.get("content"):
+        try:
+            return meta["content"][:10]
+        except Exception:
+            pass
+
+    # Signal 2: JSON-LD datePublished
+    for script in soup.find_all("script", type="application/ld+json"):
+        try:
+            ld = _json.loads(script.string or "")
+            lds = ld if isinstance(ld, list) else [ld]
+            for item in lds:
+                if isinstance(item, dict):
+                    dp = item.get("datePublished")
+                    if dp:
+                        return dp[:10]
+        except Exception:
+            continue
+
+    # Signal 3: <time datetime="...">
+    time_el = soup.find("time", datetime=True)
+    if time_el:
+        try:
+            return time_el["datetime"][:10]
+        except Exception:
+            pass
+
+    # Signal 4: Visible Norwegian date patterns in body text
+    body_text = soup.get_text(separator=" ", strip=True)[:3000]
+
+    # dd. monthname yyyy (Norwegian)
+    m = _NO_DATE_PATTERN.search(body_text)
+    if m:
+        day = m.group(1).zfill(2)
+        month = _NO_MONTHS.get(m.group(2).lower(), "01")
+        year = m.group(3)
+        try:
+            d = _date.fromisoformat(f"{year}-{month}-{day}")
+            if d <= _date.today():
+                return f"{year}-{month}-{day}"
+        except Exception:
+            pass
+
+    # dd.mm.yyyy
+    m2 = _DOT_DATE_PATTERN.search(body_text)
+    if m2:
+        day = m2.group(1).zfill(2)
+        month = m2.group(2).zfill(2)
+        year = m2.group(3)
+        try:
+            d = _date.fromisoformat(f"{year}-{month}-{day}")
+            if d <= _date.today():
+                return f"{year}-{month}-{day}"
+        except Exception:
+            pass
+
+    return None
+
+
+def _is_parked_domain(final_url: str, html: str) -> bool:
+    """Detect parked/placeholder domains from redirect target or page content."""
+    domain = urlparse(final_url).netloc.lower()
+    for pd in _PARKED_DOMAINS:
+        if pd in domain:
+            return True
+    # Check page content for common parking indicators
+    html_lower = html[:5000].lower() if html else ""
+    parking_markers = [
+        "denne siden er parkert",
+        "this domain is for sale",
+        "domain is parked",
+        "buy this domain",
+        "parkert domene",
+        "domenet er til salgs",
+        "sedoparking",
+    ]
+    for marker in parking_markers:
+        if marker in html_lower:
+            return True
+    return False
+
+
 # ---------------------------------------------------------------------------
 # JOB EXTRACTION (NAV API + Career pages + JSON-LD JobPosting)
 # ---------------------------------------------------------------------------
