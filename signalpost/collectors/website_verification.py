@@ -157,21 +157,23 @@ def check_website_ownership(
     # Rule 2.2: Guessed domains without registered city (poststed/kommune)
     is_guessed = source in ("domain_guess", "ddg_search")
     if is_guessed:
-        city_match = False
         if registered_city and len(registered_city.strip()) >= 3:
             city_norm = registered_city.lower().strip()
             city_match = city_norm in full_text.lower()
-
-        # If guessed domain does NOT show registered city -> REJECT
-        if not city_match:
-            # Also check if name is short/generic
-            if _is_short_generic_name(target_name) or not city_match:
+            if not city_match:
                 return {
                     "ownership": "unknown",
                     "reason": f"Guessed domain without orgnr does not contain registered city '{registered_city}'",
                     "suppress_socials": True,
                     "orgnr_verified": False,
                 }
+        elif _is_short_generic_name(target_name):
+            return {
+                "ownership": "unknown",
+                "reason": f"Short/generic name '{target_name}' with no orgnr and no registered city on page",
+                "suppress_socials": True,
+                "orgnr_verified": False,
+            }
 
     # Name matching on title / header
     distinctive = _distinctive_tokens(target_name)
