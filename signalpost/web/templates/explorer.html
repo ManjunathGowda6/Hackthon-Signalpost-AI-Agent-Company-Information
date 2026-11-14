@@ -453,9 +453,14 @@ function renderFilters() {
 function renderResultsHeader() {
   return `
   <div class="flex items-center justify-between mb-3">
-    <p class="text-sm text-slate-400">${state.total.toLocaleString()} companies found</p>
-    ${state.sector || state.form || state.hasFilters.size ?
-      `<button onclick="clearFilters()" class="text-xs text-brand-400 hover:text-brand-300">Clear filters</button>` : ''}
+    <div class="flex items-center gap-3">
+      <p class="text-sm text-slate-400">${state.total.toLocaleString()} companies found</p>
+      ${state.sector || state.form || state.hasFilters.size || (state.buyerPill && state.buyerPill !== 'all') ?
+        `<button onclick="clearFilters()" class="text-xs text-brand-400 hover:text-brand-300">Clear filters</button>` : ''}
+    </div>
+    <button onclick="exportCurrentCsv()" class="text-xs px-2.5 py-1 rounded bg-surface-elevated text-slate-300 hover:text-white border border-surface-border transition-colors flex items-center gap-1.5" title="Download current filtered results as CSV">
+      <span>📥</span> Export CSV
+    </button>
   </div>`;
 }
 
@@ -474,46 +479,141 @@ function renderCards() {
 
 function renderCard(c) {
   const selected = isCompareSelected(c.orgnr);
+  const brregUrl = `https://data.brreg.no/enhetsregisteret/oppslag/enheter/${c.orgnr}`;
+
+  // Extract Sentence 1 for clean buyer summary callout
+  let s1 = '';
+  if (c.summary) {
+    const m = c.summary.match(/^([^.]+\(Source:[^)]+\)\.?)\s*(.*)$/);
+    if (m) { s1 = m[1]; }
+    else {
+      const parts = c.summary.split(/(?<=\.\s)/);
+      s1 = parts[0] || '';
+    }
+  }
+
   return `
-  <div class="bg-surface-card border border-surface-border rounded-xl p-4 card-hover fade-in relative">
-    <div class="flex items-start justify-between mb-2">
-      <div class="flex-1 min-w-0 cursor-pointer" onclick="loadProfile('${c.orgnr}')">
-        <h3 class="text-sm font-semibold text-white truncate">${esc(c.name)}</h3>
-        <p class="text-xs text-slate-500 mt-0.5">${esc(c.orgnr)} · ${esc(c.municipality)}</p>
+  <div class="bg-surface-card border border-surface-border rounded-xl p-4 card-hover fade-in relative flex flex-col justify-between">
+    <div>
+      <!-- Top Row: Name, Verified Badge, City/Sector & Direct Link Buttons -->
+      <div class="flex items-start justify-between mb-2">
+        <div class="flex-1 min-w-0 cursor-pointer" onclick="loadProfile('${c.orgnr}')">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <h3 class="text-sm font-bold text-white hover:text-brand-400 transition-colors truncate">${esc(c.name)}</h3>
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-green-500/15 text-green-400 border border-green-500/30">✅ Verified</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">${esc(c.orgnr)} · ${esc(c.municipality || 'Norway')} · ${esc(c.sector || c.legal_form || 'Company')}</p>
+        </div>
+        <div class="flex items-center gap-1 ml-2">
+          ${c.website ? `<a href="${esc(c.website)}" target="_blank" rel="noreferrer" class="p-1.5 rounded-lg bg-surface-elevated text-slate-300 hover:text-white hover:bg-brand-600 transition-colors text-xs" title="Open Official Website">🌐</a>` : ''}
+          <a href="${esc(brregUrl)}" target="_blank" rel="noreferrer" class="p-1.5 rounded-lg bg-surface-elevated text-slate-300 hover:text-white hover:bg-brand-600 transition-colors text-xs" title="Open Brreg Registry Record">🏛️</a>
+          <button onclick="toggleCompare('${c.orgnr}','${escAttr(c.name)}')"
+            class="p-1.5 rounded-lg transition-colors ${selected ? 'bg-brand-600 text-white' : 'bg-surface-elevated text-slate-400 hover:text-white'}"
+            title="${selected ? 'Remove from compare' : 'Add to compare'}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+          </button>
+        </div>
       </div>
-      <button onclick="toggleCompare('${c.orgnr}','${escAttr(c.name)}')"
-        class="ml-2 p-1.5 rounded-lg transition-colors ${selected ? 'bg-brand-600 text-white' : 'bg-surface-elevated text-slate-400 hover:text-white'}"
-        title="${selected ? 'Remove from compare' : 'Add to compare'}">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-        </svg>
-      </button>
+
+      <!-- Commercial Buyer Brief Snapshot Callout -->
+      ${s1 ? `
+      <div class="bg-surface-elevated/60 border-l-2 border-brand-500 rounded p-2.5 my-2.5 text-xs">
+        <p class="font-medium text-slate-200 line-clamp-2">${esc(s1)}</p>
+      </div>` : ''}
+
+      <!-- 3 Key Buyer Metric Pills -->
+      <div class="grid grid-cols-3 gap-1.5 py-2 border-y border-surface-border/50 text-center text-xs mb-3">
+        <div class="bg-surface/50 rounded p-1.5">
+          <p class="text-[9px] text-slate-400 uppercase tracking-wider font-medium">💰 Revenue & YoY</p>
+          <p class="font-semibold text-white truncate mt-0.5">${esc(c.revenue || 'No accounts')}</p>
+          <p class="text-[10px] ${c.yoy_growth && c.yoy_growth.startsWith('+') ? 'text-green-400 font-medium' : 'text-slate-400'}">${c.yoy_growth ? `${c.yoy_growth} YoY` : (c.revenue ? 'Filing on file' : 'Missing ≠ zero')}</p>
+        </div>
+        <div class="bg-surface/50 rounded p-1.5">
+          <p class="text-[9px] text-slate-400 uppercase tracking-wider font-medium">👥 Workforce</p>
+          <p class="font-semibold text-white truncate mt-0.5">${c.employees ? c.employees.toLocaleString() + ' Emp' : 'N/A'}</p>
+          <p class="text-[10px] ${c.jobs_count ? 'text-amber-400 font-medium' : 'text-slate-400'}">${c.jobs_count ? `💼 ${c.jobs_count} Open Jobs` : 'No open jobs'}</p>
+        </div>
+        <div class="bg-surface/50 rounded p-1.5">
+          <p class="text-[9px] text-slate-400 uppercase tracking-wider font-medium">📰 Activity</p>
+          <p class="font-semibold text-white truncate mt-0.5">${c.news_count ? `📰 ${c.news_count} News` : (c.has_news ? 'News reported' : 'Registry')}</p>
+          <p class="text-[10px] text-accent-green font-medium">${c.source_count} verified sources</p>
+        </div>
+      </div>
     </div>
-    <div class="flex flex-wrap gap-1.5 mb-3">
-      ${c.legal_form ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-brand-600/20 text-brand-300 font-medium">${esc(c.legal_form)}</span>` : ''}
-      ${c.sector ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-surface-elevated text-slate-400">${esc(c.sector)}</span>` : ''}
-    </div>
-    <div class="grid grid-cols-3 gap-2 text-center">
-      <div>
-        <p class="text-[10px] text-slate-500 uppercase tracking-wider">Revenue</p>
-        <p class="text-xs font-semibold text-white mt-0.5">${c.revenue || 'N/A'}</p>
+
+    <!-- Bottom Actions: Feature Badges & 1-Click Copy Brief / View Profile -->
+    <div class="flex items-center justify-between pt-1 gap-2">
+      <div class="flex gap-1 flex-wrap">
+        ${c.has_website ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-green-500/15 text-green-400 font-medium">🌐 Web</span>' : ''}
+        ${c.has_financials ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 font-medium">📊 Fin</span>' : ''}
+        ${c.has_news ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-400 font-medium">📰 News</span>' : ''}
+        ${c.has_jobs ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 font-medium">💼 Jobs</span>' : ''}
+        ${c.is_growing ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-medium">📈 Growing</span>' : ''}
       </div>
-      <div>
-        <p class="text-[10px] text-slate-500 uppercase tracking-wider">Employees</p>
-        <p class="text-xs font-semibold text-white mt-0.5">${c.employees ? c.employees.toLocaleString() : 'N/A'}</p>
+      <div class="flex items-center gap-1">
+        ${c.summary ? `<button onclick="copyBuyerBrief('${escAttr(c.summary)}','${escAttr(c.name)}','${c.orgnr}')" class="text-[10px] px-2 py-1 rounded bg-surface-elevated text-slate-300 hover:text-white border border-surface-border transition-colors" title="Copy Buyer Brief to clipboard">📋 Brief</button>` : ''}
+        <button onclick="loadProfile('${c.orgnr}')" class="text-[10px] px-2 py-1 rounded bg-brand-600/30 text-brand-300 hover:bg-brand-600 hover:text-white border border-brand-500/40 transition-colors font-medium">Profile ↗</button>
       </div>
-      <div>
-        <p class="text-[10px] text-slate-500 uppercase tracking-wider">Sources</p>
-        <p class="text-xs font-semibold text-accent-green mt-0.5">${c.source_count} verified</p>
-      </div>
-    </div>
-    <div class="flex gap-1 mt-3">
-      ${c.has_website ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-green-500/10 text-green-400">🌐 Web</span>' : ''}
-      ${c.has_financials ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400">📊 Fin</span>' : ''}
-      ${c.has_news ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400">📰 News</span>' : ''}
-      ${c.has_jobs ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400">💼 Jobs</span>' : ''}
     </div>
   </div>`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.remove('opacity-0', 'pointer-events-none');
+  t.classList.add('opacity-100');
+  setTimeout(() => {
+    t.classList.remove('opacity-100');
+    t.classList.add('opacity-0', 'pointer-events-none');
+  }, 2500);
+}
+
+function copyBuyerBrief(summary, name, orgnr) {
+  const s = summary || `${name} (${orgnr}) — Verified Norwegian Entity.`;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(s).then(() => showToast('✓ Copied Buyer Brief to clipboard!')).catch(() => showToast('✓ Copied Brief'));
+  } else {
+    const ta = document.createElement('textarea'); ta.value = s; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    showToast('✓ Copied Buyer Brief to clipboard!');
+  }
+}
+
+function exportCurrentCsv() {
+  if (!state.results || !state.results.length) {
+    showToast('No results to export');
+    return;
+  }
+  const headers = ['Organisation Number', 'Company Name', 'Legal Form', 'Municipality', 'Sector', 'Employees', 'Website', 'Revenue', 'YoY Growth', 'Open Jobs', 'News Count', 'Buyer Summary'];
+  const lines = [headers.join(',')];
+  state.results.forEach(r => {
+    const cols = [
+      `"${r.orgnr || ''}"`,
+      `"${(r.name || '').replace(/"/g, '""')}"`,
+      `"${r.legal_form || ''}"`,
+      `"${r.municipality || ''}"`,
+      `"${(r.sector || '').replace(/"/g, '""')}"`,
+      `"${r.employees ?? ''}"`,
+      `"${r.website || ''}"`,
+      `"${r.revenue || ''}"`,
+      `"${r.yoy_growth || ''}"`,
+      `"${r.jobs_count || (r.has_jobs ? 'Yes' : '0')}"`,
+      `"${r.news_count || (r.has_news ? 'Yes' : '0')}"`,
+      `"${(r.summary || '').replace(/"/g, '""')}"`
+    ];
+    lines.push(cols.join(','));
+  });
+  const blob = new Blob([lines.join('\\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `signalpost-explorer-export-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`✓ Exported ${state.results.length} companies to CSV`);
 }
 
 function renderSkeleton() {
