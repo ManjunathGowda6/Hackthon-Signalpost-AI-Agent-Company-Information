@@ -1177,14 +1177,23 @@ async function searchCompareCandidate(idx, q) {
   try {
     const data = await api('/suggest?q=' + encodeURIComponent(q.trim()));
     if (!data || !data.length) {
-      dd.innerHTML = '<div class="p-2.5 text-xs text-slate-500">No matching companies found</div>';
+      dd.innerHTML = `<div class="p-3 text-xs text-slate-300">
+        <p class="text-slate-400 mb-2">No local match for "${esc(q)}".</p>
+        <button onclick="selectCompareCandidate(${idx}, 'WEB-${encodeURIComponent(q.trim())}', '${escAttr(q.trim())}')"
+          class="w-full text-center px-3 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-semibold flex items-center justify-center gap-1.5 transition shadow">
+          <span>🌐</span> Real-Time AI Search: "${esc(q.trim())}"
+        </button>
+      </div>`;
       dd.classList.remove('hidden');
       return;
     }
     dd.innerHTML = data.map(item => `
       <div class="p-2.5 hover:bg-surface-elevated/80 cursor-pointer border-b border-surface-border/30 last:border-0 flex items-center justify-between"
            onclick="selectCompareCandidate(${idx}, '${item.orgnr}', '${escAttr(item.name)}')">
-        <span class="text-xs font-medium text-white truncate mr-2">${esc(item.name)}</span>
+        <div class="truncate mr-2">
+          <span class="text-xs font-medium text-white">${esc(item.name)}</span>
+          <span class="text-[10px] text-brand-300 ml-1.5 font-mono">${esc(item.form)}</span>
+        </div>
         <span class="text-[10px] text-slate-400 font-mono flex-shrink-0">${esc(item.orgnr)}</span>
       </div>
     `).join('');
@@ -1228,17 +1237,20 @@ function renderCompareView() {
     <!-- Quick preset selection pills -->
     <div class="flex flex-wrap items-center gap-2 mb-4 bg-surface-card border border-surface-border rounded-xl p-3">
       <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 mr-1">⚡ Quick Preset Pairs:</span>
-      <button onclick="compareSamplePair()" class="px-2.5 py-1 bg-surface-elevated hover:bg-surface border border-surface-border rounded-lg text-xs text-amber-300 font-medium transition">
+      <button onclick="comparePresetPair('GLOBAL-ANTHROPIC','Anthropic','GLOBAL-OPENAI','OpenAI')" class="px-2.5 py-1 bg-surface-elevated hover:bg-surface border border-purple-500/40 rounded-lg text-xs text-purple-300 font-semibold transition">
+        ⚡ AI Frontier: Anthropic vs OpenAI
+      </button>
+      <button onclick="comparePresetPair('923609016','EQUINOR ASA','GLOBAL-ANTHROPIC','Anthropic')" class="px-2.5 py-1 bg-surface-elevated hover:bg-surface border border-amber-500/40 rounded-lg text-xs text-amber-300 font-semibold transition">
+        ⚡ Energy vs AI: Equinor vs Anthropic
+      </button>
+      <button onclick="compareSamplePair()" class="px-2.5 py-1 bg-surface-elevated hover:bg-surface border border-surface-border rounded-lg text-xs text-slate-300 font-medium transition">
         ⚡ Energy: Equinor vs Hydro
       </button>
       <button onclick="comparePresetPair('982463718','TELENOR ASA','983876007','SCHIBSTED ASA')" class="px-2.5 py-1 bg-surface-elevated hover:bg-surface border border-surface-border rounded-lg text-xs text-brand-300 font-medium transition">
         ⚡ Telecom &amp; Media: Telenor vs Schibsted
       </button>
-      <button onclick="comparePresetPair('984851006','DNB BANK ASA','914778271','NORSK HYDRO ASA')" class="px-2.5 py-1 bg-surface-elevated hover:bg-surface border border-surface-border rounded-lg text-xs text-emerald-300 font-medium transition">
-        ⚡ Finance &amp; Industry: DNB vs Norsk Hydro
-      </button>
       <button onclick="compareRandomPair()" class="px-2.5 py-1 bg-brand-600/30 hover:bg-brand-600/40 border border-brand-500/40 rounded-lg text-xs text-white font-semibold transition flex items-center gap-1 shadow-sm">
-        🎲 Random Verified Pair
+        🎲 Random Pair
       </button>
     </div>
 
@@ -1289,9 +1301,11 @@ function renderCompareSelector(idx) {
           <span>Quick pick:</span>
           <button onclick="selectCompareCandidate(${idx}, '923609016', 'EQUINOR ASA')" class="text-amber-300 hover:underline font-medium">Equinor</button>
           <span>·</span>
-          <button onclick="selectCompareCandidate(${idx}, '914778271', 'NORSK HYDRO ASA')" class="text-brand-400 hover:underline font-medium">Hydro</button>
+          <button onclick="selectCompareCandidate(${idx}, 'GLOBAL-ANTHROPIC', 'Anthropic')" class="text-purple-300 hover:underline font-medium">Anthropic</button>
           <span>·</span>
-          <button onclick="selectCompareCandidate(${idx}, '982463718', 'TELENOR ASA')" class="text-cyan-400 hover:underline font-medium">Telenor</button>
+          <button onclick="selectCompareCandidate(${idx}, 'GLOBAL-OPENAI', 'OpenAI')" class="text-cyan-300 hover:underline font-medium">OpenAI</button>
+          <span>·</span>
+          <button onclick="selectCompareCandidate(${idx}, '914778271', 'NORSK HYDRO ASA')" class="text-brand-400 hover:underline font-medium">Hydro</button>
           <span>·</span>
           <button onclick="compareRandomPair()" class="text-emerald-400 hover:underline font-medium">🎲 Random</button>
         </div>
