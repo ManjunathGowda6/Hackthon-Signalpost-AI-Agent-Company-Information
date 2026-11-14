@@ -4324,7 +4324,88 @@
           "description": "No verified website established.",
           "social_links": [],
           "news": [],
-          "jobs": [],
+          "jobs": [
+            {
+              "title": "Støttekontakt",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/034fcf7e-a8f0-4010-9335-281167a98ad5",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/034fcf7e-a8f0-4010-9335-281167a98ad5",
+              "date": "2025-06-30",
+              "retrieved_at": "2025-06-30",
+              "content_sha256": "442230f5116d20e6bbe04f1776607e1f987a2d1099c738000ba6f07c8dc5d392"
+            },
+            {
+              "title": "Barne- og ungdomsarbeider/ barnehageassistent",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/a453a729-7aed-4a46-b59a-53e9227cb55c",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/a453a729-7aed-4a46-b59a-53e9227cb55c",
+              "date": "2026-11-12",
+              "retrieved_at": "2026-11-12",
+              "content_sha256": "87080af7a65b767e34f402fd211bc179f3c9d2bba09bfa1f5c41668dd26d2528"
+            },
+            {
+              "title": "Vil du bli vår nye fagleder økonomi for tjenesteområdet Miljø og samfunn?",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/cb044433-34d0-4cb8-863d-6ff1272d1583",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/cb044433-34d0-4cb8-863d-6ff1272d1583",
+              "date": "2026-11-13",
+              "retrieved_at": "2026-11-13",
+              "content_sha256": "30b5c021969ba1ef56de63d6a2aac8b126ebd01859c8df21816015d5e1e5140a"
+            },
+            {
+              "title": "Rådgiver - økonomi",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/78de50a0-fae3-46ec-827f-892ecf046e0d",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/78de50a0-fae3-46ec-827f-892ecf046e0d",
+              "date": "2026-11-12",
+              "retrieved_at": "2026-11-12",
+              "content_sha256": "7ac8f68c79554bbda4b43cfa8c4c7dc390c16b5d8ee9e706b47d344009baef69"
+            },
+            {
+              "title": "Personvernombud",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/f907cc81-ea95-4e39-aa47-013f9d127ef2",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/f907cc81-ea95-4e39-aa47-013f9d127ef2",
+              "date": "2026-11-06",
+              "retrieved_at": "2026-11-06",
+              "content_sha256": "1ca71c9e785c24238c0f1ee93d2ee20d6afd7dddf75f07c77c0ab70250f39afa"
+            },
+            {
+              "title": "Er du en ambisiøs rektor som vil gjøre en forskjell for barn og unge?",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/524a85e2-6c1d-442b-a56d-7c2c91e35a5e",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/524a85e2-6c1d-442b-a56d-7c2c91e35a5e",
+              "date": "2026-11-03",
+              "retrieved_at": "2026-11-03",
+              "content_sha256": "d60a63bcb4f692e6bd3bf72d9f5a1cd6cf4c5a31c1b3d834d2e0c0fbd28dcf1a"
+            },
+            {
+              "title": "Sykepleier søkes til nyopprettet seksjon - Stasjonære hjemmetjenester",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/4d2137a7-b758-415b-a311-00ac1d7b3bcf",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/4d2137a7-b758-415b-a311-00ac1d7b3bcf",
+              "date": "2026-11-03",
+              "retrieved_at": "2026-11-03",
+              "content_sha256": "c07166b6db9af377b8ea9f2b471b0e71607cbf1ec65d85a212021dcc7ab6df88"
+            },
+            {
+              "title": "Tilkallingsvikar i Stasjonær hjemmetjeneste",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/484da6cf-1265-42c3-bce7-45daf0a6aa80",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/484da6cf-1265-42c3-bce7-45daf0a6aa80",
+              "date": "2026-11-10",
+              "retrieved_at": "2026-11-10",
+              "content_sha256": "d269295d2fdd748c618c0d2411519956125837c783a44f40d2ebf1f20716061c"
+            },
+            {
+              "title": "Helsefagarbeider søkes til Stasjonære hjemmetjenester",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/35ad366a-f3e8-4764-ae9a-f964f78bb63d",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/35ad366a-f3e8-4764-ae9a-f964f78bb63d",
+              "date": "2026-11-10",
+              "retrieved_at": "2026-11-10",
+              "content_sha256": "b9e16296ff3b642ae698eb2150805839a306bb0715e2eb3996744511876927c4"
+            },
+            {
+              "title": "Barnevernskonsulent undersøkelse",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/31b55cf4-5f0b-47cc-bb25-74d288d50298",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/31b55cf4-5f0b-47cc-bb25-74d288d50298",
+              "date": "2026-11-10",
+              "retrieved_at": "2026-11-10",
+              "content_sha256": "62c5a103778cca7684a4de21277b6b31cbdf1cc7280ba48bda07fc3fb96845fb"
+            }
+          ],
           "identity_assessment": {
             "publishable": false,
             "status": "unverified"
@@ -8068,7 +8149,80 @@
           "description": "No verified website established.",
           "social_links": [],
           "news": [],
-          "jobs": [],
+          "jobs": [
+            {
+              "title": "100% fast - Aut. Sykepleier - Hjemmetjenester avd Kongens",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/a0d1f6f4-0186-4980-b246-03d878e25a35",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/a0d1f6f4-0186-4980-b246-03d878e25a35",
+              "date": "2026-11-12",
+              "retrieved_at": "2026-11-12",
+              "content_sha256": "64de906689bd724b7afeb805de15f0a089299e4937ef363c3ee294aa477c8e66"
+            },
+            {
+              "title": "Autorisert sykepleier – 100 % fast  Hjemmetjenester Søgne Vest",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/0b118eb4-143d-4306-9875-386d85e2b797",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/0b118eb4-143d-4306-9875-386d85e2b797",
+              "date": "2026-10-27",
+              "retrieved_at": "2026-10-27",
+              "content_sha256": "f292c3e738e478ddc2e8157b52cf6a5ef690337929f7894a81e1227cce14cec2"
+            },
+            {
+              "title": "Fysioterapeut i rehabiliteringsteam",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/72436cbc-a20b-41df-8d69-0ea6c716f546",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/72436cbc-a20b-41df-8d69-0ea6c716f546",
+              "date": "2026-11-09",
+              "retrieved_at": "2026-11-09",
+              "content_sha256": "9d631a4a8a1e19ee1fb584582fd6bee90b5e1a63e6ed4396989e3f64b8fa27b5"
+            },
+            {
+              "title": "Sykepleier",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/26699261-2c4d-4336-9c54-d7f8357e1f73",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/26699261-2c4d-4336-9c54-d7f8357e1f73",
+              "date": "2026-11-11",
+              "retrieved_at": "2026-11-11",
+              "content_sha256": "7660f2aa7d71f356c777c8bf1a67c7fe02962370c3adea37f98e4b5a30523a44"
+            },
+            {
+              "title": "Helgestillinger hjemmetjenester Søgne vest",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/8df9b669-989a-4a70-9b74-9850ee49dae9",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/8df9b669-989a-4a70-9b74-9850ee49dae9",
+              "date": "2026-09-15",
+              "retrieved_at": "2026-09-15",
+              "content_sha256": "98ffa2be39b2149e7ec8ef240f8d3c6813c053d539c1093a81b40ecc66f78ec5"
+            },
+            {
+              "title": "Avdelingsleder, hjemmetjenesten avd Hånes og Tveit",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/2dc6ea36-18f8-4794-847e-09b470f59e85",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/2dc6ea36-18f8-4794-847e-09b470f59e85",
+              "date": "2026-10-29",
+              "retrieved_at": "2026-10-29",
+              "content_sha256": "12eb7fae5ff77e56f84ce9245d6f17f01b89c7e7a5795bb2ccbaac3af11b3718"
+            },
+            {
+              "title": "Tilkallingsvikarer Strømmehaven",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/75d5bfd4-9db5-48de-bdd4-a1b6435d762a",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/75d5bfd4-9db5-48de-bdd4-a1b6435d762a",
+              "date": "2026-09-10",
+              "retrieved_at": "2026-09-10",
+              "content_sha256": "a58f77e80d03e54b62f4f56a09c063961a90f6fc7769982722e7e7e7952471fe"
+            },
+            {
+              "title": "Ergoterapeut",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/ed068a3e-4294-4afa-8020-6069c805a00b",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/ed068a3e-4294-4afa-8020-6069c805a00b",
+              "date": "2026-11-09",
+              "retrieved_at": "2026-11-09",
+              "content_sha256": "9601f00afee815b7db5f502b9695bbee3d1f8b427388d48f8d7f54fa9497ddfc"
+            },
+            {
+              "title": "Miljøterapeut, 70% fast stilling",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/548e618f-cf7d-4ec0-b36e-8ff489fe9d0f",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/548e618f-cf7d-4ec0-b36e-8ff489fe9d0f",
+              "date": "2026-11-06",
+              "retrieved_at": "2026-11-06",
+              "content_sha256": "b5a50509fd773120351b106995309a627f4702ebae251501acc910e7d55bbaec"
+            }
+          ],
           "identity_assessment": {
             "publishable": false,
             "status": "unverified"
@@ -13917,7 +14071,80 @@
           "description": "No verified website established.",
           "social_links": [],
           "news": [],
-          "jobs": [],
+          "jobs": [
+            {
+              "title": "Vil du være med å bygge fremtidens tjenester innen psykisk helse og ROP? (Helsefagarbeider)",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/e51eea6d-fea4-453a-9357-03c335ff449b",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/e51eea6d-fea4-453a-9357-03c335ff449b",
+              "date": "2026-11-11",
+              "retrieved_at": "2026-11-11",
+              "content_sha256": "3a43c5dbf709bc76063add924c36f291e8455f5fb7945cc065cc8fdf59eaeb3f"
+            },
+            {
+              "title": "Utdanningsstilling på helg - Rus og psykisk helse (Rommeveien), 22 % fast",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/0a151e0a-f605-43be-b7f9-f2a3942be9ca",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/0a151e0a-f605-43be-b7f9-f2a3942be9ca",
+              "date": "2026-11-05",
+              "retrieved_at": "2026-11-05",
+              "content_sha256": "acd0163e9835803cd2c299a5b84238837c6bfe660b90000f08486936a9d2e4bb"
+            },
+            {
+              "title": "Engasjerte vikarer søkes til virksomhet Livsmestring Sentrum, avd. Brønnerødlia og avd. Nordre Kongsvei",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/7a50f683-3f99-43eb-bd95-9ed1850980dc",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/7a50f683-3f99-43eb-bd95-9ed1850980dc",
+              "date": "2026-09-23",
+              "retrieved_at": "2026-09-23",
+              "content_sha256": "b58bb68725b7d6fea0efe7bf1279004ce9229afc7e2e68c313949af15c359500"
+            },
+            {
+              "title": "Vernepleier/sykepleier i Livsmestring rus og ROP (Rommeveien/Begby), 100 % fast",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/299ec8fe-eb90-47d7-8ca5-6d81849ebd50",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/299ec8fe-eb90-47d7-8ca5-6d81849ebd50",
+              "date": "2026-11-03",
+              "retrieved_at": "2026-11-03",
+              "content_sha256": "520e001fe5be021344ff34c752b419f83cc7722b5b80e8022096773c5270e301"
+            },
+            {
+              "title": "100 % Vernepleier stilling ved Åselia/Åsebråten, ledig fra 01.01.27",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/67c4f733-b77b-41cf-8634-aed754d3457e",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/67c4f733-b77b-41cf-8634-aed754d3457e",
+              "date": "2026-11-03",
+              "retrieved_at": "2026-11-03",
+              "content_sha256": "6c9dd65a48bcccdd20116c31199081a98d97e32399dda1c68c34724b75b957b6"
+            },
+            {
+              "title": "Helsefagarbeidet i Livsmestring rus og ROP (Rommeveien/Begby), 100 % fast",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/9f6b85d4-7cc7-4925-b267-853ed2ef9819",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/9f6b85d4-7cc7-4925-b267-853ed2ef9819",
+              "date": "2026-11-05",
+              "retrieved_at": "2026-11-05",
+              "content_sha256": "4caf77f9f1975b2dd26a50d10052ac1347f380d18cb121d2bf3e658c5c0163cc"
+            },
+            {
+              "title": "Vil du gjøre en forskjell – hver eneste dag? vi søker etter engasjerte vikarer",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/4e2de8d6-82f2-4f1f-86a3-467ebafdc933",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/4e2de8d6-82f2-4f1f-86a3-467ebafdc933",
+              "date": "2026-09-24",
+              "retrieved_at": "2026-09-24",
+              "content_sha256": "7da695d929cafa2ddf49420e221d258952d6403ff77e2f67217f93ff86cdffa4"
+            },
+            {
+              "title": "Avdelingsleder Tiltak skole 100% - fast stilling.",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/74fb7fc7-9193-4b37-b179-90e79e3e9c73",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/74fb7fc7-9193-4b37-b179-90e79e3e9c73",
+              "date": "2026-11-12",
+              "retrieved_at": "2026-11-12",
+              "content_sha256": "43c5a9bb3a7b2e4cef8b8a5a17efee2784a7e461c83a652f8ed3d1e5f8df1ce9"
+            },
+            {
+              "title": "Avdelingsleder fakturering og innkreving",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/1aed858d-5894-4d80-a429-e5b2ecd87509",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/1aed858d-5894-4d80-a429-e5b2ecd87509",
+              "date": "2026-11-12",
+              "retrieved_at": "2026-11-12",
+              "content_sha256": "c899ec06e37688a171ba1aac68ca39e5cf9a3ce0e285dcc4ef4bfc464d71cb27"
+            }
+          ],
           "identity_assessment": {
             "publishable": false,
             "status": "unverified"
@@ -15269,7 +15496,88 @@
           "description": "No verified website established.",
           "social_links": [],
           "news": [],
-          "jobs": [],
+          "jobs": [
+            {
+              "title": "Støttekontakt",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/034fcf7e-a8f0-4010-9335-281167a98ad5",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/034fcf7e-a8f0-4010-9335-281167a98ad5",
+              "date": "2025-06-30",
+              "retrieved_at": "2025-06-30",
+              "content_sha256": "442230f5116d20e6bbe04f1776607e1f987a2d1099c738000ba6f07c8dc5d392"
+            },
+            {
+              "title": "Sykepleier søkes til nyopprettet seksjon - Stasjonære hjemmetjenester",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/4d2137a7-b758-415b-a311-00ac1d7b3bcf",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/4d2137a7-b758-415b-a311-00ac1d7b3bcf",
+              "date": "2026-11-03",
+              "retrieved_at": "2026-11-03",
+              "content_sha256": "c07166b6db9af377b8ea9f2b471b0e71607cbf1ec65d85a212021dcc7ab6df88"
+            },
+            {
+              "title": "Tilkallingsvikar i Stasjonær hjemmetjeneste",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/484da6cf-1265-42c3-bce7-45daf0a6aa80",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/484da6cf-1265-42c3-bce7-45daf0a6aa80",
+              "date": "2026-11-10",
+              "retrieved_at": "2026-11-10",
+              "content_sha256": "d269295d2fdd748c618c0d2411519956125837c783a44f40d2ebf1f20716061c"
+            },
+            {
+              "title": "Helsefagarbeider søkes til Stasjonære hjemmetjenester",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/35ad366a-f3e8-4764-ae9a-f964f78bb63d",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/35ad366a-f3e8-4764-ae9a-f964f78bb63d",
+              "date": "2026-11-10",
+              "retrieved_at": "2026-11-10",
+              "content_sha256": "b9e16296ff3b642ae698eb2150805839a306bb0715e2eb3996744511876927c4"
+            },
+            {
+              "title": "Virksomhetsleder Helsestab og tildeling",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/07fdb5de-4d92-4fa9-a0a2-952feb54b1be",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/07fdb5de-4d92-4fa9-a0a2-952feb54b1be",
+              "date": "2026-11-13",
+              "retrieved_at": "2026-11-13",
+              "content_sha256": "a65ef3e1e35e8ac772efc4fc847fea50c9b5b06bad9741412fa3f02984bfaffb"
+            },
+            {
+              "title": "Aktivitør",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/5a6dc656-1e85-4b7a-9204-f4a4e6086d90",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/5a6dc656-1e85-4b7a-9204-f4a4e6086d90",
+              "date": "2026-11-05",
+              "retrieved_at": "2026-11-05",
+              "content_sha256": "7ee81d5b367b3a2c029f1ce5034d14514474a9f9668cd44d2d8fa43171b1989f"
+            },
+            {
+              "title": "Tilkallingsvikar som sykepleier i Stasjonær hjemmetjeneste",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/c93f0e02-13da-4d9e-9a91-2b0d37b03624",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/c93f0e02-13da-4d9e-9a91-2b0d37b03624",
+              "date": "2026-11-12",
+              "retrieved_at": "2026-11-12",
+              "content_sha256": "c1be6c9d74993119cd5d8fb1506ee295080d284b107f143bd738615e294fedca"
+            },
+            {
+              "title": "Vernepleier - 100 % vikariat, Poppelveien boliger",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/4f339231-f3cf-443b-8bf8-e987ff7dae92",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/4f339231-f3cf-443b-8bf8-e987ff7dae92",
+              "date": "2026-10-28",
+              "retrieved_at": "2026-10-28",
+              "content_sha256": "5c3dd6628a6aa43bdb0375e01cc327d41a1b4395cf4f5b6910c3301257751079"
+            },
+            {
+              "title": "Helsefagarbeidere - 100 % fast og 100 % vikariat, Myrvang aktivitetssenter",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/ea359731-c7ae-4a61-839e-1fe45e58bc2e",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/ea359731-c7ae-4a61-839e-1fe45e58bc2e",
+              "date": "2026-10-26",
+              "retrieved_at": "2026-10-26",
+              "content_sha256": "bc2dcf30d36fa5cb47a15d89a8b903a30551f5f325f5ea44760f60561bbbb789"
+            },
+            {
+              "title": "Helsefagarbeider/hjelpepleier/barne- og ungdomsarbeider, Myrvangveien boliger",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/3ea3f631-de86-45f0-8fe1-64d6935f67cb",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/3ea3f631-de86-45f0-8fe1-64d6935f67cb",
+              "date": "2026-10-30",
+              "retrieved_at": "2026-10-30",
+              "content_sha256": "9cbbafc6dfcb9f747e4627d071ab7726685384c2f2ba99c9c4e079f649801264"
+            }
+          ],
           "identity_assessment": {
             "publishable": false,
             "status": "unverified"
@@ -15897,7 +16205,16 @@
           "description": "No verified website established.",
           "social_links": [],
           "news": [],
-          "jobs": [],
+          "jobs": [
+            {
+              "title": "Barnevernskonsulent undersøkelse",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/31b55cf4-5f0b-47cc-bb25-74d288d50298",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/31b55cf4-5f0b-47cc-bb25-74d288d50298",
+              "date": "2026-11-10",
+              "retrieved_at": "2026-11-10",
+              "content_sha256": "62c5a103778cca7684a4de21277b6b31cbdf1cc7280ba48bda07fc3fb96845fb"
+            }
+          ],
           "identity_assessment": {
             "publishable": false,
             "status": "unverified"
@@ -22827,7 +23144,40 @@
           "description": "No verified website established.",
           "social_links": [],
           "news": [],
-          "jobs": [],
+          "jobs": [
+            {
+              "title": "Innkjøper",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/12cb396b-0635-437d-ab7c-61c9000af47b",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/12cb396b-0635-437d-ab7c-61c9000af47b",
+              "date": "2026-11-12",
+              "retrieved_at": "2026-11-12",
+              "content_sha256": "a7e4f61c96a85c1f2b9da511feb5a4129e7e20667691d9b1e839f02af4d8fb33"
+            },
+            {
+              "title": "Innkjøper",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/6a06aea4-18d2-4b7e-a6e5-b082c265069e",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/6a06aea4-18d2-4b7e-a6e5-b082c265069e",
+              "date": "2026-11-09",
+              "retrieved_at": "2026-11-09",
+              "content_sha256": "d62b2c24b7a02a686e8e32180b3515af09258db0a5569374a6244de1347b460b"
+            },
+            {
+              "title": "Er du vår nye Elektriker/ Automatiker?",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/d08fb863-7c38-42ac-8fe6-05fbc343935a",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/d08fb863-7c38-42ac-8fe6-05fbc343935a",
+              "date": "2026-10-27",
+              "retrieved_at": "2026-10-27",
+              "content_sha256": "cac682fef24bc03d07eddadeca73040f8d7cf263e4bbd8d6cdc38c2cc0d663df"
+            },
+            {
+              "title": "Operatør Industrimekanikar",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/b3a04790-227c-435c-ae17-434623864c38",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/b3a04790-227c-435c-ae17-434623864c38",
+              "date": "2026-11-11",
+              "retrieved_at": "2026-11-11",
+              "content_sha256": "2005336abc1fc7102d44b87adde0d2c202096fd91122c4d9840c355c40691ac2"
+            }
+          ],
           "identity_assessment": {
             "publishable": false,
             "status": "unverified"
@@ -24878,7 +25228,16 @@
           "description": "No verified website established.",
           "social_links": [],
           "news": [],
-          "jobs": [],
+          "jobs": [
+            {
+              "title": "Klar for en lederrolle med stor påvirkning?",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/fed5ca14-d0b9-487a-9069-666adafdce30",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/fed5ca14-d0b9-487a-9069-666adafdce30",
+              "date": "2026-10-08",
+              "retrieved_at": "2026-10-08",
+              "content_sha256": "a93fcdfcc5c03cbfff0850ed1edeebb8c2949a75264ea9c56c8d83b011a7326c"
+            }
+          ],
           "identity_assessment": {
             "publishable": false,
             "status": "unverified"
@@ -28896,7 +29255,64 @@
           "description": "No verified website established.",
           "social_links": [],
           "news": [],
-          "jobs": [],
+          "jobs": [
+            {
+              "title": "Samfunn og næring - Rådgiver nordisk og internasjonalt samarbeid",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/1564ac64-dfa0-44a8-ac34-a8b989521240",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/1564ac64-dfa0-44a8-ac34-a8b989521240",
+              "date": "2026-10-21",
+              "retrieved_at": "2026-10-21",
+              "content_sha256": "19a9e6a3013e36c06e311bf8c4d9c43a0b3d6b5d95865721250c838d6e772e32"
+            },
+            {
+              "title": "Eiendom, seksjon renhold - tilkallingsvikarer Gjøvik regionen",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/c26946c4-0935-4bf3-8837-bf1800276651",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/c26946c4-0935-4bf3-8837-bf1800276651",
+              "date": "2026-11-10",
+              "retrieved_at": "2026-11-10",
+              "content_sha256": "ba20c69e1a76d6420821ddf30f5b6cb9f6ef5735d0ebcdf97dffeec93bc4ebdf"
+            },
+            {
+              "title": "Stab, Bedriftshelsetjenesten - Konsulent/rådgiver",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/5aa3b247-3d8c-46a7-8af0-22845ba7e80d",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/5aa3b247-3d8c-46a7-8af0-22845ba7e80d",
+              "date": "2026-11-12",
+              "retrieved_at": "2026-11-12",
+              "content_sha256": "a286fff63f6438ff4a8f4b4a56cdb6dd715a40ece97f98fbcba4b04919263501"
+            },
+            {
+              "title": "Eiendom, seksjon renhold - renholder ved Hadeland videregående skole",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/f21ae805-252a-424b-a630-2fc90fbe6219",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/f21ae805-252a-424b-a630-2fc90fbe6219",
+              "date": "2026-11-10",
+              "retrieved_at": "2026-11-10",
+              "content_sha256": "e5eb5daf11b213263d665cff5c18f61d449597aa6374b4407934628527075345"
+            },
+            {
+              "title": "Eiendom, seksjon renhold - tilkallingsvikarer Tynset og Alvdal",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/df8d7859-4dfc-4925-8f0e-714b4d27d134",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/df8d7859-4dfc-4925-8f0e-714b4d27d134",
+              "date": "2026-10-27",
+              "retrieved_at": "2026-10-27",
+              "content_sha256": "e290a2b8fff6d558f3214af17bd42e1990717190c357c676a8830be7572db9d5"
+            },
+            {
+              "title": "Informasjonsforvalter - Administrasjon, Dokumentasjonsforvaltning",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/b35c3ca3-5e17-4e62-b048-c37317096e61",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/b35c3ca3-5e17-4e62-b048-c37317096e61",
+              "date": "2026-10-29",
+              "retrieved_at": "2026-10-29",
+              "content_sha256": "3fcb0a62ac50357ada09ff5a6f604646f1dcef091ae4dea650a5f97fac052f05"
+            },
+            {
+              "title": "Samferdsel - Overvannsprosjekterende",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/43d66c3b-cf5e-4e2f-bb16-967eb9ae8d69",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/43d66c3b-cf5e-4e2f-bb16-967eb9ae8d69",
+              "date": "2026-10-21",
+              "retrieved_at": "2026-10-21",
+              "content_sha256": "81776f8ab5f640adb95d4c23fb680fe33fbd6e6a79ebbab23d6b50c0cbc45494"
+            }
+          ],
           "identity_assessment": {
             "publishable": false,
             "status": "unverified"
@@ -31412,7 +31828,88 @@
           "description": "No verified website established.",
           "social_links": [],
           "news": [],
-          "jobs": [],
+          "jobs": [
+            {
+              "title": "Bygg karriere i Færder",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/d6a7edbe-86b4-45d4-81ce-a08cf4e8ec01",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/d6a7edbe-86b4-45d4-81ce-a08cf4e8ec01",
+              "date": "2026-01-26",
+              "retrieved_at": "2026-01-26",
+              "content_sha256": "a06b21f570d2efac6f7bc2e9f8de8385b17dcb014d1492e71e19b4da0f795d02"
+            },
+            {
+              "title": "Sykehjemslege vikariat for institusjonstjenesten",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/ed31de9a-3094-41c6-abf1-cbf7c935fb03",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/ed31de9a-3094-41c6-abf1-cbf7c935fb03",
+              "date": "2026-10-13",
+              "retrieved_at": "2026-10-13",
+              "content_sha256": "1007ba0796a1f258302d076a55f797368bf40187a061d0bd12e3e21e102abb04"
+            },
+            {
+              "title": "Spennende stilling  ved Tjøme sone!",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/edd96dac-6eb8-44a9-bcde-8e627a15c4a1",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/edd96dac-6eb8-44a9-bcde-8e627a15c4a1",
+              "date": "2026-11-06",
+              "retrieved_at": "2026-11-06",
+              "content_sha256": "c3f5e79529fc8b19e42a9c72474a26abadf7fee984c48443df9e8d30b3c698b5"
+            },
+            {
+              "title": "Sykepleier",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/4b6f8cd9-f610-4385-8df5-57c7a468a130",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/4b6f8cd9-f610-4385-8df5-57c7a468a130",
+              "date": "2026-11-11",
+              "retrieved_at": "2026-11-11",
+              "content_sha256": "d3c84cd71fd6836bbbf9e5998e49ee9fab98fc99c16f0e047fffd6e30d367bc1"
+            },
+            {
+              "title": "Spennende stilling som helsefagarbeider ved Tjøme sone!",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/64931300-899c-4938-9f7d-02771243866d",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/64931300-899c-4938-9f7d-02771243866d",
+              "date": "2026-11-06",
+              "retrieved_at": "2026-11-06",
+              "content_sha256": "88538370302e10aedb68841f38fb1356a6a852a066b184953d2885241d1df1c6"
+            },
+            {
+              "title": "Sykepleier 100 % fast stilling med p.t hver 4. helg",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/01b5fdef-7ad8-4a5d-9adf-d874f340ce16",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/01b5fdef-7ad8-4a5d-9adf-d874f340ce16",
+              "date": "2026-11-03",
+              "retrieved_at": "2026-11-03",
+              "content_sha256": "83840ef1050e06d2c2e7d20b76b8fb5a148db48dbb21c9365bbbd656cdd0f376"
+            },
+            {
+              "title": "Helsefagarbeider, vikariat 80%",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/ee259868-22f6-4b5c-8117-32c07cf1c0a2",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/ee259868-22f6-4b5c-8117-32c07cf1c0a2",
+              "date": "2026-10-29",
+              "retrieved_at": "2026-10-29",
+              "content_sha256": "ce4eb5394740a20b6760eddd7b6d44631b56cd5485f70bbc0c1136c7bb345f35"
+            },
+            {
+              "title": "Miljøterapeut",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/e397df4b-8425-48b6-b08e-e432cd49bca8",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/e397df4b-8425-48b6-b08e-e432cd49bca8",
+              "date": "2026-08-05",
+              "retrieved_at": "2026-08-05",
+              "content_sha256": "bc11750b146432044de9001f5d438460d3dfa144eb9b3e786fecf4c57244df78"
+            },
+            {
+              "title": "Konsulent boligkontoret",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/27af7e03-bd65-4a1e-ba28-a7aae1fcef84",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/27af7e03-bd65-4a1e-ba28-a7aae1fcef84",
+              "date": "2026-11-09",
+              "retrieved_at": "2026-11-09",
+              "content_sha256": "f488d01df6be417c929234b3c4a03fce64814c3a0a758b3f6cabecd4e979e231"
+            },
+            {
+              "title": "Spesialpedagog/logoped",
+              "url": "https://arbeidsplassen.nav.no/stillinger/stilling/57d0bb43-04be-4947-ab41-f41dc48b8c84",
+              "source_url": "https://arbeidsplassen.nav.no/stillinger/stilling/57d0bb43-04be-4947-ab41-f41dc48b8c84",
+              "date": "2026-11-02",
+              "retrieved_at": "2026-11-02",
+              "content_sha256": "2e020038b394874ca68bbd93e472d67a82bb7c04abc65d2719ff939f259e0666"
+            }
+          ],
           "identity_assessment": {
             "publishable": false,
             "status": "unverified"
@@ -46127,7 +46624,24 @@
           "description": "No verified website established.",
           "social_links": [],
           "news": [],
-          "jobs": [],
+          "jobs": [
+            {
+              "title": "Saved Jobs (0)",
+              "url": "https://www.halliburton.com/saved-jobs",
+              "source_url": "https://www.halliburton.com/saved-jobs",
+              "date": "2026-11-01",
+              "retrieved_at": "2026-11-01",
+              "content_sha256": "5beda81607b03aeb68d9114c94178663ba93621d4720c51201fd200d07a6cfc3"
+            },
+            {
+              "title": "Featured jobs",
+              "url": "https://www.halliburton.com/careers",
+              "source_url": "https://www.halliburton.com/careers",
+              "date": "2026-11-01",
+              "retrieved_at": "2026-11-01",
+              "content_sha256": "d8a6e0980e29d00b28adcd8a311c05cb9cb754dca9afb53fbf33ea88a9ea3726"
+            }
+          ],
           "identity_assessment": {
             "publishable": false,
             "status": "unverified"
@@ -78325,7 +78839,16 @@
           "description": "No verified website established.",
           "social_links": [],
           "news": [],
-          "jobs": [],
+          "jobs": [
+            {
+              "title": "Miljøterapeut / FagarbeiderArbeidsgiver: Signo grunn- og videregående skole ASSted: Andebu",
+              "url": "https://apply.recman.no/job_post.php?id=491759&path=api",
+              "source_url": "https://apply.recman.no/job_post.php?id=491759&path=api",
+              "date": "2026-11-01",
+              "retrieved_at": "2026-11-01",
+              "content_sha256": "c7256c427fa1d37b349e2e12a9237e79a9e984fb5963e1f394beb525d4c0e778"
+            }
+          ],
           "identity_assessment": {
             "publishable": false,
             "status": "unverified"
@@ -185540,7 +186063,16 @@
           "description": "No verified website established.",
           "social_links": [],
           "news": [],
-          "jobs": [],
+          "jobs": [
+            {
+              "title": "Bli med i teamet  vårt",
+              "url": "https://www.kitron.com/jobb",
+              "source_url": "https://www.kitron.com/jobb",
+              "date": "2026-11-01",
+              "retrieved_at": "2026-11-01",
+              "content_sha256": "f356dbb92506858701d45f79f13e3152f3160d865aad80d874c2098b7f4dcf18"
+            }
+          ],
           "identity_assessment": {
             "publishable": false,
             "status": "unverified"
@@ -212515,7 +213047,24 @@
           "description": "No verified website established.",
           "social_links": [],
           "news": [],
-          "jobs": [],
+          "jobs": [
+            {
+              "title": "Explore our job openings",
+              "url": "https://www.glamox.com/careers",
+              "source_url": "https://www.glamox.com/careers",
+              "date": "2026-11-01",
+              "retrieved_at": "2026-11-01",
+              "content_sha256": "59ac46e8392b53ee996fa1d695597a90f65c31e1f914ef6644f0d18759d8aa79"
+            },
+            {
+              "title": "System Engineer (M/F)Sourcing, Production and Logistics·Dobczyce·Onsite",
+              "url": "https://career.glamox.com/jobs/8628307-system-engineer-m-f",
+              "source_url": "https://career.glamox.com/jobs/8628307-system-engineer-m-f",
+              "date": "2026-11-01",
+              "retrieved_at": "2026-11-01",
+              "content_sha256": "03939450637fa829e942b81ebbf218ca802e252c7efe780629c9d100da9f50c0"
+            }
+          ],
           "identity_assessment": {
             "publishable": false,
             "status": "unverified"
@@ -327612,7 +328161,40 @@
           "description": "No verified website established.",
           "social_links": [],
           "news": [],
-          "jobs": [],
+          "jobs": [
+            {
+              "title": "+47  51 65 60 00",
+              "url": "https://abridialogue.no/jobb",
+              "source_url": "https://abridialogue.no/jobb",
+              "date": "2026-11-01",
+              "retrieved_at": "2026-11-01",
+              "content_sha256": "e008e9d808ec52249b45c5f5618a6a049995a9ec7a4a0a86426917c19fdd8b58"
+            },
+            {
+              "title": "Luramyrveien 40, 4313 Sandnes",
+              "url": "https://abridialogue.no/jobb",
+              "source_url": "https://abridialogue.no/jobb",
+              "date": "2026-11-01",
+              "retrieved_at": "2026-11-01",
+              "content_sha256": "e008e9d808ec52249b45c5f5618a6a049995a9ec7a4a0a86426917c19fdd8b58"
+            },
+            {
+              "title": "På utkikk etter helgejobb som BPA?",
+              "url": "https://abridialogue.no/ledige-stillinger",
+              "source_url": "https://abridialogue.no/ledige-stillinger",
+              "date": "2026-11-01",
+              "retrieved_at": "2026-11-01",
+              "content_sha256": "f5679249d3860a833e8f2a2ec828b598328ba156aa96c0ff3740e6886e917d66"
+            },
+            {
+              "title": "Funksjonsassistent og BPA-assistenter søkes til hyggelig BPA-ordning på Stokka",
+              "url": "https://abridialogue.no/ledige-stillinger",
+              "source_url": "https://abridialogue.no/ledige-stillinger",
+              "date": "2026-11-01",
+              "retrieved_at": "2026-11-01",
+              "content_sha256": "f5679249d3860a833e8f2a2ec828b598328ba156aa96c0ff3740e6886e917d66"
+            }
+          ],
           "identity_assessment": {
             "publishable": false,
             "status": "unverified"
