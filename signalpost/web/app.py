@@ -51,7 +51,7 @@ ALIASES = {
     "apple":["aapl"],"amazon":["amzn","amazone"],"nvidia":["nvdia","nvda","nvidea"],
     "tesla":["tsla","tesle"],"meta":["facebook","fb","facbook"],
     "samsung":["samsng"],"openai":["opn ai","open ai","chatgpt","gpt"],
-    "anthropic":["antropic","anthopic","claude ai","claude"],
+    "anthropic":["antropic","anthopic","antrophic","claude ai","claude"],
     "deepmind":["deep mind","google deepmind"],"mistral":["mistral ai"],
     "tcs":["tata consultancy","tata consulting"],"tata motors":["tatamotors","tata motor"],
     "infosys":["infy","infosis","infosys ltd","infosys limited"],"wipro":["wipro ltd"],
