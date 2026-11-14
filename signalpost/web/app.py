@@ -1274,3 +1274,11 @@ def create_app(profiles_path="out/signalpost_final.json"):
         return render_template("explorer.html")
 
     return app
+
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5001))
+    host = os.environ.get("HOST", "0.0.0.0")
+    application = create_app()
+    print(f"Starting Signalpost Explorer server on http://{host}:{port}")
+    application.run(host=host, port=port, debug=False)
