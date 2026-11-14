@@ -689,7 +689,7 @@ function openEvidenceModal(){{
     }},
     {{
       title:'👥 Leadership, Governance & Board Roles',
-      status:(x.roles?.items||[]).length?`✅ ${(x.roles.items||[]).length} Roles Verified`:'ℹ️ No Public Roles Returned',
+      status:(x.roles?.items||[]).length?`✅ ${{(x.roles.items||[]).length}} Roles Verified`:'ℹ️ No Public Roles Returned',
       source:x.roles?.source||`https://data.brreg.no/enhetsregisteret/api/enheter/${{x.org}}/roller`,
       method:'Brønnøysundregistrene Roller API',
       retrievedAt:x.roles?.retrievedAt||'2026-11-14',
