@@ -152,11 +152,17 @@ def align_profile(row: dict[str, Any]) -> dict[str, Any]:
     official_website = wp.get("official_website")
     web_url = ""
     if isinstance(official_website, dict) and official_website.get("url"):
-        web_url = str(official_website["url"]).strip()
+        candidate = str(official_website["url"]).strip()
+        if candidate.startswith(("http://", "https://")):
+            web_url = candidate
     elif isinstance(p.get("website"), str) and p["website"]:
-        web_url = str(p["website"]).strip()
-    elif p.get("brreg_hjemmeside"):
-        web_url = str(p["brreg_hjemmeside"]).strip()
+        candidate = p["website"].strip()
+        if candidate.startswith(("http://", "https://")):
+            web_url = candidate
+    elif isinstance(p.get("brreg_hjemmeside"), str) and p["brreg_hjemmeside"]:
+        candidate = p["brreg_hjemmeside"].strip()
+        if candidate.startswith(("http://", "https://")):
+            web_url = candidate
 
     p["website"] = web_url
 
