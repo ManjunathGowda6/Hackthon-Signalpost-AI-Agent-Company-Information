@@ -63,11 +63,11 @@ def test_explorer_html_buyer_features():
 
 
 def test_explorer_api_growth_filter():
-    from signalpost.web.explorer_api import _build_card, COMPANIES_IX, PROFILES_IX, init_explorer
-    init_explorer()
-    equinor = COMPANIES_IX.get("923609016")
+    import signalpost.web.explorer_api as exp
+    exp.init_explorer()
+    equinor = exp.COMPANIES_IX.get("923609016")
     assert equinor is not None
-    card = _build_card(equinor)
+    card = exp._build_card(equinor)
     assert "summary" in card
     assert "yoy_growth" in card
     assert "is_growing" in card
