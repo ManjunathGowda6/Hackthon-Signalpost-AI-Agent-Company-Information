@@ -609,8 +609,11 @@ def search():
 
     cards = [_build_card(c) for c in page_results]
 
-    # Append global cards if not already present
-    if cards:
+    best_norwegian_score = scored[0][0] if (q and not is_orgnr and 'scored' in locals() and scored) else 0.0
+    if global_cards and best_norwegian_score < 0.85:
+        cards = global_cards + [_build_card(c) for c in page_results if c.get("n", "").lower() not in {gc["name"].lower() for gc in global_cards}]
+        total += len(global_cards)
+    elif cards:
         seen_names = {c["name"].lower() for c in cards}
         for gc_card in global_cards:
             if gc_card["name"].lower() not in seen_names:
