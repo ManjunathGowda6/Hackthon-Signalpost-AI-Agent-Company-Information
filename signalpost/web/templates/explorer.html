@@ -1402,15 +1402,48 @@ function renderCompareTable() {
 function onSearchInput(val) {
   state.query = val;
   state.page = 1;
+  const clearBtn = document.getElementById('searchClearBtn');
+  if (clearBtn) {
+    if (val) clearBtn.classList.remove('hidden');
+    else clearBtn.classList.add('hidden');
+  }
   clearTimeout(searchTimer);
   clearTimeout(suggestTimer);
-  searchTimer = setTimeout(doSearch, 350);
-  suggestTimer = setTimeout(() => fetchSuggestions(val), 200);
+  searchTimer = setTimeout(doSearch, 300);
+  suggestTimer = setTimeout(() => fetchSuggestions(val), 150);
+}
+
+function onSearchFocus() {
+  state.suggestFocused = true;
+  updateSuggestionsDropdown();
+}
+
+function onSearchBlur() {
+  setTimeout(() => {
+    state.suggestFocused = false;
+    updateSuggestionsDropdown();
+  }, 200);
+}
+
+function clearSearchInput() {
+  state.query = '';
+  state.page = 1;
+  const inp = document.getElementById('searchInput');
+  if (inp) {
+    inp.value = '';
+    inp.focus();
+  }
+  const clearBtn = document.getElementById('searchClearBtn');
+  if (clearBtn) clearBtn.classList.add('hidden');
+  state.suggestions = [];
+  updateSuggestionsDropdown();
+  doSearch();
 }
 
 function selectSuggestion(orgnr, name) {
   state.suggestions = [];
   state.suggestFocused = false;
+  updateSuggestionsDropdown();
   loadProfile(orgnr);
 }
 
@@ -1456,6 +1489,7 @@ function goCompareTab() {
 // ── Init ──
 (async function init() {
   await loadMeta();
+  render();
   await doSearch();
 })();
 </script>
