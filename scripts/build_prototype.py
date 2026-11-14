@@ -199,6 +199,12 @@ def compact(row: dict, external_observations: list[dict] | None = None) -> dict:
         "liveStatus": live.get("status", "not_run"),
         "changes": row.get("change_history") or [],
         "external": external,
+        "summary": row.get("summary") or (row.get("synthesis") or {}).get("summary", ""),
+        "news": row.get("news") or (row.get("evidence", {}).get("website", {}).get("value", {}) or {}).get("news", []),
+        "jobs": row.get("jobs") or (row.get("evidence", {}).get("website", {}).get("value", {}) or {}).get("jobs", []),
+        "yoy": (row.get("annual_accounts") or {}).get("yoy_summary") or row.get("yoy_summary") or {},
+        "financialsSummary": row.get("financials") or {},
+        "verificationMethod": row.get("verification_method") or "",
     }
 
 
