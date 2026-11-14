@@ -595,6 +595,18 @@ function compareSamplePair(){{
   }}
 }}
 
+function compareRandomPair(){{
+  const withFin=DATA.filter(x=>x.financial&&x.financial.status==='available');
+  const pool=withFin.length>=2?withFin:DATA;
+  const i1=Math.floor(Math.random()*pool.length);
+  let i2=Math.floor(Math.random()*pool.length);
+  while(i2===i1&&pool.length>1) i2=Math.floor(Math.random()*pool.length);
+  compareSelected=[pool[i1].org,pool[i2].org];
+  updateCompareBar();
+  renderList();
+  openCompareModal();
+}}
+
 function openCompareModal(){{
   if(compareSelected.length<2){{
     compareSamplePair();
