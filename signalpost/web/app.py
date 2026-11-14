@@ -843,6 +843,17 @@ def web_search_company(query):
     return "\n".join(lines), wiki_title
 
 
+def _serve_prototype():
+    for candidate in [
+        Path("out/index.html"),
+        Path("docs/index.html"),
+        Path(__file__).parent / "templates" / "prototype.html",
+    ]:
+        if candidate.exists():
+            return send_file(candidate, mimetype="text/html")
+    return render_template("prototype.html")
+
+
 @app.route("/")
 def index():
     if request.args.get("view") == "chat":
@@ -855,12 +866,12 @@ def index():
     if user_email and request.args.get("view") != "prototype":
         user_name = session.get("user_name", user_email)
         return render_template("chat.html", user_email=user_email, user_name=user_name)
-    return render_template("prototype.html")
+    return _serve_prototype()
 
 
 @app.route("/prototype")
 def prototype():
-    return render_template("prototype.html")
+    return _serve_prototype()
 
 
 @app.route("/chat")
