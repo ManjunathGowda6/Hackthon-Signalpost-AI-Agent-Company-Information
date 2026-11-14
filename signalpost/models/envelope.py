@@ -115,6 +115,15 @@ class CompanyEnvelope(BaseModel):
     legal_form: Optional[str] = None
     municipality: Optional[str] = None
     website: Optional[str] = None
+    industry_code: Optional[str] = None
+    industry_label: Optional[str] = None
+    employees: Optional[int] = None
+    bankrupt: bool = False
+    liquidating: bool = False
+    adverse: bool = False
+    sample_slice: str = "population"
+    evaluation_split: str = "submission"
+    latest_submitted_accounts: Optional[str] = None
     profile_version: int = 1
     generated_at: str = Field(default_factory=utc_now)
     status: str = "available"
@@ -127,6 +136,7 @@ class CompanyEnvelope(BaseModel):
     evidence: Optional[EvidenceSummary] = None
     refresh_metadata: Optional[RefreshMetadata] = None
     synthesis: Optional[Synthesis] = None
+    external: Optional[dict[str, Any]] = None
 
     @classmethod
     def create_not_available(cls, org_number: str) -> "CompanyEnvelope":
