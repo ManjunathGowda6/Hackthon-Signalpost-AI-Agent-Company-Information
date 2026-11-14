@@ -8,6 +8,34 @@
 
 ---
 
+## ⚡ Quick Start: One Command To Install & Run (Zero API Keys Required)
+
+> [!IMPORTANT]
+> **Zero Paid API Keys Required:** Signalpost operates **100% autonomously** using official Norwegian government APIs (Brønnøysundregistrene Enhetsregisteret, Regnskapsregisteret, Roller, NAV Arbeidsplassen) and deterministic verified web crawling. No OpenAI, Anthropic, or third-party paid API keys are needed to run or evaluate the system.
+
+### One-Line Setup & CLI Verification:
+```bash
+git clone https://github.com/ManjunathGowda6/Hackthon-Signalpost-AI-Agent-Company-Information.git && cd Hackthon-Signalpost-AI-Agent-Company-Information && pip install -r requirements.txt && python -m signalpost --help
+```
+
+### Run Batch Profile Generation on Any Input:
+```bash
+python scripts/run_competition_batch.py --input examples/starter_slice.json --output out/submission_profiles.json
+```
+
+### Launch Interactive Web Explorer & Evaluator UI:
+```bash
+python scripts/serve_explorer.py --port 5001
+# Open http://localhost:5001 in your browser
+```
+
+### Run the Complete 100% Verification Gauntlet:
+```bash
+python scripts/run_research_evaluation.py && python scripts/generate_competition_reports.py
+```
+
+---
+
 ## Executive Summary
 
 Signalpost is an autonomous enterprise intelligence agent built specifically for the Norwegian corporate landscape. Given any 9-digit Norwegian organisation number (`organisasjonsnummer`), Signalpost gathers, cross-references, validates, synthesizes, and audits data from authorized official registries and verified digital footprints without human intervention or data fabrication.
