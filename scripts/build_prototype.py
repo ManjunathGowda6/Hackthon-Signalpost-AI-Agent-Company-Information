@@ -287,7 +287,7 @@ function isProfitableAndGrowing(x){{
   const op=rec?.operating_result;
   if(op==null||op<=0)return false;
   const yoyText=x.yoy?.text||'';
-  return /Revenue:[^(]+\(\+[\d.]+%\)/.test(yoyText);
+  return /Revenue:[^(]+\\(\\+[\\d.]+%\\)/.test(yoyText);
 }}
 
 function updateBuyerPills(){{
