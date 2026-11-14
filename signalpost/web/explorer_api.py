@@ -1,17 +1,33 @@
 """Signalpost Explorer – REST API for the Company Intelligence web app."""
 import json
 import re
+import urllib.parse
 from pathlib import Path
 from difflib import SequenceMatcher
 from flask import Blueprint, request, jsonify
 
 explorer_bp = Blueprint("explorer", __name__, url_prefix="/explorer/api")
 
+# Optional import of ALIASES and web search from app
+try:
+    from signalpost.web.app import ALIASES, web_search_company
+except ImportError:
+    ALIASES = {
+        "anthropic": ["antropic", "anthopic", "antrophic", "claude ai", "claude"],
+        "openai": ["opn ai", "open ai", "chatgpt", "gpt"],
+        "google": ["gogle", "googl", "goolge", "alphabet"],
+    }
+    web_search_company = None
+
 # ── Data Stores (populated by init_explorer) ──
 PROFILES: list[dict] = []
 PROFILES_IX: dict[str, dict] = {}          # org_number → profile
 COMPANIES: list[dict] = []                 # all_companies.json rows
 COMPANIES_IX: dict[str, dict] = {}         # org_number → company row
+GLOBAL_COMPANIES: list[dict] = []          # global_companies.json rows
+GLOBAL_BY_ID: dict[str, dict] = {}         # GLOBAL-ID → global company dict
+GLOBAL_IX: dict[str, dict] = {}            # name/alias/keyword → global company dict
+DYNAMIC_COMPANIES: dict[str, dict] = {}    # real-time web-searched companies
 
 SECTOR_MAP = {
     "01": "Agriculture", "02": "Forestry", "03": "Fishing & Aquaculture",
@@ -31,8 +47,8 @@ SECTOR_MAP = {
 
 
 def init_explorer():
-    """Load data files into memory.  Called once at startup."""
-    global PROFILES, PROFILES_IX, COMPANIES, COMPANIES_IX
+    """Load data files into memory. Called once at startup."""
+    global PROFILES, PROFILES_IX, COMPANIES, COMPANIES_IX, GLOBAL_COMPANIES, GLOBAL_BY_ID, GLOBAL_IX
 
     p1 = Path("out/signalpost_final.json")
     if p1.exists():
@@ -44,7 +60,31 @@ def init_explorer():
         COMPANIES = json.loads(p2.read_text(encoding="utf-8"))
         COMPANIES_IX = {c["o"]: c for c in COMPANIES}
 
-    print(f"  [Explorer] {len(PROFILES)} profiles, {len(COMPANIES)} directory entries loaded")
+    p3 = Path("data/global_companies.json")
+    if p3.exists():
+        GLOBAL_COMPANIES = json.loads(p3.read_text(encoding="utf-8"))
+        for gc in GLOBAL_COMPANIES:
+            gc_id = "GLOBAL-" + re.sub(r'[^a-zA-Z0-9]+', '-', gc["name"]).strip('-').upper()
+            gc["id"] = gc_id
+            GLOBAL_BY_ID[gc_id] = gc
+            name_lower = gc["name"].lower()
+            GLOBAL_IX[name_lower] = gc
+            GLOBAL_IX[gc_id.lower()] = gc
+            for part in re.split(r'[/\(\)]', name_lower):
+                part = part.strip()
+                if len(part) >= 2:
+                    GLOBAL_IX[part] = gc
+            for word in name_lower.split():
+                if len(word) >= 3 and word not in ('the', 'and', 'for'):
+                    GLOBAL_IX[word] = gc
+            for alt in ALIASES.get(name_lower, []):
+                GLOBAL_IX[alt.lower()] = gc
+            for tag in gc.get("tags", "").split(","):
+                tag = tag.strip().lower()
+                if len(tag) >= 2:
+                    GLOBAL_IX[tag] = gc
+
+    print(f"  [Explorer] {len(PROFILES)} profiles, {len(COMPANIES)} directory entries, {len(GLOBAL_COMPANIES)} global companies loaded")
 
 
 # ── Helpers ──
