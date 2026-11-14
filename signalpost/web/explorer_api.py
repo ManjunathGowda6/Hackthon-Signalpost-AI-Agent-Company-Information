@@ -107,6 +107,21 @@ def _build_card(c: dict, profile: dict | None = None) -> dict:
     has_jobs = len(hi.get("active_listings", []) or hi.get("job_listings", [])) > 0
     has_social = len(wp.get("social_profiles", [])) > 0
 
+    # Buyer-first intelligence signals
+    summary = (p or {}).get("summary") or ((p or {}).get("synthesis") or {}).get("summary") or ""
+    yoy = ((p or {}).get("annual_accounts") or {}).get("yoy_summary") or (p or {}).get("yoy_summary") or {}
+    yoy_text = yoy.get("text", "") if isinstance(yoy, dict) else str(yoy)
+    m_growth = re.search(r"Revenue:[^(]+\(([+-]?[\d.]+%)\)", yoy_text)
+    yoy_growth_str = m_growth.group(1) if m_growth else None
+
+    news_items = (p or {}).get("news") or wp.get("news_items", []) or []
+    job_items = (p or {}).get("jobs") or hi.get("active_listings", []) or hi.get("job_listings", []) or []
+    latest_news = news_items[0].get("title") if news_items else None
+    latest_news_date = news_items[0].get("date") if news_items else None
+
+    op_val = ((aa.get("operating_profit") or {}).get("value")) or ((p or {}).get("financials") or {}).get("operating_result")
+    is_profitable_and_growing = bool(op_val and op_val > 0 and yoy_growth_str and yoy_growth_str.startswith("+"))
+
     return {
         "orgnr": org,
         "name": c.get("n", ""),
@@ -124,6 +139,13 @@ def _build_card(c: dict, profile: dict | None = None) -> dict:
         "has_news": has_news,
         "has_jobs": has_jobs,
         "has_social": has_social,
+        "summary": summary,
+        "yoy_growth": yoy_growth_str,
+        "is_growing": is_profitable_and_growing,
+        "news_count": len(news_items),
+        "jobs_count": len(job_items),
+        "latest_news": latest_news,
+        "latest_news_date": latest_news_date,
     }
 
 
