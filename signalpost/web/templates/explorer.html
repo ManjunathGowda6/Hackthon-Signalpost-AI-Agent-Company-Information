@@ -1172,6 +1172,7 @@ function toggleHas(key) {
 function clearFilters() {
   state.sector = '';
   state.form = '';
+  state.buyerPill = 'all';
   state.hasFilters.clear();
   state.page = 1;
   doSearch();
