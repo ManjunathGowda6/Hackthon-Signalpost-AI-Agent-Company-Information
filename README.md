@@ -4,7 +4,7 @@
 > **Author**: Manjunath Gowda ([manjunathd236@gmail.com](mailto:manjunathd236@gmail.com))  
 > **Repository**: [GitHub Repository](https://github.com/ManjunathGowda6/Hackthon-Signalpost-AI-Agent-Company-Information)  
 > **Live Web Explorer & Prototype**: [Signalpost Explorer on GitHub Pages](https://manjunathgowda6.github.io/Hackthon-Signalpost-AI-Agent-Company-Information/)  
-> **Latest Release Commit**: `87e4032d8c0c67ec201437937416e47a448d3191`
+> **Latest Release Commit**: `4bdcf55aa766b6a4709d0b4ee3c4ca80efe7c375`
 
 ---
 
