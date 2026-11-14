@@ -904,6 +904,9 @@ function renderProfile(){{
   const latestNews=(x.news&&x.news[0])?`"${{esc(x.news[0].title||'')}}" (${{esc(x.news[0].date||'')}})`:'';
 
   $('#profile').innerHTML=`
+    <div style="margin-bottom:8px" class="mobile-only-btn">
+      <button type="button" class="buyer-btn" onclick="$('#q').scrollIntoView({{behavior:'smooth'}})" style="font-size:11px">↑ Back to search &amp; list</button>
+    </div>
     <div class="profile-head">
       <div>
         <div class="eyebrow">${{esc(x.slice)}} sample · ${{esc(x.split)}}</div>
