@@ -701,6 +701,7 @@ class Orchestrator:
             "jobs": dump.get("jobs", []),
         }
 
+        dump = align_profile(dump)
         return dump
 
     def _build_legal_identity(self, entity: dict, org_number: str, now: str) -> LegalIdentity:
