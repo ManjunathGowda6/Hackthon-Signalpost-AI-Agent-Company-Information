@@ -82,11 +82,14 @@ class EvidenceSummary(BaseModel):
     claims_with_source: int = 0
     source_summary: list[dict[str, Any]] = Field(default_factory=list)
     content_hash: Optional[str] = None
+    registry: Optional[dict[str, Any]] = None
     registry_live: Optional[dict[str, Any]] = None
     financials: Optional[dict[str, Any]] = None
+    financial_history: Optional[dict[str, Any]] = None
     roles: Optional[dict[str, Any]] = None
     locations: Optional[dict[str, Any]] = None
     website: Optional[dict[str, Any]] = None
+    accounting_obligation: Optional[dict[str, Any]] = None
 
 
 class RefreshMetadata(BaseModel):
