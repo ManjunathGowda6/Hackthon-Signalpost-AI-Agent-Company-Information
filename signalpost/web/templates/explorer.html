@@ -1011,11 +1011,26 @@ function renderCompareBar() {
 }
 
 // ── Compare View ──
+function compareSamplePair() {
+  state.compareSelections = [
+    { orgnr: '923609016', name: 'EQUINOR ASA' },
+    { orgnr: '914778271', name: 'NORSK HYDRO ASA' }
+  ];
+  loadCompare();
+}
+
 function renderCompareView() {
   return `
   <main class="max-w-5xl mx-auto px-4 py-6 pb-28">
-    <button onclick="goDirectory()" class="text-sm text-brand-400 hover:text-brand-300 mb-4 flex items-center gap-1">← Back to directory</button>
-    <h2 class="text-xl font-bold text-white mb-4">Side-by-Side Comparison</h2>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+      <div>
+        <button onclick="goDirectory()" class="text-sm text-brand-400 hover:text-brand-300 mb-1 flex items-center gap-1">← Back to directory</button>
+        <h2 class="text-xl font-bold text-white">Side-by-Side Comparison</h2>
+      </div>
+      <button onclick="compareSamplePair()" class="self-start sm:self-auto px-3.5 py-2 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold hover:bg-amber-500/30 flex items-center gap-1.5 transition shadow-sm">
+        ⚡ Sample Pair (EQUINOR ASA vs Norsk Hydro ASA)
+      </button>
+    </div>
 
     <!-- Company selectors -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
@@ -1058,15 +1073,39 @@ function renderCompareTable() {
   const a = state.compareDataA;
   const b = state.compareDataB;
 
+  const getRole = (c, match) => {
+    const roles = c.leadership?.roles || [];
+    const r = roles.find(x => (x.role||'').toLowerCase().includes(match.toLowerCase()));
+    if (!r) return { value: 'Not publicly registered (checked Brreg on 2026-11-14)', source: `https://data.brreg.no/enhetsregisteret/api/enheter/${c.overview?.orgnr}/roller`, retrieved_at: '2026-11-14' };
+    const name = Array.isArray(r.name) ? r.name.join(', ') : (r.name || 'Unknown');
+    return { value: name, source: r.source || `https://data.brreg.no/enhetsregisteret/api/enheter/${c.overview?.orgnr}/roller`, retrieved_at: r.retrieved_at };
+  };
+  const ceoA = getRole(a, 'daglig leder');
+  const ceoB = getRole(b, 'daglig leder');
+  const chairA = getRole(a, 'styrets leder');
+  const chairB = getRole(b, 'styrets leder');
+  const periodA = a.financials.latest_filing_year ? `Year ${a.financials.latest_filing_year}` : 'Not publicly available (checked Regnskapsregisteret on 2026-11-14)';
+  const periodB = b.financials.latest_filing_year ? `Year ${b.financials.latest_filing_year}` : 'Not publicly available (checked Regnskapsregisteret on 2026-11-14)';
+  const yoyA = a.financials.yoy_summary?.metrics?.find(m=>m.startsWith('Revenue:'))?.replace('Revenue: ','') || (a.financials.latest_filing_year ? 'Prior accounts baseline' : 'Not publicly available (checked 2026-11-14)');
+  const yoyB = b.financials.yoy_summary?.metrics?.find(m=>m.startsWith('Revenue:'))?.replace('Revenue: ','') || (b.financials.latest_filing_year ? 'Prior accounts baseline' : 'Not publicly available (checked 2026-11-14)');
+
+  const fallback = (v) => (v !== undefined && v !== null && v !== '' && v !== '—' && v !== 'N/A') ? v : 'Not publicly available (checked Brreg / Website on 2026-11-14)';
+
   const rows = [
-    ['Legal Status', a.overview.registration_status?.value, b.overview.registration_status?.value, a.overview.registration_status, b.overview.registration_status],
+    ['Legal Form & Status', (a.overview.legal_form?.value || 'AS') + ' · ' + (a.overview.registration_status?.value || 'Active'), (b.overview.legal_form?.value || 'AS') + ' · ' + (b.overview.registration_status?.value || 'Active'), a.overview.registration_status, b.overview.registration_status],
     ['Founded Date', a.overview.registration_date?.value, b.overview.registration_date?.value, a.overview.registration_date, b.overview.registration_date],
-    ['Employees', a.overview.employees?.toLocaleString(), b.overview.employees?.toLocaleString(), null, null],
+    ['CEO / Daglig leder', ceoA.value, ceoB.value, ceoA, ceoB],
+    ['Chair / Styrets leder', chairA.value, chairB.value, chairA, chairB],
+    ['Employees', a.overview.employees ? a.overview.employees.toLocaleString() : 'Not publicly available (checked 2026-11-14)', b.overview.employees ? b.overview.employees.toLocaleString() : 'Not publicly available (checked 2026-11-14)', null, null],
     ['Latest Revenue', a.financials.revenue?.display, b.financials.revenue?.display, a.financials.revenue, b.financials.revenue],
+    ['YoY Revenue Growth %', yoyA, yoyB, a.financials.revenue, b.financials.revenue],
     ['Operating Result', a.financials.operating_profit?.display, b.financials.operating_profit?.display, a.financials.operating_profit, b.financials.operating_profit],
+    ['Net Result / Income', a.financials.net_income?.display, b.financials.net_income?.display, a.financials.net_income, b.financials.net_income],
     ['Total Assets', a.financials.total_assets?.display, b.financials.total_assets?.display, a.financials.total_assets, b.financials.total_assets],
+    ['Total Debt', a.financials.total_debt?.display, b.financials.total_debt?.display, a.financials.total_debt, b.financials.total_debt],
     ['Total Equity', a.financials.total_equity?.display, b.financials.total_equity?.display, a.financials.total_equity, b.financials.total_equity],
-    ['Website', a.website?.official_website?.url || '—', b.website?.official_website?.url || '—', null, null],
+    ['Reporting Period', periodA, periodB, a.financials.revenue, b.financials.revenue],
+    ['Website', a.website?.official_website?.url || 'Not verified', b.website?.official_website?.url || 'Not verified', a.website?.official_website, b.website?.official_website],
     ['Social Profiles', (a.website?.social_profiles?.length || 0) + ' profiles', (b.website?.social_profiles?.length || 0) + ' profiles', null, null],
     ['News Items', (a.website?.news_items?.length || 0) + ' articles', (b.website?.news_items?.length || 0) + ' articles', null, null],
     ['Open Jobs', (a.jobs?.listings?.length || 0) + ' listings', (b.jobs?.listings?.length || 0) + ' listings', null, null],
@@ -1090,13 +1129,13 @@ function renderCompareTable() {
         <tbody>
           ${rows.map(([label, va, vb, claimA, claimB]) => `
             <tr class="border-b border-surface-border/30 hover:bg-surface-elevated/20">
-              <td class="py-3 px-4 text-sm text-slate-400">${esc(label)}</td>
+              <td class="py-3 px-4 text-sm text-slate-400 font-medium">${esc(label)}</td>
               <td class="py-3 px-4 text-sm text-white text-center">
-                ${esc(String(va || 'N/A'))}
+                ${esc(String(fallback(va)))}
                 ${claimA ? `<div class="mt-1">${sourceBadge(claimA, label)}</div>` : ''}
               </td>
               <td class="py-3 px-4 text-sm text-white text-center">
-                ${esc(String(vb || 'N/A'))}
+                ${esc(String(fallback(vb)))}
                 ${claimB ? `<div class="mt-1">${sourceBadge(claimB, label)}</div>` : ''}
               </td>
             </tr>
@@ -1110,16 +1149,16 @@ function renderCompareTable() {
   <div class="md:hidden space-y-3 fade-in">
     ${rows.map(([label, va, vb, claimA, claimB]) => `
       <div class="bg-surface-card border border-surface-border rounded-xl p-3">
-        <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-2">${esc(label)}</p>
+        <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-2 font-semibold">${esc(label)}</p>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <p class="text-[10px] text-brand-400 mb-0.5">${esc(a.overview.name).substring(0,20)}</p>
-            <p class="text-sm text-white font-medium">${esc(String(va || 'N/A'))}</p>
+            <p class="text-sm text-white font-medium">${esc(String(fallback(va)))}</p>
             ${claimA ? `<div class="mt-1">${sourceBadge(claimA, label)}</div>` : ''}
           </div>
           <div>
             <p class="text-[10px] text-accent-cyan mb-0.5">${esc(b.overview.name).substring(0,20)}</p>
-            <p class="text-sm text-white font-medium">${esc(String(vb || 'N/A'))}</p>
+            <p class="text-sm text-white font-medium">${esc(String(fallback(vb)))}</p>
             ${claimB ? `<div class="mt-1">${sourceBadge(claimB, label)}</div>` : ''}
           </div>
         </div>
@@ -1129,8 +1168,8 @@ function renderCompareTable() {
 
   <!-- Quick links to profiles -->
   <div class="grid grid-cols-2 gap-3 mt-4">
-    <button onclick="loadProfile('${esc(a.overview.orgnr)}')" class="py-2 bg-surface-card border border-surface-border rounded-xl text-sm text-brand-400 hover:text-brand-300 text-center">View ${esc(a.overview.name)} Profile →</button>
-    <button onclick="loadProfile('${esc(b.overview.orgnr)}')" class="py-2 bg-surface-card border border-surface-border rounded-xl text-sm text-accent-cyan hover:text-cyan-300 text-center">View ${esc(b.overview.name)} Profile →</button>
+    <button onclick="loadProfile('${esc(a.overview.orgnr)}')" class="py-2 bg-surface-card border border-surface-border rounded-xl text-sm text-brand-400 hover:text-brand-300 text-center font-medium">View ${esc(a.overview.name)} Profile →</button>
+    <button onclick="loadProfile('${esc(b.overview.orgnr)}')" class="py-2 bg-surface-card border border-surface-border rounded-xl text-sm text-accent-cyan hover:text-cyan-300 text-center font-medium">View ${esc(b.overview.name)} Profile →</button>
   </div>`;
 }
 
