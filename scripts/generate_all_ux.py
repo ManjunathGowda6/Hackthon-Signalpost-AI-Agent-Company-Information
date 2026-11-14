@@ -17,9 +17,10 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-STARTER_KIT = Path(r"C:\Users\nisar\Downloads\signalpost-starter-kit\signalpost-starter-kit")
-if str(STARTER_KIT) not in sys.path:
-    sys.path.insert(0, str(STARTER_KIT))
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+if str(ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(ROOT / "src"))
 
 from scripts.build_prototype import build
 
