@@ -182,7 +182,7 @@ print("Wrote out/resume-report.json")
 # Run score_competition_v3.py
 cmd = [
     sys.executable,
-    str(STARTER_KIT / "scripts" / "score_competition_v3.py"),
+    str(ROOT / "scripts" / "score_competition_v3.py"),
     "--profiles", "out/profiles.jsonl",
     "--external-report", "out/external-report.json",
     "--batch-report", "out/batch-report.json",
