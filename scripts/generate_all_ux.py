@@ -4,10 +4,7 @@ scripts/generate_all_ux.py
 
 Generates the official Builderr Starter Kit prototype HTML and writes it to:
 - out/index.html
-- out/prototype.html
-- site/index.html
-- public/index.html
-- signalpost/web/templates/prototype.html
+- docs/index.html (for GitHub Pages live hosting)
 """
 
 from __future__ import annotations
@@ -61,10 +58,7 @@ def main() -> None:
 
     targets = [
         ROOT / "out" / "index.html",
-        ROOT / "out" / "prototype.html",
-        ROOT / "site" / "index.html",
-        ROOT / "public" / "index.html",
-        ROOT / "signalpost" / "web" / "templates" / "prototype.html",
+        ROOT / "docs" / "index.html",
     ]
 
     for target in targets:
