@@ -64,6 +64,7 @@ body { background: #0f172a; color: #e2e8f0; }
 <body class="h-full">
 
 <div id="app"></div>
+<div id="toast" class="fixed bottom-6 right-6 bg-slate-900 border border-slate-700 text-white text-xs px-4 py-2.5 rounded-lg shadow-2xl z-50 transition-opacity duration-200 opacity-0 pointer-events-none"></div>
 
 <script>
 // ──────────────────────────────────────────────────────────
@@ -73,6 +74,7 @@ body { background: #0f172a; color: #e2e8f0; }
 const API = '/explorer/api';
 const state = {
   view: 'directory',       // directory | profile | compare
+  buyerPill: 'all',        // all | hiring | news | growth | website
   query: '',
   sector: '',
   form: '',

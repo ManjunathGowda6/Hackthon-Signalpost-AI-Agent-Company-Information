@@ -316,6 +316,15 @@ def search():
             results = [c for c in results if len(PROFILES_IX.get(c["o"], {}).get("website_profiles", {}).get("news_items", [])) > 0]
         elif hf == "jobs":
             results = [c for c in results if len((PROFILES_IX.get(c["o"], {}).get("hiring_activity", {}).get("active_listings", []) or PROFILES_IX.get(c["o"], {}).get("hiring_activity", {}).get("job_listings", []))) > 0]
+        elif hf == "growth":
+            def _is_growth(org):
+                p = PROFILES_IX.get(org, {})
+                aa = p.get("annual_accounts", {}) or {}
+                yoy = (aa.get("yoy_summary") or p.get("yoy_summary") or {})
+                yoy_text = yoy.get("text", "") if isinstance(yoy, dict) else str(yoy)
+                op = ((aa.get("operating_profit") or {}).get("value")) or ((p.get("financials") or {}).get("operating_result"))
+                return bool(op and op > 0 and re.search(r"Revenue:[^(]+\(\+[\d.]+%\)", yoy_text))
+            results = [c for c in results if _is_growth(c["o"])]
 
     total = len(results)
     start = (page - 1) * size
