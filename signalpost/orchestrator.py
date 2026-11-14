@@ -1104,7 +1104,6 @@ class Orchestrator:
             for c in changes[:3]:
                 observations.append(f"  Changed: {c['field']} ({c.get('old')} -> {c.get('new')})")
 
-        summary = " ".join(parts)
         confidence = 0.95 if annual_accounts.status == "available" else 0.7
 
         return {
