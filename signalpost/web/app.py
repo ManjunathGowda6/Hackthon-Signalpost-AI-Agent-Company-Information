@@ -847,28 +847,41 @@ def web_search_company(query):
 
 def _serve_prototype():
     for candidate in [
-        Path("out/index.html"),
-        Path("docs/index.html"),
+        REPO_ROOT / "out" / "index.html",
+        REPO_ROOT / "docs" / "index.html",
         Path(__file__).parent / "templates" / "prototype.html",
     ]:
-        if candidate.exists():
-            return send_file(candidate, mimetype="text/html")
-    return render_template("prototype.html")
+        if candidate.exists() and candidate.stat().st_size > 1000:
+            resp = make_response(send_file(str(candidate.resolve()), mimetype="text/html"))
+            resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            resp.headers["Pragma"] = "no-cache"
+            resp.headers["Expires"] = "0"
+            return resp
+    return render_template("explorer.html")
+
+
+@app.after_request
+def add_no_cache_headers(response):
+    if response.mimetype == "text/html":
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
 
 
 @app.route("/")
 def index():
-    if request.args.get("view") == "chat":
+    view = request.args.get("view", "").strip().lower()
+    if view == "prototype":
+        return _serve_prototype()
+    if view == "chat":
         user_email = session.get("user_email")
         if not user_email:
             return redirect(url_for("login"))
         user_name = session.get("user_name", user_email)
         return render_template("chat.html", user_email=user_email, user_name=user_name)
-    user_email = session.get("user_email")
-    if user_email and request.args.get("view") != "prototype":
-        user_name = session.get("user_name", user_email)
-        return render_template("chat.html", user_email=user_email, user_name=user_name)
-    return _serve_prototype()
+    # Default: Serve Buyer Explorer UI (with direct toggles to Prototype & Chat)
+    return render_template("explorer.html")
 
 
 @app.route("/prototype")
