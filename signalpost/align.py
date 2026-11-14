@@ -373,7 +373,7 @@ def align_profile(row: dict[str, Any]) -> dict[str, Any]:
                     "content_sha256": make_sha256(f"news-{nw['url']}"),
                 }
                 for nw in cleaned_news
-            ] if web_url else [],
+            ],
             "jobs": [
                 {
                     "title": jb["title"],
@@ -384,7 +384,7 @@ def align_profile(row: dict[str, Any]) -> dict[str, Any]:
                     "content_sha256": make_sha256(f"job-{jb['url']}"),
                 }
                 for jb in cleaned_jobs
-            ] if web_url else [],
+            ],
             "identity_assessment": {
                 "publishable": bool(web_url),
                 "status": "exact" if web_url else "unverified",
