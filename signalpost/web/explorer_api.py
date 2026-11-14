@@ -591,11 +591,39 @@ def search():
                 return bool(op and op > 0 and re.search(r"Revenue:[^(]+\(\+[\d.]+%\)", yoy_text))
             results = [c for c in results if _is_growth(c["o"])]
 
+    # Check for global companies matching query
+    global_cards = []
+    if q and not (q.replace(" ", "").isdigit() and len(q.replace(" ", "")) == 9):
+        seen_g = set()
+        for gc in GLOBAL_COMPANIES:
+            name_lower = gc["name"].lower()
+            aliases = ALIASES.get(name_lower, [])
+            if q in name_lower or name_lower in q or any(q in a or a in q for a in aliases) or q in gc.get("tags", "").lower():
+                if gc["name"] not in seen_g:
+                    seen_g.add(gc["name"])
+                    global_cards.append(_build_global_card(gc))
+
     total = len(results)
     start = (page - 1) * size
     page_results = results[start:start + size]
 
     cards = [_build_card(c) for c in page_results]
+
+    if page == 1 and global_cards:
+        cards = global_cards + cards
+        total += len(global_cards)
+
+    # Dynamic AI Web Search fallback if no local results found
+    if total == 0 and not global_cards and len(q) >= 3 and not q.isdigit():
+        web_card = _build_dynamic_web_card(q)
+        if web_card:
+            return jsonify({
+                "total": 1,
+                "page": 1,
+                "size": size,
+                "pages": 1,
+                "results": [web_card],
+            })
 
     return jsonify({
         "total": total,
@@ -655,6 +683,26 @@ def suggest():
     if len(q) < 2:
         return jsonify([])
     results = []
+
+    # 1. Global companies & aliases match
+    seen_names = set()
+    for gc in GLOBAL_COMPANIES:
+        gc_id = gc.get("id") or ("GLOBAL-" + re.sub(r'[^a-zA-Z0-9]+', '-', gc["name"]).strip('-').upper())
+        name_lower = gc["name"].lower()
+        aliases = ALIASES.get(name_lower, [])
+        matches = (q in name_lower or name_lower in q or any(q in a or a in q for a in aliases) or q in gc.get("tags", "").lower())
+        if matches and gc["name"] not in seen_names:
+            seen_names.add(gc["name"])
+            results.append({
+                "orgnr": gc_id,
+                "name": gc["name"],
+                "municipality": gc.get("hq", "Global"),
+                "form": "Global · " + gc.get("sector", "Tech"),
+            })
+            if len(results) >= 5:
+                break
+
+    # 2. Norwegian companies match
     for c in COMPANIES:
         name = (c.get("n") or "").lower()
         if q in name or q == c.get("o", ""):
@@ -666,7 +714,17 @@ def suggest():
             })
             if len(results) >= 10:
                 break
-    return jsonify(results)
+
+    # 3. If under 5 results and query has at least 3 letters, provide 1-click real-time web search
+    if len(results) < 5 and len(q) >= 3 and not q.isdigit():
+        results.append({
+            "orgnr": f"WEB-{re.sub(r'[^a-zA-Z0-9]+', '-', q).strip('-').upper()}",
+            "name": f"🌐 Real-Time AI Search: \"{q.title()}\"",
+            "municipality": "Global Web Intelligence",
+            "form": "Live AI",
+        })
+
+    return jsonify(results[:10])
 
 
 @explorer_bp.route("/sectors")
