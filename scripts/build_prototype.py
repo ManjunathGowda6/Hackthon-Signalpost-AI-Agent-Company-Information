@@ -309,27 +309,38 @@ def build(rows: list[dict], score: dict | None, control_loop: dict | None = None
 /* Responsive Breakpoints for Mobile & Laptop */
 @media(max-width:1150px){{.score-grid{{grid-template-columns:repeat(2,1fr)}}.shell{{grid-template-columns:290px minmax(0,1fr)}}.agent{{grid-column:2;position:static}}}}
 @media(max-width:768px){{
-  .mast{{flex-direction:column;align-items:flex-start;gap:10px;padding:14px 18px}}
-  .hero{{padding:20px 18px 14px}}
+  .mast{{flex-direction:column;align-items:flex-start;gap:10px;padding:12px 16px}}
+  .brand-logo{{width:30px;height:30px;font-size:14px}}
+  .hero{{padding:18px 16px 12px}}
+  h1{{font-size:26px;line-height:1.2}}
   .stats,.score-grid{{grid-template-columns:repeat(2,1fr)}}
-  .shell{{grid-template-columns:1fr;padding:0 16px 90px}}
-  .list{{max-height:420px}}
-  .profile{{order:2;padding:18px 16px}}
-  .agent{{grid-column:1;order:3;position:static}}
+  .shell{{grid-template-columns:1fr;padding:0 14px 90px}}
+  .list{{max-height:360px}}
+  .profile{{order:2;padding:16px 14px}}
+  .agent{{grid-column:1;order:3;position:static;margin-top:16px}}
   .buyer-pills{{overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px;-webkit-overflow-scrolling:touch}}
   .bpill{{flex-shrink:0}}
   .buyer-metrics-grid{{grid-template-columns:1fr}}
   .fact-grid,.signal-grid,.people,.locations,.social,.gate-grid{{grid-template-columns:1fr}}
   .compare-bar{{padding:10px 14px;flex-direction:column;align-items:stretch;gap:10px}}
   .compare-bar-actions{{justify-content:space-between}}
-  .modal-overlay,.evidence-modal-overlay{{padding:10px}}
-  .modal-container{{max-height:95vh}}
+  .modal-overlay,.evidence-modal-overlay{{padding:8px}}
+  .modal-container{{max-height:96vh;border-radius:8px}}
   .modal-body{{padding:12px}}
-  h2{{font-size:24px}}
+  .compare-table th:first-child, .compare-table td:first-child{{position:sticky;left:0;background:#0f172a;z-index:2;box-shadow:2px 0 6px rgba(0,0,0,0.4)}}
+  h2{{font-size:22px}}
+  .mobile-only-btn{{display:inline-flex !important}}
 }}
+@media(max-width:600px){{
+  .nav-switcher{{width:100%;justify-content:space-between;overflow-x:auto;-webkit-overflow-scrolling:touch}}
+  .nav-switcher a{{padding:5px 8px !important;font-size:11px !important;flex:1;text-align:center;justify-content:center;white-space:nowrap}}
+  .mast-actions{{width:100%;display:grid !important;grid-template-columns:1fr 1fr;gap:6px !important}}
+  .mast-actions button{{justify-content:center;text-align:center;padding:8px 6px !important;font-size:11px !important}}
+}}
+.mobile-only-btn{{display:none}}
 </style></head><body>
 <header class="mast">
-  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;width:100%">
     <div style="display:flex;align-items:center;gap:10px;text-decoration:none">
       <div class="brand-logo">S</div>
       <div>
@@ -340,13 +351,13 @@ def build(rows: list[dict], score: dict | None, control_loop: dict | None = None
         <p style="font-size:11px;color:#94a3b8;margin:2px 0 0">Official Norwegian Ground-Truth Records &amp; Provenance</p>
       </div>
     </div>
-    <div style="display:flex;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:3px;gap:2px">
+    <div class="nav-switcher" style="display:flex;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:3px;gap:2px">
       <a href="/explorer" style="padding:6px 12px;border-radius:6px;font-size:12px;font-weight:500;color:#94a3b8;text-decoration:none;display:inline-flex;align-items:center;gap:4px">🔍 Buyer Explorer</a>
       <a href="/prototype" style="padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#2563eb;color:#ffffff;text-decoration:none;display:inline-flex;align-items:center;gap:4px">📊 Benchmark Prototype</a>
       <a href="/chat" style="padding:6px 12px;border-radius:6px;font-size:12px;font-weight:500;color:#94a3b8;text-decoration:none;display:inline-flex;align-items:center;gap:4px">💬 AI Copilot</a>
     </div>
   </div>
-  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+  <div class="mast-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
     <button type="button" class="buyer-btn" id="open-compare-btn" onclick="openCompareModal()" style="font-weight:600">⚖️ Compare (<span id="mast-compare-count">0</span>/2)</button>
     <button type="button" class="buyer-btn" id="compare-sample-btn" onclick="compareSamplePair()" style="background:rgba(245,158,11,0.15);border-color:rgba(245,158,11,0.35);color:#fbbf24;font-weight:600">⚡ Sample Pair</button>
     <button type="button" class="buyer-btn" onclick="compareRandomPair()" style="background:rgba(59,130,246,0.15);border-color:rgba(59,130,246,0.35);color:#60a5fa;font-weight:600">🎲 Random Pair</button>
