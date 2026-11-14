@@ -588,6 +588,7 @@ function renderCard(c) {
         ${c.is_growing ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-medium">📈 Growing</span>' : ''}
       </div>
       <div class="flex items-center gap-1">
+        <button onclick="loadProfileAndEvidence('${c.orgnr}')" class="text-[10px] px-2 py-1 rounded bg-surface-elevated text-slate-300 hover:text-white border border-surface-border transition-colors font-medium" title="Check Grounded Evidence & Sources">🔍 Evidence</button>
         ${c.summary ? `<button onclick="copyBuyerBrief('${escAttr(c.summary)}','${escAttr(c.name)}','${c.orgnr}')" class="text-[10px] px-2 py-1 rounded bg-surface-elevated text-slate-300 hover:text-white border border-surface-border transition-colors" title="Copy Buyer Brief to clipboard">📋 Brief</button>` : ''}
         <button onclick="loadProfile('${c.orgnr}')" class="text-[10px] px-2 py-1 rounded bg-brand-600/30 text-brand-300 hover:bg-brand-600 hover:text-white border border-brand-500/40 transition-colors font-medium">Profile ↗</button>
       </div>
