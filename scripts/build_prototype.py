@@ -467,7 +467,7 @@ function sourceLine(obj){{
 
 function linkifySourceText(text){{
   const escaped=esc(text);
-  return escaped.replace(/https?:\/\/[^\s),"]+/g,url=>`<a href="${{url}}" target="_blank" rel="noreferrer">${{url}} ↗</a>`);
+  return escaped.replace(/https?:\\/\\/[^\\s),"]+/g,url=>`<a href="${{url}}" target="_blank" rel="noreferrer">${{url}} ↗</a>`);
 }}
 
 function renderProfile(){{
@@ -478,10 +478,10 @@ function renderProfile(){{
   const summaryRaw=x.summary||'';
   let s1='',sRest='';
   if(summaryRaw){{
-    const m=summaryRaw.match(/^([^.]+\(Source:[^)]+\)\.?)\s*(.*)$/);
+    const m=summaryRaw.match(/^([^.]+\\(Source:[^)]+\\)\\.?)\\s*(.*)$/);
     if(m){{s1=m[1];sRest=m[2];}}
     else{{
-      const parts=summaryRaw.split(/(?<=\.\s)/);
+      const parts=summaryRaw.split(/(?<=\\.\\s)/);
       s1=parts[0]||'';
       sRest=parts.slice(1).join(' ');
     }}
@@ -493,7 +493,7 @@ function renderProfile(){{
   
   // Metric card values
   const yoyText=x.yoy?.text||'';
-  const mGrowth=yoyText.match(/Revenue:[^(]+\(([+-]?[\d.]+%)\)/);
+  const mGrowth=yoyText.match(/Revenue:[^(]+\\(([+-]?[\\d.]+%)\\)/);
   const yoyGrowthBadge=mGrowth?`<span style="color:${{mGrowth[1].startsWith('+')?'var(--good)':'var(--warn)'}}">${{mGrowth[1]}} YoY</span>`:'';
   const revValue=rec?`${{money(rec.revenue,rec.currency)}} ${{yoyGrowthBadge}}`:'No accounts on file';
   const opValue=rec?`Operating result: ${{money(rec.operating_result,rec.currency)}}`:'Filing applicability not reported';
