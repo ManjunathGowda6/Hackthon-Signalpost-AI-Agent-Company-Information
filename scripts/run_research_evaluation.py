@@ -3,8 +3,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-STARTER_KIT = Path(r"C:\Users\nisar\Downloads\signalpost-starter-kit\signalpost-starter-kit")
-sys.path.insert(0, str(STARTER_KIT / "src"))
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(ROOT / "src"))
 from norway_company_agent.research import screen_profiles
 
 # Load our aligned rows
