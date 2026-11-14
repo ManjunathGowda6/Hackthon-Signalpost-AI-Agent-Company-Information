@@ -582,6 +582,7 @@ function clearCompare(){{
 function updateCompareBar(){{
   const bar=$('#compare-bar');if(!bar)return;
   const countSpan=$('#compare-count');if(countSpan)countSpan.textContent=compareSelected.length;
+  const mastCount=$('#mast-compare-count');if(mastCount)mastCount.textContent=compareSelected.length;
   bar.classList.toggle('show',compareSelected.length>0);
   const chips=$('#compare-chips');
   if(chips){{
@@ -592,6 +593,21 @@ function updateCompareBar(){{
   }}
   const btn=$('#view-compare-btn');
   if(btn)btn.disabled=compareSelected.length<2;
+}}
+
+function switchCompareSlot(idx, org){{
+  if(!org)return;
+  compareSelected[idx]=org;
+  updateCompareBar();
+  renderList();
+  openCompareModal();
+}}
+
+function selectPairDirect(orgA, orgB){{
+  compareSelected=[orgA, orgB];
+  updateCompareBar();
+  renderList();
+  openCompareModal();
 }}
 
 function compareSamplePair(){{
@@ -668,7 +684,32 @@ function openCompareModal(){{
     ['Declared Social Profiles',(a.web?.value?.social_links||[]).length?(a.web.value.social_links.map(s=>s.platform).join(', ')):'None declared on site',(b.web?.value?.social_links||[]).length?(b.web.value.social_links.map(s=>s.platform).join(', ')):'None declared on site',a.web?.source,b.web?.source,a.web?.retrievedAt,b.web?.retrievedAt],
   ];
 
+  // Build options for company selector dropdowns
+  const companyOptions = DATA.map(x=>`<option value="${{x.org}}"${{x.org===a.org?' selected':''}}>${{esc(x.name)}} (${{x.org}})</option>`).join('');
+  const companyOptionsB = DATA.map(x=>`<option value="${{x.org}}"${{x.org===b.org?' selected':''}}>${{esc(x.name)}} (${{x.org}})</option>`).join('');
+
   const modalHtml=`
+    <!-- Interactive Pair Selector & Presets -->
+    <div style="background:#111827;border:1px solid #1f2937;border-radius:8px;padding:12px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+        <span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.08em;margin-right:4px">⚡ Preset Pairs:</span>
+        <button type="button" class="buyer-btn" onclick="compareSamplePair()" style="background:rgba(245,158,11,0.15);border-color:rgba(245,158,11,0.3);color:#fbbf24">⚡ Energy: Equinor vs Hydro</button>
+        <button type="button" class="buyer-btn" onclick="selectPairDirect('982463718','983876007')" style="background:rgba(59,130,246,0.15);border-color:rgba(59,130,246,0.3);color:#60a5fa">⚡ Telecom: Telenor vs Schibsted</button>
+        <button type="button" class="buyer-btn" onclick="selectPairDirect('984851006','914778271')" style="background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.3);color:#34d399">⚡ Finance: DNB vs Hydro</button>
+        <button type="button" class="buyer-btn" onclick="compareRandomPair()" style="background:rgba(168,85,247,0.15);border-color:rgba(168,85,247,0.3);color:#c084fc">🎲 Random Pair</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Company A:</label>
+          <select style="width:100%;background:var(--elevated);border:1px solid var(--line-strong);color:#f8fafc;padding:8px 10px;border-radius:6px;font-size:12px" onchange="switchCompareSlot(0,this.value)">${{companyOptions}}</select>
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Company B:</label>
+          <select style="width:100%;background:var(--elevated);border:1px solid var(--line-strong);color:#f8fafc;padding:8px 10px;border-radius:6px;font-size:12px" onchange="switchCompareSlot(1,this.value)">${{companyOptionsB}}</select>
+        </div>
+      </div>
+    </div>
+
     <table class="compare-table">
       <thead>
         <tr>
