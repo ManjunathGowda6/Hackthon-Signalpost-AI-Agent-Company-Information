@@ -319,27 +319,27 @@ function renderHeader() {
           </div>
         </div>
 
-        <div class="flex items-center gap-2 flex-wrap">
-          <div class="flex bg-surface-elevated border border-surface-border rounded-lg p-1">
-            <a href="/explorer" class="px-3 py-1.5 rounded-md text-xs font-semibold bg-brand-600 text-white shadow-sm flex items-center gap-1.5">
+        <div class="flex items-center gap-2 flex-wrap w-full md:w-auto">
+          <div class="flex bg-surface-elevated border border-surface-border rounded-lg p-1 w-full sm:w-auto justify-between overflow-x-auto">
+            <a href="/explorer" class="px-2.5 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-xs font-semibold bg-brand-600 text-white shadow-sm flex items-center justify-center gap-1 flex-1 sm:flex-initial text-center whitespace-nowrap">
               🔍 Buyer Explorer
             </a>
-            <a href="/prototype" class="px-3 py-1.5 rounded-md text-xs font-medium text-slate-300 hover:text-white flex items-center gap-1.5">
+            <a href="/prototype" class="px-2.5 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-xs font-medium text-slate-300 hover:text-white flex items-center justify-center gap-1 flex-1 sm:flex-initial text-center whitespace-nowrap">
               📊 Benchmark Prototype
             </a>
-            <a href="/chat" class="px-3 py-1.5 rounded-md text-xs font-medium text-slate-300 hover:text-white flex items-center gap-1.5">
+            <a href="/chat" class="px-2.5 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-xs font-medium text-slate-300 hover:text-white flex items-center justify-center gap-1 flex-1 sm:flex-initial text-center whitespace-nowrap">
               💬 AI Copilot
             </a>
           </div>
 
-          <div class="flex items-center gap-2">
-            <button onclick="goCompareTab()" class="px-3 py-1.5 bg-surface-card border border-surface-border hover:border-slate-500 text-slate-200 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+          <div class="grid grid-cols-3 gap-1.5 w-full sm:flex sm:w-auto sm:items-center">
+            <button onclick="goCompareTab()" class="px-2 sm:px-3 py-1.5 bg-surface-card border border-surface-border hover:border-slate-500 text-slate-200 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition text-center whitespace-nowrap">
               ⚖️ Compare (${state.compareSelections.length}/2)
             </button>
-            <button onclick="compareSamplePair()" class="px-3 py-1.5 bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500/30 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm" title="Compare Equinor ASA vs Norsk Hydro ASA">
+            <button onclick="compareSamplePair()" class="px-2 sm:px-3 py-1.5 bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500/30 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition shadow-sm text-center whitespace-nowrap" title="Compare Equinor ASA vs Norsk Hydro ASA">
               ⚡ Sample Pair
             </button>
-            <button onclick="compareRandomPair()" class="px-3 py-1.5 bg-brand-600/20 border border-brand-500/40 text-brand-300 hover:bg-brand-600/30 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm" title="Pick 2 random verified companies to compare">
+            <button onclick="compareRandomPair()" class="px-2 sm:px-3 py-1.5 bg-brand-600/20 border border-brand-500/40 text-brand-300 hover:bg-brand-600/30 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition shadow-sm text-center whitespace-nowrap" title="Pick 2 random verified companies to compare">
               🎲 Random Pair
             </button>
           </div>
