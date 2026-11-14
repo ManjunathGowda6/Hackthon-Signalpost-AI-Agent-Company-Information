@@ -153,6 +153,14 @@ async function loadProfile(org) {
   window.scrollTo(0, 0);
 }
 
+async function loadProfileAndEvidence(org) {
+  await loadProfile(org);
+  setTimeout(() => {
+    const el = document.getElementById('profile-evidence-section');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }, 150);
+}
+
 async function loadCompare() {
   if (state.compareSelections.length < 2) return;
   state.view = 'compare';
