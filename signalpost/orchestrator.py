@@ -582,6 +582,10 @@ class Orchestrator:
             changes = self._detect_changes(previous, entity, fin_data, roles, org_number)
 
         envelope_data = {
+            "organisation_number": org_number,
+            "name": entity.get("navn"),
+            "municipality": entity.get("forretningsadresse", {}).get("kommune") or entity.get("forretningsadresse", {}).get("poststed"),
+            "website": website_url,
             "legal_identity": legal_identity.model_dump(mode="json"),
             "annual_accounts": annual_accounts.model_dump(mode="json"),
             "leadership_workplaces": leadership_workplaces.model_dump(mode="json"),
