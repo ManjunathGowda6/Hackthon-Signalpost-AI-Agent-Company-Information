@@ -213,11 +213,23 @@ async function loadMeta() {
 }
 
 async function fetchSuggestions(q) {
-  if (q.length < 2) { state.suggestions = []; render(); return; }
+  if (!q || q.length < 2) {
+    state.suggestions = [];
+    updateSuggestionsDropdown();
+    return;
+  }
   try {
     state.suggestions = await api('/suggest?q=' + encodeURIComponent(q));
-  } catch (e) { state.suggestions = []; }
-  render();
+  } catch (e) {
+    state.suggestions = [];
+  }
+  updateSuggestionsDropdown();
+}
+
+function updateSuggestionsDropdown() {
+  const container = document.getElementById('suggestionsContainer');
+  if (!container) return;
+  container.innerHTML = (state.suggestions.length && state.suggestFocused) ? renderSuggestions() : '';
 }
 
 // ── Formatters ──
