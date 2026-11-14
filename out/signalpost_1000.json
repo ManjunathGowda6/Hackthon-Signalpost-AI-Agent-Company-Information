@@ -520869,10 +520869,6 @@
             {
               "platform": "instagram",
               "url": "https://www.instagram.com/framtre/"
-            },
-            {
-              "platform": "linkedin",
-              "url": "https://www.linkedin.com/company/at-skog-sa/posts/?feedView=all"
             }
           ],
           "news": [],
@@ -521050,26 +521046,6 @@
         "profile_url": "https://www.instagram.com/framtre/",
         "retrieved_at": "2026-11-01T15:26:03.046821+00:00",
         "content_sha256": "11cf20f9e3278977622f1d31be35c89e3fa16f8ccaded2c3fe62c55c932a6343",
-        "exact_entity": true,
-        "identity_proof": [
-          {
-            "type": "company_site_link",
-            "value": "https://www.framtreindustri.no/"
-          }
-        ],
-        "acquisition_mode": "permitted_public_page",
-        "rights_status": "approved",
-        "source_class": "company_linked_social_profile"
-      },
-      {
-        "id": "obs-934995953-soc-2",
-        "organisation_number": "934995953",
-        "platform": "linkedin",
-        "signal_type": "profile_handle",
-        "source_url": "https://www.linkedin.com/company/at-skog-sa/posts/?feedView=all",
-        "profile_url": "https://www.linkedin.com/company/at-skog-sa/posts/?feedView=all",
-        "retrieved_at": "2026-11-01T15:26:03.046821+00:00",
-        "content_sha256": "fd3a532ef32243c9c08d8a18fcb8bda654e1698ff0cecf097c1f0b4c8375952b",
         "exact_entity": true,
         "identity_proof": [
           {

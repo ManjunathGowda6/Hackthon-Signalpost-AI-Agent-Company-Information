@@ -507,7 +507,7 @@ social_slug_violations = 0
 for p in profiles:
     wp = p.get("website_profiles") or {}
     ow = wp.get("official_website", {})
-    orgnr_v = isinstance(ow, dict) and ow.get("orgnr_verified", False)
+    orgnr_v = (isinstance(ow, dict) and ow.get("orgnr_verified", False)) or p.get("verification_method") in ("orgnr_verified", "brreg_registry")
     for s in wp.get("social_profiles", []):
         if isinstance(s, dict):
             keep, reason = _vs(s.get("url", ""), "", p.get("name", ""), "", orgnr_verified=orgnr_v)
