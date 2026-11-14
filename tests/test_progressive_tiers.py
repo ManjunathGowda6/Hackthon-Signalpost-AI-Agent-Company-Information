@@ -19,8 +19,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-STARTER_KIT = Path(r"C:\Users\nisar\Downloads\signalpost-starter-kit\signalpost-starter-kit")
-sys.path.insert(0, str(STARTER_KIT / "src"))
+sys.path.insert(0, str(ROOT / "src"))
 
 from signalpost.align import align_profile
 
