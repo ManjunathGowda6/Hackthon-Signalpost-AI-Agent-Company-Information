@@ -781,7 +781,7 @@ function openEvidenceModal(){{
   ];
 
   const evidenceHtml=`
-    <div style="margin-bottom:16px;padding:12px;background:#f5efe6;border-left:4px solid var(--accent);border-radius:4px;font-size:13px">
+    <div style="margin-bottom:16px;padding:12px 14px;background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.3);border-left:4px solid var(--accent);border-radius:6px;font-size:13px;color:#e0f2fe">
       <strong>Grounded Evidence Guarantee:</strong> Every claim published for <strong>${{esc(x.name)}}</strong> is backed by an explicit source URL, ISO-8601 retrieval timestamp, reporting period, and cryptographic hash digest.
     </div>
     ${{cards.map(c=>`
