@@ -364,6 +364,25 @@ def compare():
     return jsonify({"a": pa, "b": pb})
 
 
+@explorer_bp.route("/random_pair")
+def random_pair():
+    """GET /explorer/api/random_pair -> returns 2 random companies with rich profiles."""
+    import random
+    candidates = [
+        p for p in PROFILES
+        if ((p.get("annual_accounts", {}) or {}).get("status") == "available"
+            or (p.get("financials", {}) or {}).get("revenue") is not None)
+    ]
+    if len(candidates) < 2:
+        candidates = PROFILES
+    sampled = random.sample(candidates, 2)
+    def _brief(p):
+        org = p.get("organisation_number") or ""
+        name = ((p.get("legal_identity") or {}).get("legal_name") or {}).get("value") or (p.get("legal_identity") or {}).get("name") or org
+        return {"orgnr": org, "name": name}
+    return jsonify({"a": _brief(sampled[0]), "b": _brief(sampled[1])})
+
+
 @explorer_bp.route("/suggest")
 def suggest():
     """GET /explorer/api/suggest?q=..."""
