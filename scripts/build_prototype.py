@@ -521,7 +521,12 @@ function renderList(){{
       ${{tags?`<div style="display:flex;gap:4px;margin-top:3px;font-size:10px">${{tags}}</div>`:''}}
     </button>`;
   }}).join('')+(rows.length>500?'<div class="row"><span>Showing first 500 matches. Narrow the search.</span></div>':'');
-  $('#list').querySelectorAll('[data-org]').forEach(b=>b.onclick=()=>{{selected=DATA.find(x=>x.org===b.dataset.org);renderList();renderProfile()}});
+  $('#list').querySelectorAll('[data-org]').forEach(b=>b.onclick=()=>{{
+    selected=DATA.find(x=>x.org===b.dataset.org);
+    renderList();
+    renderProfile();
+    if(window.innerWidth<=768){{const p=$('#profile');if(p)p.scrollIntoView({{behavior:'smooth'}})}}
+  }});
   if(!selected&&rows.length){{selected=rows[0];renderProfile()}}
 }}
 
