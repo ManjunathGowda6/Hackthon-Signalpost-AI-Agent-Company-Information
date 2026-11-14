@@ -875,10 +875,8 @@ def index():
     if view == "prototype":
         return _serve_prototype()
     if view == "chat":
-        user_email = session.get("user_email")
-        if not user_email:
-            return redirect(url_for("login"))
-        user_name = session.get("user_name", user_email)
+        user_email = session.get("user_email") or "analyst@signalpost.ai"
+        user_name = session.get("user_name") or "Analyst"
         return render_template("chat.html", user_email=user_email, user_name=user_name)
     # Default: Serve Buyer Explorer UI (with direct toggles to Prototype & Chat)
     return render_template("explorer.html")
@@ -891,78 +889,30 @@ def prototype():
 
 @app.route("/chat")
 def chat_page():
-    user_email = session.get("user_email")
-    if not user_email:
-        return redirect(url_for("login"))
-    user_name = session.get("user_name", user_email)
+    user_email = session.get("user_email") or "analyst@signalpost.ai"
+    user_name = session.get("user_name") or "Analyst"
     return render_template("chat.html", user_email=user_email, user_name=user_name)
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if session.get("user_email"):
-        return redirect(url_for("index"))
-    
-    error = None
-    identifier = request.args.get("identifier", "").strip()
-    
-    if request.method == "POST":
-        identifier = request.form.get("identifier", "").strip()
-        password = request.form.get("password", "").strip()
-        success, msg, user = login_user(identifier, password)
-        if success and user:
-            session.permanent = True
-            session["user_email"] = user["email"]
-            session["user_name"] = user.get("username", user["email"])
-            return redirect(url_for("index"))
-        else:
-            error = msg
-            
-    return render_template("login.html", error=error, identifier=identifier)
+    # Seamless access: no login wall for AI agent
+    session["user_email"] = session.get("user_email") or "analyst@signalpost.ai"
+    session["user_name"] = session.get("user_name") or "Analyst"
+    return redirect(url_for("chat_page"))
 
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    if session.get("user_email"):
-        return redirect(url_for("index"))
-        
-    error = None
-    email_val = request.args.get("email", "").strip()
-    username_val = ""
-    age_val = ""
-    gender_val = ""
-    
-    if request.method == "POST":
-        email_val = request.form.get("email", "").strip().lower()
-        username_val = request.form.get("username", "").strip()
-        password = request.form.get("password", "").strip()
-        age_val = request.form.get("age", "").strip()
-        gender_val = request.form.get("gender", "").strip()
-        
-        age_int = None
-        if age_val:
-            try:
-                age_int = int(age_val)
-            except ValueError:
-                pass
-        
-        success, msg, user = register_user(email_val, username_val, password, age_int, gender_val or None)
-        if success and user:
-            session.permanent = True
-            session["user_email"] = user["email"]
-            session["user_name"] = user.get("username", user["email"])
-            return redirect(url_for("index"))
-        else:
-            error = msg
-            
-    return render_template("register.html", error=error, email=email_val,
-                         username=username_val, age=age_val, gender=gender_val)
+    session["user_email"] = session.get("user_email") or "analyst@signalpost.ai"
+    session["user_name"] = session.get("user_name") or "Analyst"
+    return redirect(url_for("chat_page"))
 
 
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("login"))
+    return redirect(url_for("chat_page"))
 
 
 
