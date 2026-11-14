@@ -18,9 +18,10 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-STARTER_KIT = Path(r"C:\Users\nisar\Downloads\signalpost-starter-kit\signalpost-starter-kit")
-if str(STARTER_KIT / "src") not in sys.path:
-    sys.path.insert(0, str(STARTER_KIT / "src"))
+if str(ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(ROOT / "src"))
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from norway_company_agent.external_footprint import publishable_observation, validate_observation
 
