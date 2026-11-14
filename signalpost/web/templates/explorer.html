@@ -321,11 +321,64 @@ function renderDirectory() {
   return `
   <main class="max-w-7xl mx-auto px-4 py-6 pb-28">
     ${renderSearchBar()}
+    ${renderBuyerPills()}
     ${renderFilters()}
     ${renderResultsHeader()}
     ${state.loading ? renderSkeleton() : renderCards()}
     ${renderPagination()}
   </main>`;
+}
+
+function renderBuyerPills() {
+  const pAll = !state.buyerPill || state.buyerPill === 'all';
+  const pHire = state.buyerPill === 'hiring';
+  const pNews = state.buyerPill === 'news';
+  const pGrow = state.buyerPill === 'growth';
+  const pWeb = state.buyerPill === 'website';
+
+  const pillClass = (active) => active ? 'bg-brand-600 text-white font-semibold shadow-md' : 'bg-surface-card border border-surface-border text-slate-300 hover:border-brand-400 hover:text-white';
+
+  return `
+  <div class="flex flex-wrap items-center gap-2 mb-4">
+    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 mr-1">⚡ Quick Filters:</span>
+    <button class="px-3 py-1.5 rounded-full text-xs transition-all ${pillClass(pAll)}" onclick="selectBuyerPill('all')">
+      All Companies (${state.total.toLocaleString()})
+    </button>
+    <button class="px-3 py-1.5 rounded-full text-xs transition-all ${pillClass(pHire)}" onclick="selectBuyerPill('hiring')">
+      💼 Actively Hiring (105)
+    </button>
+    <button class="px-3 py-1.5 rounded-full text-xs transition-all ${pillClass(pNews)}" onclick="selectBuyerPill('news')">
+      📰 Has Recent News (231)
+    </button>
+    <button class="px-3 py-1.5 rounded-full text-xs transition-all ${pillClass(pGrow)}" onclick="selectBuyerPill('growth')">
+      📈 Profitable &amp; Growing
+    </button>
+    <button class="px-3 py-1.5 rounded-full text-xs transition-all ${pillClass(pWeb)}" onclick="selectBuyerPill('website')">
+      🌐 Verified Website (562)
+    </button>
+  </div>`;
+}
+
+function selectBuyerPill(pill) {
+  if (state.buyerPill === pill && pill !== 'all') {
+    state.buyerPill = 'all';
+    state.hasFilters.delete('jobs');
+    state.hasFilters.delete('news');
+    state.hasFilters.delete('growth');
+    state.hasFilters.delete('website');
+  } else {
+    state.buyerPill = pill;
+    state.hasFilters.delete('jobs');
+    state.hasFilters.delete('news');
+    state.hasFilters.delete('growth');
+    state.hasFilters.delete('website');
+    if (pill === 'hiring') state.hasFilters.add('jobs');
+    else if (pill === 'news') state.hasFilters.add('news');
+    else if (pill === 'growth') state.hasFilters.add('growth');
+    else if (pill === 'website') state.hasFilters.add('website');
+  }
+  state.page = 1;
+  doSearch();
 }
 
 function renderSearchBar() {
