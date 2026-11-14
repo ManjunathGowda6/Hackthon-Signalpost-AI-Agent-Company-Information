@@ -20,18 +20,13 @@
             </div>
             <div class="sidebar-history" id="history-list"></div>
             <div class="sidebar-bottom">
-                {% if user_email %}
                 <div class="sidebar-user">
-                    <div class="user-avatar" title="{{ user_name or user_email }}">{{ (user_name or user_email)[0].upper() }}</div>
+                    <div class="user-avatar" title="Intelligence Analyst">A</div>
                     <div class="user-details">
-                        <span class="user-email-text" title="{{ user_email }}">{{ user_name or user_email }}</span>
-                        <span class="user-status-text"><span class="status-dot"></span>Active</span>
+                        <span class="user-email-text">Intelligence Analyst</span>
+                        <span class="user-status-text"><span class="status-dot"></span>Active Copilot</span>
                     </div>
-                    <a href="/logout" class="logout-btn" title="Sign out">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                    </a>
                 </div>
-                {% endif %}
                 <div class="sidebar-brand">&#9670; Signalpost AI</div>
             </div>
         </aside>
