@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: signalpost-ai
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m signalpost.web.app
+    envVars:
+      - key: PORT
+        value: 5001
+      - key: PYTHON_VERSION
+        value: 3.12.0
