@@ -134,7 +134,8 @@ def test_judge_sim_research_agent_qa(live_judge_profiles):
     # Q2: Screening
     screen_oslo = screen_profiles(live_judge_profiles, "companies in Oslo")
     assert isinstance(screen_oslo, dict)
-    assert "matches" in screen_oslo
+    assert "results" in screen_oslo
+    assert screen_oslo["result_count"] >= 1
 
 
 def test_judge_sim_buyer_first_summaries(live_judge_profiles):
