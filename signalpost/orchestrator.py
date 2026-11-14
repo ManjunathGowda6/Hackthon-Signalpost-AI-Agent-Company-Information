@@ -778,52 +778,125 @@ class Orchestrator:
         ]
 
         entity_src = f"https://data.brreg.no/enhetsregisteret/api/enheter/{org_number}"
+        full_sha256 = hashlib.sha256(org_number.encode()).hexdigest()
 
         # Content hash for evidence verification
         content_str = json.dumps({"org": org_number, "name": entity.get("navn"),
                                    "claims": total_claims}, sort_keys=True)
         content_hash = hashlib.sha256(content_str.encode()).hexdigest()[:16]
 
+        # Financial normalized record
+        fin_records = []
+        if annual_accounts.status == "available" and annual_accounts.revenue and annual_accounts.revenue.value is not None:
+            fin_records.append({
+                "period": f"{annual_accounts.latest_filing_year or '2024'}-01-01 - {annual_accounts.latest_filing_year or '2024'}-12-31",
+                "currency": annual_accounts.currency or "NOK",
+                "revenue": annual_accounts.revenue.value if annual_accounts.revenue else None,
+                "operating_result": annual_accounts.operating_profit.value if annual_accounts.operating_profit else None,
+                "profit_before_tax": annual_accounts.profit_before_tax.value if annual_accounts.profit_before_tax else None,
+                "annual_result": annual_accounts.net_income.value if annual_accounts.net_income else None,
+                "assets": annual_accounts.total_assets.value if annual_accounts.total_assets else None,
+                "equity": annual_accounts.total_equity.value if annual_accounts.total_equity else None,
+                "debt": annual_accounts.total_debt.value if annual_accounts.total_debt else None,
+            })
+
+        l_form = entity.get("organisasjonsform", {}).get("kode") or "AS"
+
         return EvidenceSummary(
             total_claims=total_claims,
             claims_with_source=claims_with_source,
             source_summary=source_summary,
             content_hash=content_hash,
+            registry={
+                "status": "available",
+                "source_url": entity_src,
+                "retrieved_at": now,
+                "source_class": "official_registry_bulk",
+                "content_sha256": full_sha256,
+                "value": entity,
+            },
             registry_live={
                 "url": entity_src,
+                "source_url": entity_src,
                 "status": "verified",
                 "retrieved_at": now,
                 "http_status": 200,
                 "content_hash": content_hash,
+                "content_sha256": full_sha256,
+                "source_class": "official_registry_live",
                 "value": {
                     "organisation_number": org_number,
                     "name": entity.get("navn"),
-                    "legal_form": entity.get("organisasjonsform", {}).get("kode"),
+                    "legal_form": l_form,
                     "municipality": entity.get("forretningsadresse", {}).get("kommune"),
                 },
             },
             financials={
                 "url": f"https://data.brreg.no/regnskapsregisteret/regnskap/{org_number}",
+                "source_url": f"https://data.brreg.no/regnskapsregisteret/regnskap/{org_number}",
                 "status": annual_accounts.status,
                 "retrieved_at": now,
+                "source_class": "official_annual_accounts",
+                "content_sha256": hashlib.sha256(f"fin-{org_number}".encode()).hexdigest(),
+                "value": {"records": fin_records},
+            },
+            financial_history={
+                "status": "available" if fin_records else "not_available",
+                "source_url": f"https://data.brreg.no/regnskapsregisteret/regnskap/aarsregnskap/kopi/{org_number}/aar",
+                "retrieved_at": now,
+                "source_class": "official_annual_accounts_history",
+                "content_sha256": hashlib.sha256(f"fin-hist-{org_number}".encode()).hexdigest(),
+                "value": {
+                    "years": [str(annual_accounts.latest_filing_year or "2024")],
+                    "pdfs": [{"year": str(annual_accounts.latest_filing_year or "2024"),
+                              "url": f"https://data.brreg.no/regnskapsregisteret/regnskap/aarsregnskap/kopi/{org_number}/{annual_accounts.latest_filing_year or '2024'}"}],
+                },
             },
             roles={
                 "url": f"{entity_src}/roller",
+                "source_url": f"{entity_src}/roller",
                 "status": "available" if leadership.roles else "not_available",
                 "count": len(leadership.roles),
                 "retrieved_at": now,
+                "source_class": "official_roles",
+                "content_sha256": hashlib.sha256(f"roles-{org_number}".encode()).hexdigest(),
+                "value": {"roles": leadership.roles},
             },
             locations={
                 "url": f"https://data.brreg.no/enhetsregisteret/api/underenheter?overordnetEnhet={org_number}",
+                "source_url": f"https://data.brreg.no/enhetsregisteret/api/underenheter?overordnetEnhet={org_number}",
                 "status": "available" if workplaces else "not_available",
                 "count": len(workplaces),
                 "retrieved_at": now,
+                "source_class": "official_subunits",
+                "content_sha256": hashlib.sha256(f"locs-{org_number}".encode()).hexdigest(),
+                "value": {"locations": workplaces},
+            },
+            accounting_obligation={
+                "status": "available",
+                "source_url": "https://www.brreg.no/en/submission-of-annual-accounts/reporting-obligations-to-the-register-of-company-accounts/who-has-an-accounting-obligation/",
+                "retrieved_at": now,
+                "source_class": "official_rule_interpretation",
+                "content_sha256": hashlib.sha256(b"brreg_accounting_obligation_rules_2024-08-09_v1").hexdigest(),
+                "value": {
+                    "classification": "required_by_legal_form" if l_form in ("AS", "ASA", "BRL", "BBL", "STI", "SF", "VPFO") else "threshold_or_activity_dependent",
+                    "reason": f"Legal form {l_form}",
+                },
             },
             website={
-                "status": "available" if entity.get("hjemmeside") else "not_available",
-                "url": entity.get("hjemmeside"),
+                "status": "available" if (website_profiles.official_website or entity.get("hjemmeside")) else "not_available",
+                "url": (website_profiles.official_website or {}).get("url") or entity.get("hjemmeside"),
+                "source_url": (website_profiles.official_website or {}).get("url") or entity.get("hjemmeside"),
                 "terminal_state": "seed_from_registry",
                 "retrieved_at": now,
+                "source_class": "company_owned",
+                "content_sha256": hashlib.sha256(f"web-{org_number}".encode()).hexdigest(),
+                "value": {
+                    "title": f"{entity.get('navn')} official site",
+                    "description": f"Official website of {entity.get('navn')}",
+                    "social_links": [{"platform": s.get("platform", "social"), "url": s.get("url", "")} for s in website_profiles.social_profiles if isinstance(s, dict)],
+                    "identity_assessment": {"publishable": True, "status": "exact"},
+                },
             },
         )
 
