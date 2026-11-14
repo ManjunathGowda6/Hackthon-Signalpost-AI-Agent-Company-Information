@@ -201,6 +201,22 @@ python -m signalpost.web.app
 # Open http://localhost:5001/explorer in your browser
 ```
 
+### 6. Buyer-First Interactive UX & Scannable Snapshots
+- **1-Click Buyer Quick-Filter Pills:** Instant zero-typing filtering directly below search:
+  - `All Companies (1,107)`: Full Norway company showcase
+  - `💼 Actively Hiring (105)`: Companies with verified open job listings
+  - `📰 Has Recent News (231)`: Companies with dated public announcements
+  - `📈 Profitable & Growing (369)`: Positive operating result & positive YoY revenue growth
+  - `🌐 Verified Website (571)`: 100% verified official websites
+- **Scannable "Buyer Snapshot" Cards:**
+  - **Top Row:** Company Name + `✅ Verified` badge + Municipality & Industry pill + Direct clickable `[🌐 Website ↗]` and `[🏛️ Brreg ↗]` link buttons.
+  - **Commercial Buyer Brief Callout:** Highlights Sentence 1 commercial buyer facts with clickable source links.
+  - **3 Key Buyer Metric Pills:**
+    1. `💰 Revenue & YoY` (e.g., `NOK 106.5B (+2.6% YoY)` or `No public accounts on file`)
+    2. `👥 Workforce & Hiring` (e.g., `N Employees · M Open Jobs`)
+    3. `📰 Latest Activity` (e.g., `N Verified News Items` with headline and date)
+  - **1-Click Actions:** `[📋 Copy Buyer Brief]` to clipboard and `[📥 Export CSV]` for Excel/Sheets analysis.
+
 ---
 
 ## Deployment & Hosting
