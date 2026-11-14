@@ -35,6 +35,7 @@ from signalpost.synthesis.summarizer import Summarizer
 from signalpost.collectors.website_discovery import (
     discover_website, extract_social_links, extract_news_items, extract_job_listings,
 )
+from signalpost.align import align_profile
 
 logger = structlog.get_logger()
 
