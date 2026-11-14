@@ -58,6 +58,7 @@ def main() -> None:
 
     targets = [
         ROOT / "out" / "index.html",
+        ROOT / "out" / "prototype.html",
         ROOT / "docs" / "index.html",
     ]
 
