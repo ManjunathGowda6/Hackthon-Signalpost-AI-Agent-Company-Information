@@ -1034,17 +1034,23 @@ function renderCompareBar() {
   <div class="compare-bar md:fixed md:bottom-4 md:left-1/2 md:-translate-x-1/2 md:max-w-lg md:rounded-xl md:border md:border-surface-border md:shadow-xl">
     <div class="flex items-center justify-between gap-3">
       <div class="flex-1 min-w-0">
-        <p class="text-xs text-slate-400 mb-1">Compare (${state.compareSelections.length}/2)</p>
+        <div class="flex items-center justify-between mb-1">
+          <p class="text-xs text-slate-400">Compare (${state.compareSelections.length}/2)</p>
+          <div class="flex gap-2 text-[11px]">
+            <button onclick="compareSamplePair()" class="text-amber-300 hover:underline">⚡ Sample Pair</button>
+            <button onclick="compareRandomPair()" class="text-brand-300 hover:underline">🎲 Random Pair</button>
+          </div>
+        </div>
         <div class="flex gap-2 overflow-x-auto">
-          ${state.compareSelections.map(s => `
+          ${state.compareSelections.map((s, idx) => `
             <span class="flex items-center gap-1 px-2 py-1 bg-brand-600/20 border border-brand-500/30 rounded text-xs text-brand-300 flex-shrink-0">
               ${esc(s.name)}
-              <button onclick="toggleCompare('${s.orgnr}','${escAttr(s.name)}')" class="hover:text-white">✕</button>
+              <button onclick="clearCompareSlot(${idx})" class="hover:text-white" title="Remove company">✕</button>
             </span>
           `).join('')}
         </div>
       </div>
-      <button onclick="loadCompare()" class="px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-medium hover:bg-brand-500 disabled:opacity-50 flex-shrink-0"
+      <button onclick="loadCompare()" class="px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-medium hover:bg-brand-500 disabled:opacity-50 flex-shrink-0 shadow-sm"
         ${state.compareSelections.length < 2 ? 'disabled' : ''}>
         Compare →
       </button>
@@ -1061,16 +1067,125 @@ function compareSamplePair() {
   loadCompare();
 }
 
+function comparePresetPair(orgA, nameA, orgB, nameB) {
+  state.compareSelections = [
+    { orgnr: orgA, name: nameA },
+    { orgnr: orgB, name: nameB }
+  ];
+  loadCompare();
+}
+
+async function compareRandomPair() {
+  state.view = 'compare';
+  state.compareLoading = true;
+  state.compareDataA = null;
+  state.compareDataB = null;
+  render();
+  try {
+    const res = await api('/random_pair');
+    if (res && res.a && res.b) {
+      state.compareSelections = [res.a, res.b];
+      await loadCompare();
+      return;
+    }
+  } catch (e) {
+    console.error(e);
+  }
+  // Fallback if API fails
+  if (state.results.length >= 2) {
+    const i1 = Math.floor(Math.random() * state.results.length);
+    let i2 = Math.floor(Math.random() * state.results.length);
+    while (i2 === i1 && state.results.length > 1) i2 = Math.floor(Math.random() * state.results.length);
+    state.compareSelections = [
+      { orgnr: state.results[i1].orgnr, name: state.results[i1].name },
+      { orgnr: state.results[i2].orgnr, name: state.results[i2].name }
+    ];
+    await loadCompare();
+  } else {
+    compareSamplePair();
+  }
+}
+
+function clearCompareSlot(idx) {
+  state.compareSelections.splice(idx, 1);
+  state.compareDataA = null;
+  state.compareDataB = null;
+  render();
+}
+
+async function searchCompareCandidate(idx, q) {
+  const dd = document.getElementById('cmp-dropdown-' + idx);
+  if (!dd) return;
+  if (!q || q.trim().length < 2) {
+    dd.classList.add('hidden');
+    dd.innerHTML = '';
+    return;
+  }
+  try {
+    const data = await api('/suggest?q=' + encodeURIComponent(q.trim()));
+    if (!data || !data.length) {
+      dd.innerHTML = '<div class="p-2.5 text-xs text-slate-500">No matching companies found</div>';
+      dd.classList.remove('hidden');
+      return;
+    }
+    dd.innerHTML = data.map(item => `
+      <div class="p-2.5 hover:bg-surface-elevated/80 cursor-pointer border-b border-surface-border/30 last:border-0 flex items-center justify-between"
+           onclick="selectCompareCandidate(${idx}, '${item.orgnr}', '${escAttr(item.name)}')">
+        <span class="text-xs font-medium text-white truncate mr-2">${esc(item.name)}</span>
+        <span class="text-[10px] text-slate-400 font-mono flex-shrink-0">${esc(item.orgnr)}</span>
+      </div>
+    `).join('');
+    dd.classList.remove('hidden');
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function selectCompareCandidate(idx, orgnr, name) {
+  while (state.compareSelections.length <= idx) {
+    state.compareSelections.push(null);
+  }
+  state.compareSelections[idx] = { orgnr, name };
+  state.compareSelections = state.compareSelections.filter(Boolean);
+  if (state.compareSelections.length === 2) {
+    loadCompare();
+  } else {
+    render();
+  }
+}
+
 function renderCompareView() {
   return `
   <main class="max-w-5xl mx-auto px-4 py-6 pb-28">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
       <div>
-        <button onclick="goDirectory()" class="text-sm text-brand-400 hover:text-brand-300 mb-1 flex items-center gap-1">← Back to directory</button>
+        <button onclick="goDirectory()" class="text-sm text-brand-400 hover:text-brand-300 mb-1 flex items-center gap-1 font-medium">← Back to directory</button>
         <h2 class="text-xl font-bold text-white">Side-by-Side Comparison</h2>
       </div>
-      <button onclick="compareSamplePair()" class="self-start sm:self-auto px-3.5 py-2 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold hover:bg-amber-500/30 flex items-center gap-1.5 transition shadow-sm">
-        ⚡ Sample Pair (EQUINOR ASA vs Norsk Hydro ASA)
+      <div class="flex items-center gap-2 flex-wrap">
+        <button onclick="compareSamplePair()" class="px-3.5 py-2 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold hover:bg-amber-500/30 flex items-center gap-1.5 transition shadow-sm" title="Compare Equinor ASA vs Norsk Hydro ASA">
+          ⚡ Sample Pair (Equinor vs Hydro)
+        </button>
+        <button onclick="compareRandomPair()" class="px-3.5 py-2 bg-brand-600/20 border border-brand-500/40 text-brand-300 rounded-lg text-xs font-semibold hover:bg-brand-600/30 flex items-center gap-1.5 transition shadow-sm" title="Randomly pick 2 verified companies to compare">
+          🎲 Random Pair
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick preset selection pills -->
+    <div class="flex flex-wrap items-center gap-2 mb-4 bg-surface-card border border-surface-border rounded-xl p-3">
+      <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 mr-1">⚡ Quick Preset Pairs:</span>
+      <button onclick="compareSamplePair()" class="px-2.5 py-1 bg-surface-elevated hover:bg-surface border border-surface-border rounded-lg text-xs text-amber-300 font-medium transition">
+        ⚡ Energy: Equinor vs Hydro
+      </button>
+      <button onclick="comparePresetPair('982463718','TELENOR ASA','983876007','SCHIBSTED ASA')" class="px-2.5 py-1 bg-surface-elevated hover:bg-surface border border-surface-border rounded-lg text-xs text-brand-300 font-medium transition">
+        ⚡ Telecom &amp; Media: Telenor vs Schibsted
+      </button>
+      <button onclick="comparePresetPair('984851006','DNB BANK ASA','914778271','NORSK HYDRO ASA')" class="px-2.5 py-1 bg-surface-elevated hover:bg-surface border border-surface-border rounded-lg text-xs text-emerald-300 font-medium transition">
+        ⚡ Finance &amp; Industry: DNB vs Norsk Hydro
+      </button>
+      <button onclick="compareRandomPair()" class="px-2.5 py-1 bg-brand-600/30 hover:bg-brand-600/40 border border-brand-500/40 rounded-lg text-xs text-white font-semibold transition flex items-center gap-1 shadow-sm">
+        🎲 Random Verified Pair
       </button>
     </div>
 
@@ -1096,17 +1211,38 @@ function renderCompareSelector(idx) {
   const sel = state.compareSelections[idx];
   return `
   <div class="bg-surface-card border border-surface-border rounded-xl p-4">
-    <p class="text-xs text-slate-500 uppercase mb-2">Company ${idx === 0 ? 'A' : 'B'}</p>
+    <div class="flex items-center justify-between mb-2">
+      <p class="text-xs text-slate-500 uppercase font-semibold">Company ${idx === 0 ? 'A' : 'B'}</p>
+      ${sel ? `<button onclick="clearCompareSlot(${idx})" class="text-xs text-slate-400 hover:text-white bg-surface-elevated border border-surface-border px-2 py-0.5 rounded transition">Change</button>` : ''}
+    </div>
     ${sel ? `
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-between bg-surface-elevated/40 border border-surface-border/50 rounded-lg p-3">
         <div>
           <p class="text-sm font-semibold text-white">${esc(sel.name)}</p>
-          <p class="text-xs text-slate-500">${esc(sel.orgnr)}</p>
+          <p class="text-xs text-slate-400 font-mono mt-0.5">${esc(sel.orgnr)}</p>
         </div>
-        <button onclick="toggleCompare('${sel.orgnr}','${escAttr(sel.name)}')" class="text-xs text-red-400 hover:text-red-300">Remove</button>
+        <button onclick="clearCompareSlot(${idx})" class="text-xs text-red-400 hover:text-red-300 font-medium">Remove</button>
       </div>
     ` : `
-      <p class="text-sm text-slate-500">Select a company from directory or <button onclick="compareSamplePair()" class="text-brand-400 hover:underline font-medium">load sample pair</button></p>
+      <div>
+        <p class="text-xs text-slate-400 mb-2 font-medium">Search &amp; select Company ${idx === 0 ? 'A' : 'B'}:</p>
+        <div class="relative">
+          <input type="text" id="cmp-input-${idx}" oninput="searchCompareCandidate(${idx}, this.value)"
+            placeholder="Type company name or 9-digit orgnr..."
+            class="w-full bg-surface-elevated border border-surface-border rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500">
+          <div id="cmp-dropdown-${idx}" class="hidden absolute left-0 right-0 top-full mt-1 bg-surface-card border border-surface-border rounded-lg shadow-2xl z-30 max-h-48 overflow-y-auto"></div>
+        </div>
+        <div class="mt-2.5 flex items-center gap-2 flex-wrap text-xs text-slate-400">
+          <span>Quick pick:</span>
+          <button onclick="selectCompareCandidate(${idx}, '923609016', 'EQUINOR ASA')" class="text-amber-300 hover:underline font-medium">Equinor</button>
+          <span>·</span>
+          <button onclick="selectCompareCandidate(${idx}, '914778271', 'NORSK HYDRO ASA')" class="text-brand-400 hover:underline font-medium">Hydro</button>
+          <span>·</span>
+          <button onclick="selectCompareCandidate(${idx}, '982463718', 'TELENOR ASA')" class="text-cyan-400 hover:underline font-medium">Telenor</button>
+          <span>·</span>
+          <button onclick="compareRandomPair()" class="text-emerald-400 hover:underline font-medium">🎲 Random</button>
+        </div>
+      </div>
     `}
   </div>`;
 }
