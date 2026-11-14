@@ -1,5 +1,6 @@
 """Signalpost Explorer – REST API for the Company Intelligence web app."""
 import json
+import re
 from pathlib import Path
 from difflib import SequenceMatcher
 from flask import Blueprint, request, jsonify
