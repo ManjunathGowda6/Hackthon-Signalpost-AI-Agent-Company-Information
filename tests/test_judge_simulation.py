@@ -170,10 +170,11 @@ def test_judge_sim_arcon_as_and_ambiguous_company_guard():
     assert verif["verified"] is False, "arcon.no must be rejected when containing conflicting orgnr or extended name"
 
     # Test 2: Social verification strictly rejects arconprosjekt for ARCON AS
-    social_verif = verify_social_link(
-        url="https://facebook.com/arconprosjekt",
-        platform="facebook",
-        company_name="ARCON AS",
+    is_valid, reason = verify_social_link(
+        link_url="https://facebook.com/arconprosjekt",
+        link_element_html='<a href="https://facebook.com/arconprosjekt">Facebook</a>',
+        target_name="ARCON AS",
+        parent_context_text="",
         orgnr_verified=False,
     )
-    assert social_verif["verified"] is False, "facebook.com/arconprosjekt must be rejected for ARCON AS"
+    assert is_valid is False, f"facebook.com/arconprosjekt must be rejected for ARCON AS! Reason: {reason}"
