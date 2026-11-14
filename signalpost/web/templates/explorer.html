@@ -404,11 +404,11 @@ function renderDirectory() {
   return `
   <main class="max-w-7xl mx-auto px-4 py-6 pb-28">
     ${renderSearchBar()}
-    ${renderBuyerPills()}
-    ${renderFilters()}
-    ${renderResultsHeader()}
-    ${state.loading ? renderSkeleton() : renderCards()}
-    ${renderPagination()}
+    <div id="buyerPillsContainer">${renderBuyerPills()}</div>
+    <div id="filtersContainer">${renderFilters()}</div>
+    <div id="resultsHeaderContainer">${renderResultsHeader()}</div>
+    <div id="resultsCardsContainer">${state.loading ? renderSkeleton() : renderCards()}</div>
+    <div id="paginationContainer">${renderPagination()}</div>
   </main>`;
 }
 
@@ -468,19 +468,24 @@ function renderSearchBar() {
   return `
   <div class="relative mb-4">
     <div class="relative">
-      <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
       </svg>
       <input id="searchInput" type="text" value="${esc(state.query)}"
         placeholder="Search by company name or 9-digit orgnr…"
-        class="w-full pl-12 pr-4 py-3.5 bg-surface-card border border-surface-border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-sm"
+        class="w-full pl-12 pr-10 py-3.5 bg-surface-card border border-surface-border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-sm"
         oninput="onSearchInput(this.value)"
-        onfocus="state.suggestFocused=true; render()"
-        onblur="setTimeout(()=>{state.suggestFocused=false; state.suggestions=[]; render()}, 200)"
+        onfocus="onSearchFocus()"
+        onblur="onSearchBlur()"
+        onkeydown="if(event.key==='Enter'){ clearTimeout(searchTimer); doSearch(); state.suggestFocused=false; updateSuggestionsDropdown(); } else if(event.key==='Escape'){ state.suggestFocused=false; updateSuggestionsDropdown(); }"
+        autocomplete="off"
+        spellcheck="false"
       >
-      ${state.query ? `<button onclick="state.query=''; state.page=1; doSearch(); document.getElementById('searchInput').value=''" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">✕</button>` : ''}
+      <button id="searchClearBtn" onclick="clearSearchInput()" class="${state.query ? '' : 'hidden'} absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white" title="Clear search">✕</button>
     </div>
-    ${state.suggestions.length && state.suggestFocused ? renderSuggestions() : ''}
+    <div id="suggestionsContainer">
+      ${state.suggestions.length && state.suggestFocused ? renderSuggestions() : ''}
+    </div>
   </div>`;
 }
 
