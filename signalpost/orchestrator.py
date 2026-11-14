@@ -663,6 +663,7 @@ class Orchestrator:
                 "source_date": now[:10],
             }
 
+        dump["website"] = website_url or ""
         dump["social_links"] = dump.get("website_profiles", {}).get("social_profiles", [])
         dump["news"] = dump.get("website_profiles", {}).get("news_items", [])
         dump["updates"] = dump["news"]
