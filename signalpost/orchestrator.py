@@ -684,6 +684,22 @@ class Orchestrator:
         dump["source_date"] = now[:10]
         dump["website_source_date"] = now[:10]
 
+        # Starter kit exact contract fields
+        nace_code = nace1.get("kode") if isinstance(nace1, dict) else ""
+        dump["industry_code"] = nace_code
+        dump["industry_label"] = ind_desc
+        dump["bankrupt"] = bool(entity.get("konkurs", False))
+        dump["liquidating"] = bool(entity.get("underAvvikling", False))
+        dump["adverse"] = bool(dump["bankrupt"] or dump["liquidating"])
+        dump["sample_slice"] = "population"
+        dump["evaluation_split"] = "submission"
+        dump["latest_submitted_accounts"] = str(annual_accounts.latest_filing_year) if annual_accounts.latest_filing_year else None
+        dump["external"] = {
+            "handles": [{"platform": s.get("platform"), "url": s.get("url")} for s in dump.get("social_links", []) if isinstance(s, dict)],
+            "news": dump.get("news", []),
+            "jobs": dump.get("jobs", []),
+        }
+
         return dump
 
     def _build_legal_identity(self, entity: dict, org_number: str, now: str) -> LegalIdentity:
