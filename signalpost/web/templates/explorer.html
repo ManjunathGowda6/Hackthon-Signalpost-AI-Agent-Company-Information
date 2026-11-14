@@ -120,7 +120,7 @@ async function api(path) {
 
 async function doSearch() {
   state.loading = true;
-  render();
+  updateDirectoryView(true);
   const params = new URLSearchParams();
   if (state.query) params.set('q', state.query);
   if (state.sector) params.set('sector', state.sector);
@@ -136,7 +136,33 @@ async function doSearch() {
     state.page = data.page;
   } catch (e) { console.error(e); }
   state.loading = false;
-  render();
+  updateDirectoryView(false);
+}
+
+function updateDirectoryView(isLoading) {
+  if (state.view !== 'directory') {
+    render();
+    return;
+  }
+  const cardsContainer = document.getElementById('resultsCardsContainer');
+  if (!cardsContainer) {
+    render();
+    return;
+  }
+  const buyerPillsContainer = document.getElementById('buyerPillsContainer');
+  const filtersContainer = document.getElementById('filtersContainer');
+  const headerContainer = document.getElementById('resultsHeaderContainer');
+  const paginationContainer = document.getElementById('paginationContainer');
+
+  if (buyerPillsContainer) buyerPillsContainer.innerHTML = renderBuyerPills();
+  if (filtersContainer) filtersContainer.innerHTML = renderFilters();
+  if (headerContainer) headerContainer.innerHTML = renderResultsHeader();
+  if (isLoading) {
+    cardsContainer.innerHTML = renderSkeleton();
+  } else {
+    cardsContainer.innerHTML = renderCards();
+    if (paginationContainer) paginationContainer.innerHTML = renderPagination();
+  }
 }
 
 async function loadProfile(org) {
