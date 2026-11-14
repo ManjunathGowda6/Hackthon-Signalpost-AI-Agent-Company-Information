@@ -609,21 +609,16 @@ def search():
 
     cards = [_build_card(c) for c in page_results]
 
-    if page == 1 and global_cards:
-        cards = global_cards + cards
-        total += len(global_cards)
-
-    # Dynamic AI Web Search fallback if no local results found
-    if total == 0 and not global_cards and len(q) >= 3 and not q.isdigit():
-        web_card = _build_dynamic_web_card(q)
-        if web_card:
-            return jsonify({
-                "total": 1,
-                "page": 1,
-                "size": size,
-                "pages": 1,
-                "results": [web_card],
-            })
+    # Append global cards if not already present
+    if cards:
+        seen_names = {c["name"].lower() for c in cards}
+        for gc_card in global_cards:
+            if gc_card["name"].lower() not in seen_names:
+                cards.append(gc_card)
+                total += 1
+    elif global_cards:
+        cards = global_cards
+        total = len(global_cards)
 
     return jsonify({
         "total": total,
@@ -632,6 +627,18 @@ def search():
         "pages": max(1, (total + size - 1) // size),
         "results": cards,
     })
+
+
+@explorer_bp.route("/web_search")
+def web_search_endpoint():
+    """GET /explorer/api/web_search?q=..."""
+    q = request.args.get("q", "").strip()
+    if not q or len(q) < 2:
+        return jsonify({"error": "Query too short"}), 400
+    card = _build_dynamic_web_card(q)
+    if not card:
+        return jsonify({"error": "No web results found"}), 404
+    return jsonify({"card": card, "orgnr": card["orgnr"]})
 
 
 @explorer_bp.route("/profile/<org_number>")
@@ -684,28 +691,12 @@ def suggest():
         return jsonify([])
     results = []
 
-    # 1. Global companies & aliases match
-    seen_names = set()
-    for gc in GLOBAL_COMPANIES:
-        gc_id = gc.get("id") or ("GLOBAL-" + re.sub(r'[^a-zA-Z0-9]+', '-', gc["name"]).strip('-').upper())
-        name_lower = gc["name"].lower()
-        aliases = ALIASES.get(name_lower, [])
-        matches = (q in name_lower or name_lower in q or any(q in a or a in q for a in aliases) or q in gc.get("tags", "").lower())
-        if matches and gc["name"] not in seen_names:
-            seen_names.add(gc["name"])
-            results.append({
-                "orgnr": gc_id,
-                "name": gc["name"],
-                "municipality": gc.get("hq", "Global"),
-                "form": "Global · " + gc.get("sector", "Tech"),
-            })
-            if len(results) >= 5:
-                break
-
-    # 2. Norwegian companies match
+    # 1. Match Norwegian companies first
+    seen_orgs = set()
     for c in COMPANIES:
         name = (c.get("n") or "").lower()
         if q in name or q == c.get("o", ""):
+            seen_orgs.add(c["o"])
             results.append({
                 "orgnr": c["o"],
                 "name": c.get("n", ""),
@@ -715,8 +706,27 @@ def suggest():
             if len(results) >= 10:
                 break
 
+    # 2. Match global companies & aliases
+    if len(results) < 10:
+        seen_names = {r["name"].lower() for r in results}
+        for gc in GLOBAL_COMPANIES:
+            gc_id = gc.get("id") or ("GLOBAL-" + re.sub(r'[^a-zA-Z0-9]+', '-', gc["name"]).strip('-').upper())
+            name_lower = gc["name"].lower()
+            aliases = ALIASES.get(name_lower, [])
+            matches = (q in name_lower or name_lower in q or any(q in a or a in q for a in aliases) or q in gc.get("tags", "").lower())
+            if matches and name_lower not in seen_names:
+                seen_names.add(name_lower)
+                results.append({
+                    "orgnr": gc_id,
+                    "name": gc["name"],
+                    "municipality": gc.get("hq", "Global"),
+                    "form": "Global · " + gc.get("sector", "Tech"),
+                })
+                if len(results) >= 10:
+                    break
+
     # 3. If under 5 results and query has at least 3 letters, provide 1-click real-time web search
-    if len(results) < 5 and len(q) >= 3 and not q.isdigit():
+    if len(results) < 5 and len(q) >= 3 and not q.isdigit() and re.match(r'^[a-zA-Z0-9\s\-]+$', q):
         results.append({
             "orgnr": f"WEB-{re.sub(r'[^a-zA-Z0-9]+', '-', q).strip('-').upper()}",
             "name": f"🌐 Real-Time AI Search: \"{q.title()}\"",
