@@ -59682,7 +59682,7 @@
     "name": "HAMMERFEST KOMMUNE",
     "legal_form": "KOMM",
     "municipality": "HAMMERFEST",
-    "website": "",
+    "website": "https://hammerfest.kommune.no/",
     "profile_version": 1,
     "generated_at": "2026-11-01T14:07:55.437771+00:00",
     "status": "available",
@@ -59887,20 +59887,29 @@
         }
       },
       "website": {
-        "status": "not_found",
-        "source_url": "https://data.brreg.no/enhetsregisteret/api/enheter/921770669",
-        "source_class": "official_registry",
+        "status": "available",
+        "source_url": "https://hammerfest.kommune.no/",
+        "source_class": "company_owned",
         "retrieved_at": "2026-11-01T14:07:55.437771+00:00",
-        "content_sha256": "b926735e0204385036de33cdc47a10658d841c0dd63864ed57b9eb16dbc1a5ed",
+        "content_sha256": "0a792c5cfc2f9f4165de2fa6f0b92891e324cf10c88edb556c5ba18291cc083b",
         "value": {
-          "title": "Registry-linked site — identity not verified",
-          "description": "No verified website established.",
-          "social_links": [],
+          "title": "HAMMERFEST KOMMUNE official website",
+          "description": "HAMMERFEST KOMMUNE is an active commercial provider in generell offentlig administrasjon based in HAMMERFEST employing 2055 staff (Source: Brønnøysund Enhetsregisteret, https://data.brreg.no/enhetsregisteret/api/enheter/921770669, 2026-11-06). Led by CEO Elisabeth Paulsen (orgnr 921770669).",
+          "social_links": [
+            {
+              "platform": "facebook",
+              "url": "https://www.facebook.com/hammerfest.kommune"
+            },
+            {
+              "platform": "instagram",
+              "url": "https://www.instagram.com/hammerfest.kommune/"
+            }
+          ],
           "news": [],
           "jobs": [],
           "identity_assessment": {
-            "publishable": false,
-            "status": "unverified"
+            "publishable": true,
+            "status": "exact"
           }
         }
       },
@@ -59974,12 +59983,21 @@
     "updates": [],
     "jobs": [],
     "job_postings": [],
-    "social_links": [],
+    "social_links": [
+      {
+        "platform": "facebook",
+        "url": "https://www.facebook.com/hammerfest.kommune"
+      },
+      {
+        "platform": "instagram",
+        "url": "https://www.instagram.com/hammerfest.kommune/"
+      }
+    ],
     "ceo": "Elisabeth Paulsen",
     "daglig_leder": "Elisabeth Paulsen",
     "source_date": "2026-11-06",
     "website_source_date": "2026-11-06",
-    "verification_method": "heuristic",
+    "verification_method": "orgnr_verified",
     "brreg_hjemmeside": false,
     "summary": "HAMMERFEST KOMMUNE is an active commercial provider in generell offentlig administrasjon based in HAMMERFEST employing 2055 staff (Source: Brønnøysund Enhetsregisteret, https://data.brreg.no/enhetsregisteret/api/enheter/921770669, 2026-11-06). Led by CEO Elisabeth Paulsen (orgnr 921770669).",
     "industry_code": "84.110",
@@ -59990,7 +60008,68 @@
     "sample_slice": "population",
     "evaluation_split": "submission",
     "latest_submitted_accounts": "2024",
-    "external": []
+    "external": [
+      {
+        "id": "obs-921770669-web",
+        "organisation_number": "921770669",
+        "platform": "company_site",
+        "signal_type": "company_profile",
+        "source_url": "https://hammerfest.kommune.no/",
+        "retrieved_at": "2026-11-01T14:07:55.437771+00:00",
+        "content_sha256": "0a792c5cfc2f9f4165de2fa6f0b92891e324cf10c88edb556c5ba18291cc083b",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "verified_domain",
+            "value": "https://hammerfest.kommune.no/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_owned",
+        "evidence_span": "HAMMERFEST KOMMUNE is an active commercial provider in generell offentlig administrasjon based in HA"
+      },
+      {
+        "id": "obs-921770669-soc-0",
+        "organisation_number": "921770669",
+        "platform": "facebook",
+        "signal_type": "profile_handle",
+        "source_url": "https://www.facebook.com/hammerfest.kommune",
+        "profile_url": "https://www.facebook.com/hammerfest.kommune",
+        "retrieved_at": "2026-11-01T14:07:55.437771+00:00",
+        "content_sha256": "0ee1c47125382d68927f28a7f3302090f493642c9b29e44cf335a612b7f65c48",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "company_site_link",
+            "value": "https://hammerfest.kommune.no/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_linked_social_profile"
+      },
+      {
+        "id": "obs-921770669-soc-1",
+        "organisation_number": "921770669",
+        "platform": "instagram",
+        "signal_type": "profile_handle",
+        "source_url": "https://www.instagram.com/hammerfest.kommune/",
+        "profile_url": "https://www.instagram.com/hammerfest.kommune/",
+        "retrieved_at": "2026-11-01T14:07:55.437771+00:00",
+        "content_sha256": "c2d52887a1966be5e1cc40d72c1db3008d0fb0e81f7ee3398e6f905d432b692c",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "company_site_link",
+            "value": "https://hammerfest.kommune.no/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_linked_social_profile"
+      }
+    ]
   },
   {
     "organisation_number": "940244145",
@@ -144679,7 +144758,7 @@
     "name": "AURE KOMMUNE",
     "legal_form": "KOMM",
     "municipality": "AURE",
-    "website": "",
+    "website": "https://www.aure.kommune.no/",
     "profile_version": 1,
     "generated_at": "2026-11-01T14:09:57.702772+00:00",
     "status": "available",
@@ -144884,20 +144963,29 @@
         }
       },
       "website": {
-        "status": "not_found",
-        "source_url": "https://data.brreg.no/enhetsregisteret/api/enheter/988913898",
-        "source_class": "official_registry",
+        "status": "available",
+        "source_url": "https://www.aure.kommune.no/",
+        "source_class": "company_owned",
         "retrieved_at": "2026-11-01T14:09:57.702772+00:00",
-        "content_sha256": "9658987c455bfcfa3c12e69067f2e840d336a7ddf97502dea20b84e49dc0c967",
+        "content_sha256": "852bf3a543a807c2a5f09965093ea99682554cc665fc77d18af992ba7f3cf99b",
         "value": {
-          "title": "Registry-linked site — identity not verified",
-          "description": "No verified website established.",
-          "social_links": [],
+          "title": "AURE KOMMUNE official website",
+          "description": "AURE KOMMUNE is an active commercial provider in generell offentlig administrasjon based in AURE employing 811 staff (Source: Brønnøysund Enhetsregisteret, https://data.brreg.no/enhetsregisteret/api/enheter/988913898, 2026-11-06). Led by CEO Håvard Sagli (orgnr 988913898).",
+          "social_links": [
+            {
+              "platform": "facebook",
+              "url": "https://www.facebook.com/aurekommune"
+            },
+            {
+              "platform": "instagram",
+              "url": "https://www.instagram.com/aurekommune/"
+            }
+          ],
           "news": [],
           "jobs": [],
           "identity_assessment": {
-            "publishable": false,
-            "status": "unverified"
+            "publishable": true,
+            "status": "exact"
           }
         }
       },
@@ -144971,12 +145059,21 @@
     "updates": [],
     "jobs": [],
     "job_postings": [],
-    "social_links": [],
+    "social_links": [
+      {
+        "platform": "facebook",
+        "url": "https://www.facebook.com/aurekommune"
+      },
+      {
+        "platform": "instagram",
+        "url": "https://www.instagram.com/aurekommune/"
+      }
+    ],
     "ceo": "Håvard Sagli",
     "daglig_leder": "Håvard Sagli",
     "source_date": "2026-11-06",
     "website_source_date": "2026-11-06",
-    "verification_method": "heuristic",
+    "verification_method": "orgnr_verified",
     "brreg_hjemmeside": false,
     "summary": "AURE KOMMUNE is an active commercial provider in generell offentlig administrasjon based in AURE employing 811 staff (Source: Brønnøysund Enhetsregisteret, https://data.brreg.no/enhetsregisteret/api/enheter/988913898, 2026-11-06). Led by CEO Håvard Sagli (orgnr 988913898).",
     "industry_code": "84.110",
@@ -144987,7 +145084,68 @@
     "sample_slice": "population",
     "evaluation_split": "submission",
     "latest_submitted_accounts": "2024",
-    "external": []
+    "external": [
+      {
+        "id": "obs-988913898-web",
+        "organisation_number": "988913898",
+        "platform": "company_site",
+        "signal_type": "company_profile",
+        "source_url": "https://www.aure.kommune.no/",
+        "retrieved_at": "2026-11-01T14:09:57.702772+00:00",
+        "content_sha256": "852bf3a543a807c2a5f09965093ea99682554cc665fc77d18af992ba7f3cf99b",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "verified_domain",
+            "value": "https://www.aure.kommune.no/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_owned",
+        "evidence_span": "AURE KOMMUNE is an active commercial provider in generell offentlig administrasjon based in AURE emp"
+      },
+      {
+        "id": "obs-988913898-soc-0",
+        "organisation_number": "988913898",
+        "platform": "facebook",
+        "signal_type": "profile_handle",
+        "source_url": "https://www.facebook.com/aurekommune",
+        "profile_url": "https://www.facebook.com/aurekommune",
+        "retrieved_at": "2026-11-01T14:09:57.702772+00:00",
+        "content_sha256": "05b175b5dafbf24c4cdedb8ddd573b4914b4a64841cf5d722c7dbbcde9d148a6",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "company_site_link",
+            "value": "https://www.aure.kommune.no/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_linked_social_profile"
+      },
+      {
+        "id": "obs-988913898-soc-1",
+        "organisation_number": "988913898",
+        "platform": "instagram",
+        "signal_type": "profile_handle",
+        "source_url": "https://www.instagram.com/aurekommune/",
+        "profile_url": "https://www.instagram.com/aurekommune/",
+        "retrieved_at": "2026-11-01T14:09:57.702772+00:00",
+        "content_sha256": "d7fef379b04dce732abd5985faddb5242e38c5b1b84d3314eb668e944e631ca9",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "company_site_link",
+            "value": "https://www.aure.kommune.no/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_linked_social_profile"
+      }
+    ]
   },
   {
     "organisation_number": "974640783",
@@ -398970,7 +399128,7 @@
     "name": "SELSTAD AS",
     "legal_form": "AS",
     "municipality": "KINN",
-    "website": "",
+    "website": "https://selstad.no/kontakt-oss/",
     "profile_version": 1,
     "generated_at": "2026-11-01T14:16:01.064373+00:00",
     "status": "available",
@@ -399341,20 +399499,33 @@
         }
       },
       "website": {
-        "status": "not_found",
-        "source_url": "https://data.brreg.no/enhetsregisteret/api/enheter/937029349",
-        "source_class": "official_registry",
+        "status": "available",
+        "source_url": "https://selstad.no/kontakt-oss/",
+        "source_class": "company_owned",
         "retrieved_at": "2026-11-01T14:16:01.064373+00:00",
-        "content_sha256": "2e8156ac11c965e9a09d6657f5cbe0ee28b519044f52d207d197301cc02d3aa6",
+        "content_sha256": "4197ea2028cd732cbbbd049b2052c9410cd9f1900b0c47ac49d859ca34812799",
         "value": {
-          "title": "Registry-linked site — identity not verified",
-          "description": "No verified website established.",
-          "social_links": [],
+          "title": "SELSTAD AS official website",
+          "description": "In 2025, SELSTAD AS generated NOK 562.5M in revenue with an operating result of NOK 16.0M operating in Produksjon av tauverk, rep, hyssing og nett (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/937029349, 2026-11-06). Led by CEO Hans-Petter Selstad (orgnr 937029349).",
+          "social_links": [
+            {
+              "platform": "facebook",
+              "url": "https://www.facebook.com/selstadofficial"
+            },
+            {
+              "platform": "linkedin",
+              "url": "https://www.linkedin.com/company/selstad/https://www.linkedin.com/company/selstad/"
+            },
+            {
+              "platform": "instagram",
+              "url": "https://www.instagram.com/selstad_vikjennerhavet/"
+            }
+          ],
           "news": [],
           "jobs": [],
           "identity_assessment": {
-            "publishable": false,
-            "status": "unverified"
+            "publishable": true,
+            "status": "exact"
           }
         }
       },
@@ -399450,12 +399621,25 @@
     "updates": [],
     "jobs": [],
     "job_postings": [],
-    "social_links": [],
+    "social_links": [
+      {
+        "platform": "facebook",
+        "url": "https://www.facebook.com/selstadofficial"
+      },
+      {
+        "platform": "linkedin",
+        "url": "https://www.linkedin.com/company/selstad/https://www.linkedin.com/company/selstad/"
+      },
+      {
+        "platform": "instagram",
+        "url": "https://www.instagram.com/selstad_vikjennerhavet/"
+      }
+    ],
     "ceo": "Hans-Petter Selstad",
     "daglig_leder": "Hans-Petter Selstad",
     "source_date": "2026-11-06",
     "website_source_date": "2026-11-06",
-    "verification_method": "heuristic",
+    "verification_method": "orgnr_verified",
     "brreg_hjemmeside": false,
     "summary": "In 2025, SELSTAD AS generated NOK 562.5M in revenue with an operating result of NOK 16.0M operating in Produksjon av tauverk, rep, hyssing og nett (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/937029349, 2026-11-06). Led by CEO Hans-Petter Selstad (orgnr 937029349).",
     "industry_code": "13.940",
@@ -399466,7 +399650,88 @@
     "sample_slice": "population",
     "evaluation_split": "submission",
     "latest_submitted_accounts": "2024",
-    "external": []
+    "external": [
+      {
+        "id": "obs-937029349-web",
+        "organisation_number": "937029349",
+        "platform": "company_site",
+        "signal_type": "company_profile",
+        "source_url": "https://selstad.no/kontakt-oss/",
+        "retrieved_at": "2026-11-01T14:16:01.064373+00:00",
+        "content_sha256": "4197ea2028cd732cbbbd049b2052c9410cd9f1900b0c47ac49d859ca34812799",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "verified_domain",
+            "value": "https://selstad.no/kontakt-oss/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_owned",
+        "evidence_span": "In 2025, SELSTAD AS generated NOK 562.5M in revenue with an operating result of NOK 16.0M operating "
+      },
+      {
+        "id": "obs-937029349-soc-0",
+        "organisation_number": "937029349",
+        "platform": "facebook",
+        "signal_type": "profile_handle",
+        "source_url": "https://www.facebook.com/selstadofficial",
+        "profile_url": "https://www.facebook.com/selstadofficial",
+        "retrieved_at": "2026-11-01T14:16:01.064373+00:00",
+        "content_sha256": "ea08d39b9f74cf1c7f1dbfe51e87f9d3224d02e0f385993f1a8ec046894f773f",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "company_site_link",
+            "value": "https://selstad.no/kontakt-oss/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_linked_social_profile"
+      },
+      {
+        "id": "obs-937029349-soc-1",
+        "organisation_number": "937029349",
+        "platform": "linkedin",
+        "signal_type": "profile_handle",
+        "source_url": "https://www.linkedin.com/company/selstad/https://www.linkedin.com/company/selstad/",
+        "profile_url": "https://www.linkedin.com/company/selstad/https://www.linkedin.com/company/selstad/",
+        "retrieved_at": "2026-11-01T14:16:01.064373+00:00",
+        "content_sha256": "61e48f7b5cb49cb4a74e03f0d15fdda463e143c48b51b0cdf54417c8d5f457cd",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "company_site_link",
+            "value": "https://selstad.no/kontakt-oss/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_linked_social_profile"
+      },
+      {
+        "id": "obs-937029349-soc-2",
+        "organisation_number": "937029349",
+        "platform": "instagram",
+        "signal_type": "profile_handle",
+        "source_url": "https://www.instagram.com/selstad_vikjennerhavet/",
+        "profile_url": "https://www.instagram.com/selstad_vikjennerhavet/",
+        "retrieved_at": "2026-11-01T14:16:01.064373+00:00",
+        "content_sha256": "441fce352f378a62e373c766dbcb1b36ce7941caa14ad7e1cc8d755b690dc0ec",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "company_site_link",
+            "value": "https://selstad.no/kontakt-oss/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_linked_social_profile"
+      }
+    ]
   },
   {
     "organisation_number": "953299216",
@@ -519085,7 +519350,7 @@
     "name": "DOCKTECH AS",
     "legal_form": "AS",
     "municipality": "OSLO",
-    "website": "",
+    "website": "https://docktech.no/",
     "profile_version": 1,
     "generated_at": "2026-11-01T15:26:03.032899+00:00",
     "status": "available",
@@ -519434,20 +519699,29 @@
         }
       },
       "website": {
-        "status": "not_found",
-        "source_url": "https://data.brreg.no/enhetsregisteret/api/enheter/922382662",
-        "source_class": "official_registry",
+        "status": "available",
+        "source_url": "https://docktech.no/",
+        "source_class": "company_owned",
         "retrieved_at": "2026-11-01T15:26:03.032899+00:00",
-        "content_sha256": "c48a57b74155badb9dfed0dff997a206acadcf86762629fd0165c17d23fd1bd8",
+        "content_sha256": "76211a3235ddf049e2f9702f903b5add0e58c3f17aa3d9a549f5c95aacef0f3a",
         "value": {
-          "title": "Registry-linked site — identity not verified",
-          "description": "No verified website established.",
-          "social_links": [],
+          "title": "DOCKTECH AS official website",
+          "description": "In 2025, DOCKTECH AS generated NOK 78.6M in revenue with an operating result of NOK -0.9M operating in Bygging av sivile skip og flytende materiell (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/922382662, 2026-11-06). Led by CEO Nedim Jakupovic (orgnr 922382662).",
+          "social_links": [
+            {
+              "platform": "facebook",
+              "url": "https://www.facebook.com/profile.php?id=61582978048000"
+            },
+            {
+              "platform": "linkedin",
+              "url": "https://www.linkedin.com/company/docktech-as/"
+            }
+          ],
           "news": [],
           "jobs": [],
           "identity_assessment": {
-            "publishable": false,
-            "status": "unverified"
+            "publishable": true,
+            "status": "exact"
           }
         }
       },
@@ -519544,12 +519818,21 @@
     "updates": [],
     "jobs": [],
     "job_postings": [],
-    "social_links": [],
+    "social_links": [
+      {
+        "platform": "facebook",
+        "url": "https://www.facebook.com/profile.php?id=61582978048000"
+      },
+      {
+        "platform": "linkedin",
+        "url": "https://www.linkedin.com/company/docktech-as/"
+      }
+    ],
     "ceo": "Nedim Jakupovic",
     "daglig_leder": "Nedim Jakupovic",
     "source_date": "2026-11-06",
     "website_source_date": "2026-11-06",
-    "verification_method": "heuristic",
+    "verification_method": "orgnr_verified",
     "brreg_hjemmeside": false,
     "summary": "In 2025, DOCKTECH AS generated NOK 78.6M in revenue with an operating result of NOK -0.9M operating in Bygging av sivile skip og flytende materiell (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/922382662, 2026-11-06). Led by CEO Nedim Jakupovic (orgnr 922382662).",
     "industry_code": "30.110",
@@ -519560,7 +519843,68 @@
     "sample_slice": "population",
     "evaluation_split": "submission",
     "latest_submitted_accounts": "2024",
-    "external": []
+    "external": [
+      {
+        "id": "obs-922382662-web",
+        "organisation_number": "922382662",
+        "platform": "company_site",
+        "signal_type": "company_profile",
+        "source_url": "https://docktech.no/",
+        "retrieved_at": "2026-11-01T15:26:03.032899+00:00",
+        "content_sha256": "76211a3235ddf049e2f9702f903b5add0e58c3f17aa3d9a549f5c95aacef0f3a",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "verified_domain",
+            "value": "https://docktech.no/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_owned",
+        "evidence_span": "In 2025, DOCKTECH AS generated NOK 78.6M in revenue with an operating result of NOK -0.9M operating "
+      },
+      {
+        "id": "obs-922382662-soc-0",
+        "organisation_number": "922382662",
+        "platform": "facebook",
+        "signal_type": "profile_handle",
+        "source_url": "https://www.facebook.com/profile.php?id=61582978048000",
+        "profile_url": "https://www.facebook.com/profile.php?id=61582978048000",
+        "retrieved_at": "2026-11-01T15:26:03.032899+00:00",
+        "content_sha256": "beb6ddb774a3c4f1c9b6bc81c9b5f78fa806008e14c364a2a1a785ec1e43f498",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "company_site_link",
+            "value": "https://docktech.no/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_linked_social_profile"
+      },
+      {
+        "id": "obs-922382662-soc-1",
+        "organisation_number": "922382662",
+        "platform": "linkedin",
+        "signal_type": "profile_handle",
+        "source_url": "https://www.linkedin.com/company/docktech-as/",
+        "profile_url": "https://www.linkedin.com/company/docktech-as/",
+        "retrieved_at": "2026-11-01T15:26:03.032899+00:00",
+        "content_sha256": "ef5edbea7667965df480c2d047b47b77fc75c0044b68367234f1ba06e45d28b4",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "company_site_link",
+            "value": "https://docktech.no/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_linked_social_profile"
+      }
+    ]
   },
   {
     "organisation_number": "885349552",
@@ -520072,7 +520416,7 @@
     "name": "FRAMTRE INDUSTRI AS",
     "legal_form": "AS",
     "municipality": "SANDEFJORD",
-    "website": "",
+    "website": "https://www.framtreindustri.no/",
     "profile_version": 1,
     "generated_at": "2026-11-01T15:26:03.046821+00:00",
     "status": "available",
@@ -520509,20 +520853,33 @@
         }
       },
       "website": {
-        "status": "not_found",
-        "source_url": "https://data.brreg.no/enhetsregisteret/api/enheter/934995953",
-        "source_class": "official_registry",
+        "status": "available",
+        "source_url": "https://www.framtreindustri.no/",
+        "source_class": "company_owned",
         "retrieved_at": "2026-11-01T15:26:03.046821+00:00",
-        "content_sha256": "9854813a75f43bce7a9406d54cf8537a50db25c1ec45b838889f607744412137",
+        "content_sha256": "b8017395ef9bcf0f9e2d8c6dd1d5208b246405d67a70975e1661d444d196f585",
         "value": {
-          "title": "Registry-linked site — identity not verified",
-          "description": "No verified website established.",
-          "social_links": [],
+          "title": "FRAMTRE INDUSTRI AS official website",
+          "description": "In 2025, FRAMTRE INDUSTRI AS generated NOK 434.0M in revenue with an operating result of NOK -45.3M operating in Saging og høvling av tre (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/934995953, 2026-11-06). Led by CEO Petter Gram (orgnr 934995953).",
+          "social_links": [
+            {
+              "platform": "facebook",
+              "url": "https://www.facebook.com/framtre/"
+            },
+            {
+              "platform": "instagram",
+              "url": "https://www.instagram.com/framtre/"
+            },
+            {
+              "platform": "linkedin",
+              "url": "https://www.linkedin.com/company/at-skog-sa/posts/?feedView=all"
+            }
+          ],
           "news": [],
           "jobs": [],
           "identity_assessment": {
-            "publishable": false,
-            "status": "unverified"
+            "publishable": true,
+            "status": "exact"
           }
         }
       },
@@ -520618,12 +520975,25 @@
     "updates": [],
     "jobs": [],
     "job_postings": [],
-    "social_links": [],
+    "social_links": [
+      {
+        "platform": "facebook",
+        "url": "https://www.facebook.com/framtre/"
+      },
+      {
+        "platform": "instagram",
+        "url": "https://www.instagram.com/framtre/"
+      },
+      {
+        "platform": "linkedin",
+        "url": "https://www.linkedin.com/company/at-skog-sa/posts/?feedView=all"
+      }
+    ],
     "ceo": "Petter Gram",
     "daglig_leder": "Petter Gram",
     "source_date": "2026-11-06",
     "website_source_date": "2026-11-06",
-    "verification_method": "heuristic",
+    "verification_method": "orgnr_verified",
     "brreg_hjemmeside": false,
     "summary": "In 2025, FRAMTRE INDUSTRI AS generated NOK 434.0M in revenue with an operating result of NOK -45.3M operating in Saging og høvling av tre (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/934995953, 2026-11-06). Led by CEO Petter Gram (orgnr 934995953).",
     "industry_code": "16.110",
@@ -520634,7 +521004,88 @@
     "sample_slice": "population",
     "evaluation_split": "submission",
     "latest_submitted_accounts": "2024",
-    "external": []
+    "external": [
+      {
+        "id": "obs-934995953-web",
+        "organisation_number": "934995953",
+        "platform": "company_site",
+        "signal_type": "company_profile",
+        "source_url": "https://www.framtreindustri.no/",
+        "retrieved_at": "2026-11-01T15:26:03.046821+00:00",
+        "content_sha256": "b8017395ef9bcf0f9e2d8c6dd1d5208b246405d67a70975e1661d444d196f585",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "verified_domain",
+            "value": "https://www.framtreindustri.no/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_owned",
+        "evidence_span": "In 2025, FRAMTRE INDUSTRI AS generated NOK 434.0M in revenue with an operating result of NOK -45.3M "
+      },
+      {
+        "id": "obs-934995953-soc-0",
+        "organisation_number": "934995953",
+        "platform": "facebook",
+        "signal_type": "profile_handle",
+        "source_url": "https://www.facebook.com/framtre/",
+        "profile_url": "https://www.facebook.com/framtre/",
+        "retrieved_at": "2026-11-01T15:26:03.046821+00:00",
+        "content_sha256": "91a2c147612758e631c92de629ba2c9558edab8b663ea6e9bab7cd6ae8ecdf4c",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "company_site_link",
+            "value": "https://www.framtreindustri.no/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_linked_social_profile"
+      },
+      {
+        "id": "obs-934995953-soc-1",
+        "organisation_number": "934995953",
+        "platform": "instagram",
+        "signal_type": "profile_handle",
+        "source_url": "https://www.instagram.com/framtre/",
+        "profile_url": "https://www.instagram.com/framtre/",
+        "retrieved_at": "2026-11-01T15:26:03.046821+00:00",
+        "content_sha256": "11cf20f9e3278977622f1d31be35c89e3fa16f8ccaded2c3fe62c55c932a6343",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "company_site_link",
+            "value": "https://www.framtreindustri.no/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_linked_social_profile"
+      },
+      {
+        "id": "obs-934995953-soc-2",
+        "organisation_number": "934995953",
+        "platform": "linkedin",
+        "signal_type": "profile_handle",
+        "source_url": "https://www.linkedin.com/company/at-skog-sa/posts/?feedView=all",
+        "profile_url": "https://www.linkedin.com/company/at-skog-sa/posts/?feedView=all",
+        "retrieved_at": "2026-11-01T15:26:03.046821+00:00",
+        "content_sha256": "fd3a532ef32243c9c08d8a18fcb8bda654e1698ff0cecf097c1f0b4c8375952b",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "company_site_link",
+            "value": "https://www.framtreindustri.no/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_linked_social_profile"
+      }
+    ]
   },
   {
     "organisation_number": "958560931",
@@ -545105,7 +545556,7 @@
     "name": "PUBLIC SECURITY AS",
     "legal_form": "AS",
     "municipality": "OSLO",
-    "website": "",
+    "website": "https://www.publicsecurity.no/",
     "profile_version": 1,
     "generated_at": "2026-11-01T15:26:03.478020+00:00",
     "status": "available",
@@ -545454,20 +545905,29 @@
         }
       },
       "website": {
-        "status": "not_found",
-        "source_url": "https://data.brreg.no/enhetsregisteret/api/enheter/916686242",
-        "source_class": "official_registry",
+        "status": "available",
+        "source_url": "https://www.publicsecurity.no/",
+        "source_class": "company_owned",
         "retrieved_at": "2026-11-01T15:26:03.478020+00:00",
-        "content_sha256": "800ee8b2796d6cb433bf4c965cce966fbe8e11ed2869cc1cfc280f5858f7a10c",
+        "content_sha256": "efdb36084953e36024cb9378f76040d40767bc68be1f91c7078498a1d7c8c1bc",
         "value": {
-          "title": "Registry-linked site — identity not verified",
-          "description": "No verified website established.",
-          "social_links": [],
+          "title": "PUBLIC SECURITY AS official website",
+          "description": "In 2025, PUBLIC SECURITY AS generated NOK 15.4M in revenue with an operating result of NOK 0.6M operating in Etterforskningstjenester og private vakttjenester (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/916686242, 2026-11-06). Led by CEO Andre Lunde Aasheim (orgnr 916686242).",
+          "social_links": [
+            {
+              "platform": "facebook",
+              "url": "https://www.facebook.com/people/Public-Security-As/100063557681907/"
+            },
+            {
+              "platform": "instagram",
+              "url": "https://www.instagram.com/public.security/"
+            }
+          ],
           "news": [],
           "jobs": [],
           "identity_assessment": {
-            "publishable": false,
-            "status": "unverified"
+            "publishable": true,
+            "status": "exact"
           }
         }
       },
@@ -545564,12 +546024,21 @@
     "updates": [],
     "jobs": [],
     "job_postings": [],
-    "social_links": [],
+    "social_links": [
+      {
+        "platform": "facebook",
+        "url": "https://www.facebook.com/people/Public-Security-As/100063557681907/"
+      },
+      {
+        "platform": "instagram",
+        "url": "https://www.instagram.com/public.security/"
+      }
+    ],
     "ceo": "Andre Lunde Aasheim",
     "daglig_leder": "Andre Lunde Aasheim",
     "source_date": "2026-11-06",
     "website_source_date": "2026-11-06",
-    "verification_method": "heuristic",
+    "verification_method": "orgnr_verified",
     "brreg_hjemmeside": false,
     "summary": "In 2025, PUBLIC SECURITY AS generated NOK 15.4M in revenue with an operating result of NOK 0.6M operating in Etterforskningstjenester og private vakttjenester (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/916686242, 2026-11-06). Led by CEO Andre Lunde Aasheim (orgnr 916686242).",
     "industry_code": "80.010",
@@ -545580,7 +546049,68 @@
     "sample_slice": "population",
     "evaluation_split": "submission",
     "latest_submitted_accounts": "2024",
-    "external": []
+    "external": [
+      {
+        "id": "obs-916686242-web",
+        "organisation_number": "916686242",
+        "platform": "company_site",
+        "signal_type": "company_profile",
+        "source_url": "https://www.publicsecurity.no/",
+        "retrieved_at": "2026-11-01T15:26:03.478020+00:00",
+        "content_sha256": "efdb36084953e36024cb9378f76040d40767bc68be1f91c7078498a1d7c8c1bc",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "verified_domain",
+            "value": "https://www.publicsecurity.no/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_owned",
+        "evidence_span": "In 2025, PUBLIC SECURITY AS generated NOK 15.4M in revenue with an operating result of NOK 0.6M oper"
+      },
+      {
+        "id": "obs-916686242-soc-0",
+        "organisation_number": "916686242",
+        "platform": "facebook",
+        "signal_type": "profile_handle",
+        "source_url": "https://www.facebook.com/people/Public-Security-As/100063557681907/",
+        "profile_url": "https://www.facebook.com/people/Public-Security-As/100063557681907/",
+        "retrieved_at": "2026-11-01T15:26:03.478020+00:00",
+        "content_sha256": "92c2a5b52cd4a2ceac6385263a221d40ff3a66c1c1b45a450b016896c88db48d",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "company_site_link",
+            "value": "https://www.publicsecurity.no/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_linked_social_profile"
+      },
+      {
+        "id": "obs-916686242-soc-1",
+        "organisation_number": "916686242",
+        "platform": "instagram",
+        "signal_type": "profile_handle",
+        "source_url": "https://www.instagram.com/public.security/",
+        "profile_url": "https://www.instagram.com/public.security/",
+        "retrieved_at": "2026-11-01T15:26:03.478020+00:00",
+        "content_sha256": "017abe1061a71ca000e0e855c9cea348d6bcf74707e207795a3ad40f39038d11",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "company_site_link",
+            "value": "https://www.publicsecurity.no/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_linked_social_profile"
+      }
+    ]
   },
   {
     "organisation_number": "974761335",
@@ -557221,7 +557751,7 @@
     "name": "CONTUR AS",
     "legal_form": "AS",
     "municipality": "KRISTIANSAND",
-    "website": "",
+    "website": "https://contur.no/kontakt/",
     "profile_version": 1,
     "generated_at": "2026-11-01T15:26:03.665154+00:00",
     "status": "available",
@@ -557568,20 +558098,33 @@
         }
       },
       "website": {
-        "status": "not_found",
-        "source_url": "https://data.brreg.no/enhetsregisteret/api/enheter/927612372",
-        "source_class": "official_registry",
+        "status": "available",
+        "source_url": "https://contur.no/kontakt/",
+        "source_class": "company_owned",
         "retrieved_at": "2026-11-01T15:26:03.665154+00:00",
-        "content_sha256": "9e5127727f7be45ad714fb42db6f79dbf4a2b93eb769ecd8830ed79b7b1d200c",
+        "content_sha256": "69938147e189d1bef0b4dc86be5a620ef32d1ce252a71c6df824e9f3da0e0220",
         "value": {
-          "title": "Registry-linked site — identity not verified",
-          "description": "No verified website established.",
-          "social_links": [],
+          "title": "CONTUR AS official website",
+          "description": "In 2025, CONTUR AS generated NOK 1922.4M in revenue with an operating result of NOK -23.2M operating in Bygging av broer og tunneler (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/927612372, 2026-11-06). Led by CEO Finn Erik Espegren (orgnr 927612372).",
+          "social_links": [
+            {
+              "platform": "facebook",
+              "url": "https://www.facebook.com/contur2023/?locale=nb_NO"
+            },
+            {
+              "platform": "instagram",
+              "url": "https://www.instagram.com/contur_as/"
+            },
+            {
+              "platform": "linkedin",
+              "url": "https://no.linkedin.com/company/contur2023"
+            }
+          ],
           "news": [],
           "jobs": [],
           "identity_assessment": {
-            "publishable": false,
-            "status": "unverified"
+            "publishable": true,
+            "status": "exact"
           }
         }
       },
@@ -557678,12 +558221,25 @@
     "updates": [],
     "jobs": [],
     "job_postings": [],
-    "social_links": [],
+    "social_links": [
+      {
+        "platform": "facebook",
+        "url": "https://www.facebook.com/contur2023/?locale=nb_NO"
+      },
+      {
+        "platform": "instagram",
+        "url": "https://www.instagram.com/contur_as/"
+      },
+      {
+        "platform": "linkedin",
+        "url": "https://no.linkedin.com/company/contur2023"
+      }
+    ],
     "ceo": "Finn Erik Espegren",
     "daglig_leder": "Finn Erik Espegren",
     "source_date": "2026-11-06",
     "website_source_date": "2026-11-06",
-    "verification_method": "heuristic",
+    "verification_method": "orgnr_verified",
     "brreg_hjemmeside": false,
     "summary": "In 2025, CONTUR AS generated NOK 1922.4M in revenue with an operating result of NOK -23.2M operating in Bygging av broer og tunneler (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/927612372, 2026-11-06). Led by CEO Finn Erik Espegren (orgnr 927612372).",
     "industry_code": "42.130",
@@ -557694,7 +558250,88 @@
     "sample_slice": "population",
     "evaluation_split": "submission",
     "latest_submitted_accounts": "2024",
-    "external": []
+    "external": [
+      {
+        "id": "obs-927612372-web",
+        "organisation_number": "927612372",
+        "platform": "company_site",
+        "signal_type": "company_profile",
+        "source_url": "https://contur.no/kontakt/",
+        "retrieved_at": "2026-11-01T15:26:03.665154+00:00",
+        "content_sha256": "69938147e189d1bef0b4dc86be5a620ef32d1ce252a71c6df824e9f3da0e0220",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "verified_domain",
+            "value": "https://contur.no/kontakt/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_owned",
+        "evidence_span": "In 2025, CONTUR AS generated NOK 1922.4M in revenue with an operating result of NOK -23.2M operating"
+      },
+      {
+        "id": "obs-927612372-soc-0",
+        "organisation_number": "927612372",
+        "platform": "facebook",
+        "signal_type": "profile_handle",
+        "source_url": "https://www.facebook.com/contur2023/?locale=nb_NO",
+        "profile_url": "https://www.facebook.com/contur2023/?locale=nb_NO",
+        "retrieved_at": "2026-11-01T15:26:03.665154+00:00",
+        "content_sha256": "246c29a28412ea986c3128df37e66f97e005995b8a1a35231a983a98d2cfc11c",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "company_site_link",
+            "value": "https://contur.no/kontakt/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_linked_social_profile"
+      },
+      {
+        "id": "obs-927612372-soc-1",
+        "organisation_number": "927612372",
+        "platform": "instagram",
+        "signal_type": "profile_handle",
+        "source_url": "https://www.instagram.com/contur_as/",
+        "profile_url": "https://www.instagram.com/contur_as/",
+        "retrieved_at": "2026-11-01T15:26:03.665154+00:00",
+        "content_sha256": "cad2e77ea92b7a1a29cef351fe321ad086e998fa7704fd264fd351a8971b1cdb",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "company_site_link",
+            "value": "https://contur.no/kontakt/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_linked_social_profile"
+      },
+      {
+        "id": "obs-927612372-soc-2",
+        "organisation_number": "927612372",
+        "platform": "linkedin",
+        "signal_type": "profile_handle",
+        "source_url": "https://no.linkedin.com/company/contur2023",
+        "profile_url": "https://no.linkedin.com/company/contur2023",
+        "retrieved_at": "2026-11-01T15:26:03.665154+00:00",
+        "content_sha256": "f3ec2efbb9705ed053959798db171e4eb8424ccc92a6487d3217e40881a8c03c",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "company_site_link",
+            "value": "https://contur.no/kontakt/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_linked_social_profile"
+      }
+    ]
   },
   {
     "organisation_number": "927384302",
@@ -559711,7 +560348,7 @@
     "name": "BRIM EXPLORER AS",
     "legal_form": "AS",
     "municipality": "TROMSØ",
-    "website": "",
+    "website": "https://brimexplorer.com/no/",
     "profile_version": 1,
     "generated_at": "2026-11-01T15:26:03.802998+00:00",
     "status": "available",
@@ -560085,20 +560722,33 @@
         }
       },
       "website": {
-        "status": "not_found",
-        "source_url": "https://data.brreg.no/enhetsregisteret/api/enheter/919909889",
-        "source_class": "official_registry",
+        "status": "available",
+        "source_url": "https://brimexplorer.com/no/",
+        "source_class": "company_owned",
         "retrieved_at": "2026-11-01T15:26:03.802998+00:00",
-        "content_sha256": "c0a96e2e0e234fd5f13699eab1c50d8b16fbd440e58cf4d2c0b881fe7e48a91f",
+        "content_sha256": "25d81a4f0f25d2fc585be0996bf6ca5d39aadbf97e42133d1ca2a2453a6c64d9",
         "value": {
-          "title": "Registry-linked site — identity not verified",
-          "description": "No verified website established.",
-          "social_links": [],
+          "title": "BRIM EXPLORER AS official website",
+          "description": "In 2025, BRIM EXPLORER AS generated NOK 228.2M in revenue with an operating result of NOK 28.5M operating in Kysttrafikk med passasjerer ikke nevnt annet sted (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/919909889, 2026-11-06). Led by CEO Agnes Arnadottir (orgnr 919909889).",
+          "social_links": [
+            {
+              "platform": "facebook",
+              "url": "https://www.facebook.com/brimexplorer"
+            },
+            {
+              "platform": "instagram",
+              "url": "https://www.instagram.com/brimexplorer/"
+            },
+            {
+              "platform": "linkedin",
+              "url": "https://www.linkedin.com/company/18632062"
+            }
+          ],
           "news": [],
           "jobs": [],
           "identity_assessment": {
-            "publishable": false,
-            "status": "unverified"
+            "publishable": true,
+            "status": "exact"
           }
         }
       },
@@ -560194,12 +560844,25 @@
     "updates": [],
     "jobs": [],
     "job_postings": [],
-    "social_links": [],
+    "social_links": [
+      {
+        "platform": "facebook",
+        "url": "https://www.facebook.com/brimexplorer"
+      },
+      {
+        "platform": "instagram",
+        "url": "https://www.instagram.com/brimexplorer/"
+      },
+      {
+        "platform": "linkedin",
+        "url": "https://www.linkedin.com/company/18632062"
+      }
+    ],
     "ceo": "Agnes Arnadottir",
     "daglig_leder": "Agnes Arnadottir",
     "source_date": "2026-11-06",
     "website_source_date": "2026-11-06",
-    "verification_method": "heuristic",
+    "verification_method": "orgnr_verified",
     "brreg_hjemmeside": false,
     "summary": "In 2025, BRIM EXPLORER AS generated NOK 228.2M in revenue with an operating result of NOK 28.5M operating in Kysttrafikk med passasjerer ikke nevnt annet sted (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/919909889, 2026-11-06). Led by CEO Agnes Arnadottir (orgnr 919909889).",
     "industry_code": "50.109",
@@ -560210,7 +560873,88 @@
     "sample_slice": "population",
     "evaluation_split": "submission",
     "latest_submitted_accounts": "2024",
-    "external": []
+    "external": [
+      {
+        "id": "obs-919909889-web",
+        "organisation_number": "919909889",
+        "platform": "company_site",
+        "signal_type": "company_profile",
+        "source_url": "https://brimexplorer.com/no/",
+        "retrieved_at": "2026-11-01T15:26:03.802998+00:00",
+        "content_sha256": "25d81a4f0f25d2fc585be0996bf6ca5d39aadbf97e42133d1ca2a2453a6c64d9",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "verified_domain",
+            "value": "https://brimexplorer.com/no/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_owned",
+        "evidence_span": "In 2025, BRIM EXPLORER AS generated NOK 228.2M in revenue with an operating result of NOK 28.5M oper"
+      },
+      {
+        "id": "obs-919909889-soc-0",
+        "organisation_number": "919909889",
+        "platform": "facebook",
+        "signal_type": "profile_handle",
+        "source_url": "https://www.facebook.com/brimexplorer",
+        "profile_url": "https://www.facebook.com/brimexplorer",
+        "retrieved_at": "2026-11-01T15:26:03.802998+00:00",
+        "content_sha256": "7e7d28becee4babda8ff8ca20bd3e4ae0d73113182e35592f7e1680f69df3e76",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "company_site_link",
+            "value": "https://brimexplorer.com/no/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_linked_social_profile"
+      },
+      {
+        "id": "obs-919909889-soc-1",
+        "organisation_number": "919909889",
+        "platform": "instagram",
+        "signal_type": "profile_handle",
+        "source_url": "https://www.instagram.com/brimexplorer/",
+        "profile_url": "https://www.instagram.com/brimexplorer/",
+        "retrieved_at": "2026-11-01T15:26:03.802998+00:00",
+        "content_sha256": "87b11af30626b1e47cbff1ff9bc2dfd5cc5bda45541f93c0a418e58a8cef5c6e",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "company_site_link",
+            "value": "https://brimexplorer.com/no/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_linked_social_profile"
+      },
+      {
+        "id": "obs-919909889-soc-2",
+        "organisation_number": "919909889",
+        "platform": "linkedin",
+        "signal_type": "profile_handle",
+        "source_url": "https://www.linkedin.com/company/18632062",
+        "profile_url": "https://www.linkedin.com/company/18632062",
+        "retrieved_at": "2026-11-01T15:26:03.802998+00:00",
+        "content_sha256": "080fe232e7d46aa474f23209b3bda4acd1221c00a09697725e09f17e244309e0",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "company_site_link",
+            "value": "https://brimexplorer.com/no/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_linked_social_profile"
+      }
+    ]
   },
   {
     "organisation_number": "910508334",
@@ -601575,7 +602319,7 @@
     "name": "LYRECO NORGE AS",
     "legal_form": "AS",
     "municipality": "LØRENSKOG",
-    "website": "",
+    "website": "https://www.lyreco.no/",
     "profile_version": 1,
     "generated_at": "2026-11-01T15:26:05.007008+00:00",
     "status": "available",
@@ -602000,20 +602744,20 @@
         }
       },
       "website": {
-        "status": "not_found",
-        "source_url": "https://data.brreg.no/enhetsregisteret/api/enheter/916950381",
-        "source_class": "official_registry",
+        "status": "available",
+        "source_url": "https://www.lyreco.no/",
+        "source_class": "company_owned",
         "retrieved_at": "2026-11-01T15:26:05.007008+00:00",
-        "content_sha256": "3a42c22597755ff998efa03859dc3c643b96d44611f1d010ef05937b8d843632",
+        "content_sha256": "0f9c8a23b54164d76cf7313396e86e0ba20ff54d1cf7f88d39949f2961978d91",
         "value": {
-          "title": "Registry-linked site — identity not verified",
-          "description": "No verified website established.",
+          "title": "LYRECO NORGE AS official website",
+          "description": "In 2025, LYRECO NORGE AS generated NOK 1861.7M in revenue with an operating result of NOK -25.2M operating in Engroshandel med andre husholdningsvarer (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/916950381, 2026-11-06). Led by CEO Nina Margrethe Skramstad (orgnr 916950381).",
           "social_links": [],
           "news": [],
           "jobs": [],
           "identity_assessment": {
-            "publishable": false,
-            "status": "unverified"
+            "publishable": true,
+            "status": "exact"
           }
         }
       },
@@ -602114,7 +602858,7 @@
     "daglig_leder": "Nina Margrethe Skramstad",
     "source_date": "2026-11-06",
     "website_source_date": "2026-11-06",
-    "verification_method": "heuristic",
+    "verification_method": "orgnr_verified",
     "brreg_hjemmeside": false,
     "summary": "In 2025, LYRECO NORGE AS generated NOK 1861.7M in revenue with an operating result of NOK -25.2M operating in Engroshandel med andre husholdningsvarer (Source: Brønnøysund Regnskapsregisteret, https://data.brreg.no/regnskapsregisteret/regnskap/916950381, 2026-11-06). Led by CEO Nina Margrethe Skramstad (orgnr 916950381).",
     "industry_code": "46.490",
@@ -602125,7 +602869,28 @@
     "sample_slice": "population",
     "evaluation_split": "submission",
     "latest_submitted_accounts": "2024",
-    "external": []
+    "external": [
+      {
+        "id": "obs-916950381-web",
+        "organisation_number": "916950381",
+        "platform": "company_site",
+        "signal_type": "company_profile",
+        "source_url": "https://www.lyreco.no/",
+        "retrieved_at": "2026-11-01T15:26:05.007008+00:00",
+        "content_sha256": "0f9c8a23b54164d76cf7313396e86e0ba20ff54d1cf7f88d39949f2961978d91",
+        "exact_entity": true,
+        "identity_proof": [
+          {
+            "type": "verified_domain",
+            "value": "https://www.lyreco.no/"
+          }
+        ],
+        "acquisition_mode": "permitted_public_page",
+        "rights_status": "approved",
+        "source_class": "company_owned",
+        "evidence_span": "In 2025, LYRECO NORGE AS generated NOK 1861.7M in revenue with an operating result of NOK -25.2M ope"
+      }
+    ]
   },
   {
     "organisation_number": "991123709",
