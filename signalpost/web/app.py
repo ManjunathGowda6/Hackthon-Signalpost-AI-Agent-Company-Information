@@ -845,6 +845,26 @@ def web_search_company(query):
 
 @app.route("/")
 def index():
+    if request.args.get("view") == "chat":
+        user_email = session.get("user_email")
+        if not user_email:
+            return redirect(url_for("login"))
+        user_name = session.get("user_name", user_email)
+        return render_template("chat.html", user_email=user_email, user_name=user_name)
+    user_email = session.get("user_email")
+    if user_email and request.args.get("view") != "prototype":
+        user_name = session.get("user_name", user_email)
+        return render_template("chat.html", user_email=user_email, user_name=user_name)
+    return render_template("prototype.html")
+
+
+@app.route("/prototype")
+def prototype():
+    return render_template("prototype.html")
+
+
+@app.route("/chat")
+def chat_page():
     user_email = session.get("user_email")
     if not user_email:
         return redirect(url_for("login"))
