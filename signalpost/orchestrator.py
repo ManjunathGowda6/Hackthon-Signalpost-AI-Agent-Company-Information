@@ -1153,6 +1153,12 @@ class Orchestrator:
             except json.JSONDecodeError:
                 if line.isdigit() and len(line) == 9:
                     numbers.append(line)
+                else:
+                    # Support CSV, TSV, or comma/space-delimited lines
+                    import re as _re
+                    m = _re.search(r'\b\d{9}\b', line)
+                    if m:
+                        numbers.append(m.group(0))
         return numbers
 
     def _load_previous(self) -> dict[str, dict]:
