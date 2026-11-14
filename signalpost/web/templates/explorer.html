@@ -1064,7 +1064,7 @@ function renderCompareSelector(idx) {
         <button onclick="toggleCompare('${sel.orgnr}','${escAttr(sel.name)}')" class="text-xs text-red-400 hover:text-red-300">Remove</button>
       </div>
     ` : `
-      <p class="text-sm text-slate-500">Select a company from the directory</p>
+      <p class="text-sm text-slate-500">Select a company from directory or <button onclick="compareSamplePair()" class="text-brand-400 hover:underline font-medium">load sample pair</button></p>
     `}
   </div>`;
 }
