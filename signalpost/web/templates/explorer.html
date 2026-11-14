@@ -380,21 +380,21 @@ function renderBuyerPills() {
   const pillClass = (active) => active ? 'bg-brand-600 text-white font-semibold shadow-md' : 'bg-surface-card border border-surface-border text-slate-300 hover:border-brand-400 hover:text-white';
 
   return `
-  <div class="flex flex-wrap items-center gap-2 mb-4">
-    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 mr-1">⚡ Quick Filters:</span>
-    <button class="px-3 py-1.5 rounded-full text-xs transition-all ${pillClass(pAll)}" onclick="selectBuyerPill('all')">
+  <div class="flex items-center gap-2 mb-4 overflow-x-auto pb-1 sm:pb-0 sm:flex-wrap" style="-webkit-overflow-scrolling:touch">
+    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 mr-1 flex-shrink-0">⚡ Quick Filters:</span>
+    <button class="px-3 py-1.5 rounded-full text-xs transition-all flex-shrink-0 ${pillClass(pAll)}" onclick="selectBuyerPill('all')">
       All Companies (${state.total.toLocaleString()})
     </button>
-    <button class="px-3 py-1.5 rounded-full text-xs transition-all ${pillClass(pHire)}" onclick="selectBuyerPill('hiring')">
+    <button class="px-3 py-1.5 rounded-full text-xs transition-all flex-shrink-0 ${pillClass(pHire)}" onclick="selectBuyerPill('hiring')">
       💼 Actively Hiring (105)
     </button>
-    <button class="px-3 py-1.5 rounded-full text-xs transition-all ${pillClass(pNews)}" onclick="selectBuyerPill('news')">
+    <button class="px-3 py-1.5 rounded-full text-xs transition-all flex-shrink-0 ${pillClass(pNews)}" onclick="selectBuyerPill('news')">
       📰 Has Recent News (231)
     </button>
-    <button class="px-3 py-1.5 rounded-full text-xs transition-all ${pillClass(pGrow)}" onclick="selectBuyerPill('growth')">
+    <button class="px-3 py-1.5 rounded-full text-xs transition-all flex-shrink-0 ${pillClass(pGrow)}" onclick="selectBuyerPill('growth')">
       📈 Profitable &amp; Growing
     </button>
-    <button class="px-3 py-1.5 rounded-full text-xs transition-all ${pillClass(pWeb)}" onclick="selectBuyerPill('website')">
+    <button class="px-3 py-1.5 rounded-full text-xs transition-all flex-shrink-0 ${pillClass(pWeb)}" onclick="selectBuyerPill('website')">
       🌐 Verified Website (562)
     </button>
   </div>`;
