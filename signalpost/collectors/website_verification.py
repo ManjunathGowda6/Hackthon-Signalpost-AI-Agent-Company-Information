@@ -330,13 +330,30 @@ def verify_social_link(
 
     # Strict handle verification if NOT verified by exact orgnr on page:
     if not orgnr_verified:
+        # Check for disallowed corporate modifier suffixes/prefixes attached to core company name
+        for mod in ["prosjekt", "gruppen", "gruppe", "holding", "bygg", "eiendom", "invest",
+                    "partner", "consulting", "consult", "advokat", "regnskap", "revisjon",
+                    "transport", "logistikk", "security", "sikkerhet", "service", "drift",
+                    "teknikk", "montasje", "anlegg", "management", "solutions", "agency"]:
+            if mod in slug_lower and not any(mod in ct for ct in company_tokens):
+                return False, f"slug '{slug}' contains extra corporate modifier '{mod}' not in company name '{target_name}' (not orgnr-verified)"
+
+        # Check for unapproved extra word appended to token
+        for ct in company_tokens:
+            if ct in slug_lower and len(slug_lower) >= len(ct) + 3:
+                remainder = slug_lower.replace(ct, "")
+                for ignore in ["official", "page", "pages", "company", "profile", "no", "norge", "as", "asa", "com", "www"]:
+                    remainder = remainder.replace(ignore, "")
+                if len(remainder) >= 3 and not any(remainder in other_ct for other_ct in company_tokens):
+                    return False, f"slug '{slug}' contains extra suffix '{remainder}' not in company name '{target_name}' (not orgnr-verified)"
+
         slug_meaningful = set(re.findall(r"[a-zæøå]{3,}", slug_lower))
         slug_meaningful -= {"official", "page", "pages", "company", "profile",
                            "no", "norge", "com", "www"}
         for st in slug_meaningful:
             is_part_of_company = False
             for ct in company_tokens:
-                if st in ct or ct in st:
+                if st == ct or (len(st) <= len(ct) and st in ct):
                     is_part_of_company = True
                     break
             if not is_part_of_company and len(st) > 3:
