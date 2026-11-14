@@ -60,6 +60,7 @@ def main() -> None:
         ROOT / "out" / "index.html",
         ROOT / "out" / "prototype.html",
         ROOT / "docs" / "index.html",
+        ROOT / "signalpost" / "web" / "templates" / "prototype.html",
     ]
 
     for target in targets:
