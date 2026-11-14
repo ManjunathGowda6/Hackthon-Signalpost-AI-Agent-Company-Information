@@ -34,7 +34,7 @@ def main() -> None:
     parser.add_argument("--profiles-output", required=True)
     parser.add_argument("--report", required=True)
     parser.add_argument("--run-id", required=True)
-    parser.add_argument("--expected-count", type=int, default=100)
+    parser.add_argument("--expected-count", type=int, default=None)
     parser.add_argument("--workers", type=int, default=8)
     parser.add_argument("--checkpoint-every", type=int, default=25)
     parser.add_argument("--resume", action="store_true")
@@ -44,7 +44,7 @@ def main() -> None:
     started_at = utc_now()
     organisation_inputs = read_organisation_inputs(args.organisations)
     orgs = [item["organisation_number"] for item in organisation_inputs]
-    if len(orgs) != args.expected_count:
+    if args.expected_count is not None and len(orgs) != args.expected_count:
         raise SystemExit(f"Expected {args.expected_count} organisations, received {len(orgs)}")
     profiles, registry_metadata = profiles_from_bulk(args.bulk, orgs)
     annotations = {item["organisation_number"]: item for item in organisation_inputs}
