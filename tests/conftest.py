@@ -1,5 +1,13 @@
 """Test fixtures."""
+import sys
+from pathlib import Path
 import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
+for p in [str(ROOT / "src"), str(ROOT)]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
+
 @pytest.fixture
 def sample_org(): return "923609016"
 @pytest.fixture
