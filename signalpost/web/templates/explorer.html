@@ -336,8 +336,11 @@ function renderHeader() {
             <button onclick="goCompareTab()" class="px-3 py-1.5 bg-surface-card border border-surface-border hover:border-slate-500 text-slate-200 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
               ⚖️ Compare (${state.compareSelections.length}/2)
             </button>
-            <button onclick="compareSamplePair()" class="px-3 py-1.5 bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500/30 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
-              ⚡ Compare Sample Pair (Equinor vs Norsk Hydro)
+            <button onclick="compareSamplePair()" class="px-3 py-1.5 bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500/30 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm" title="Compare Equinor ASA vs Norsk Hydro ASA">
+              ⚡ Sample Pair
+            </button>
+            <button onclick="compareRandomPair()" class="px-3 py-1.5 bg-brand-600/20 border border-brand-500/40 text-brand-300 hover:bg-brand-600/30 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm" title="Pick 2 random verified companies to compare">
+              🎲 Random Pair
             </button>
           </div>
         </div>
@@ -345,14 +348,9 @@ function renderHeader() {
     </div>
     <!-- Live Stats Banner -->
     <div class="bg-surface-elevated/80 border-t border-surface-border/50 px-4 py-2">
-      <div class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-400 gap-1">
+      <div class="max-w-7xl mx-auto flex items-center justify-between text-xs text-slate-400">
         <div>
           <strong class="text-slate-200">Live Coverage:</strong> 1,107 Verified Norwegian Companies · 562 Official Websites · 231 News Profiles · 105 Hiring Profiles · 100% Provenance
-        </div>
-        <div class="text-emerald-400 font-semibold flex items-center gap-1">
-          <span>✅ 7/7 Qualification Gates Passed</span>
-          <span class="text-slate-600">·</span>
-          <span>12.0/12 Research Agent</span>
         </div>
       </div>
     </div>
