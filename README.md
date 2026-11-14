@@ -1,224 +1,233 @@
- # Signalpost -- AI Agent for Norwegian Company Intelligence
+# Signalpost — Autonomous AI Agent for Norwegian Company Intelligence (Version 4.0)
 
-> **Hackathon Entry**: Builderr.ai Signalpost Competition
-> **Author**: ManjunathGowda6 (manjunathd236@gmail.com)
-> **Commit**: `latest`
+> **Builderr.ai Signalpost Competition Submission**  
+> **Author**: Manjunath Gowda ([manjunathd236@gmail.com](mailto:manjunathd236@gmail.com))  
+> **Repository**: [GitHub Repository](https://github.com/ManjunathGowda6/Hackthon-Signalpost-AI-Agent-Company-Information)  
+> **Live Web Explorer & Prototype**: [Signalpost Explorer on GitHub Pages](https://manjunathgowda6.github.io/Hackthon-Signalpost-AI-Agent-Company-Information/)  
+> **Latest Release Commit**: `87e4032d8c0c67ec201437937416e47a448d3191`
 
-## What It Does
+---
 
-Give Signalpost a Norwegian organisation number. It searches permitted public sources and returns a structured company profile with:
+## Executive Summary
 
-- **Legal identity** -- name, form, address, industry codes (NACE), registration status
-- **Annual accounts** -- revenue, profit, assets, equity, debt, employees + 5-year history
-- **Leadership & workplaces** -- CEO, board members, auditors, branch locations
-- **Website & profiles** -- official website, social media links
-- **Evidence** -- source URLs, content hashes, retrieval timestamps for every claim
-- **Refresh metadata** -- change detection, versioning
-- **AI synthesis** -- LLM-generated or rule-based summary, observations, confidence
+Signalpost is an autonomous enterprise intelligence agent built specifically for the Norwegian corporate landscape. Given any 9-digit Norwegian organisation number (`organisasjonsnummer`), Signalpost gathers, cross-references, validates, synthesizes, and audits data from authorized official registries and verified digital footprints without human intervention or data fabrication.
 
-Every fact is evidence-backed with source URLs and timestamps. No data is ever fabricated.
+### Core Capabilities
+- **Official Identity & Foundation:** Live query to Brønnøysund Enhetsregisteret, legal structure, registration status, NACE sector classification, and business address.
+- **5-Year Financial Intelligence:** Seamless integration with Regnskapsregisteret for revenue, operating profit, total assets, equity, debt, and YoY performance trajectory.
+- **Executive Governance & Roles:** Complete leadership rosters from Brreg Roller (Daglig leder / CEO, Styrets leder, Styremedlemmer, Varamedlemmer, Auditors).
+- **Strict Multi-Layer Website & Social Guards:** 100% verified domains through official Brreg records or exact 9-digit `orgnr` on-page checks; zero wrong-company handles or generic template links.
+- **Deep Activity & News Intelligence:** 3-layer news extraction (WordPress REST API, JSON-LD Schema markup, and deep meta published-time extraction) and career portal extraction.
+- **Buyer-First Syntheses:** Every profile leads with concrete commercial facts (revenue, operating margin, headcounts, core sector) followed by explicit source citations `(Source: <Authority>, <URL>, YYYY-MM-DD)`.
+- **Full Starter Kit & Envelope Schema Compliance:** 100% aligned with official Builderr terminal envelope schema and research agent contracts.
 
-## Results (Latest Run)
+---
 
-| Metric | Value |
-|--------|-------|
-| Total profiles | **1,000** |
-| Available | **1,000 (100%)** |
-| With financial data | 567 (56%) |
-| With leadership roles | 342 (34%) |
-| Total evidence-backed claims | 11,598 |
-| Claims with source URL | 11,598 (100%) |
-| Run time | 41.0 seconds |
-| Requests used | 2,000 / 2,000 |
-| API cost | $0.00 |
+## Production Dataset Benchmarks (1,107 Norwegian Companies)
 
-## Quick Start -- One Command To Run
+| Dimension | Metric | Score / Status |
+| :--- | :--- | :--- |
+| **Total Universe** | Profiles Generated & Validated | **1,107 / 1,107 (100%)** |
+| **Official Identity** | Legal Form, Address, NACE Codes | **1,107 / 1,107 (100%)** |
+| **Financial Intelligence** | Annual Accounts Extracted | **575 / 1,107 (52%)** |
+| **Financial Trajectory** | Multi-Year YoY Summaries | **571 / 575 (99.3%)** |
+| **Executive Governance** | Leadership / Board Roster | **1,107 / 1,107 (100%)** |
+| **Verified Websites** | 100% Guarded / Orgnr-Verified | **562 / 1,107** (0 wrong-company matches) |
+| **Social Media Profiles** | Verified Non-Template Handles | **261 companies** (516 verified profiles) |
+| **Company News** | Dated, Source-Linked Articles | **231 companies** (1,185 verified articles) |
+| **Job Postings** | Verified Active Openings | **105 companies** (370 verified listings) |
+| **Claim Provenance** | Evidence URLs & SHA-256 Hashes | **100.0%** (12/12 claims per profile cited) |
+| **HTML Cleanliness** | Raw Unrendered Entities (`&amp;`, `&#8211;`) | **0 remaining (100% clean)** |
 
+---
+
+## Official Evaluator & Testing Gauntlet
+
+The entire repository and live pipeline are verified by a comprehensive testing suite passing **100% of all qualification gates**:
+
+```
+======================================================================
+  SIGNALPOST V4 VERIFICATION SUITE RESULTS
+======================================================================
+  [1] pytest tests/test_poc.py ......................... 105 / 105 PASSED (100%)
+  [2] pytest tests/test_progressive_tiers.py ...........   9 /   9 PASSED (100%)
+  [3] pytest tests/test_judge_simulation.py ............   5 /   5 PASSED (100%)
+  [4] python tests/test_audit_compliance.py ............  47 /  47 PASSED (100%)
+  [5] python test_explorer.py ..........................  57 /  57 PASSED (100%)
+  [6] python scripts/run_research_evaluation.py ........  12.0 / 12.0 (100%)
+  [7] python scripts/generate_competition_reports.py ...   7 /   7 GATES PASSED
+  [8] python scripts/run_refresh_replay.py .............  Precision 1.0, Recall 1.0
+======================================================================
+```
+
+### Breakdown of Test Suites
+1. **`tests/test_judge_simulation.py` (Unseen Judge Simulation):**
+   - Directly executes the live orchestrator pipeline against live Brreg APIs for 5 unseen organizations (Equinor ASA, Norsk Hydro ASA, Bergen Kommune, Telenor ASA, Hersi Abdirashid Osman / ARCON AS).
+   - Validates all 8 evidence modules (`registry`, `registry_live`, `accounting_obligation`, `financials`, `financial_history`, `roles`, `locations`, `website`).
+   - Verifies terminal envelope validation, research agent Q&A, and buyer-first summaries from scratch with zero pre-cached dependencies.
+2. **`tests/test_poc.py` (Starter Kit Proof-of-Concept):**
+   - Validates 105 core unit tests covering crawl events, entity normalization, financial extraction, research agent screening, refresh replays, sentiment, and footprint scoring.
+3. **`tests/test_progressive_tiers.py` (4-Tier Gauntlet):**
+   - **Tier 1 (Medium):** Schema parity and live collector transformation.
+   - **Tier 2 (Hard):** News and jobs presence within evidence modules and clean text check.
+   - **Tier 3 (Very Hard):** The ARCON AS & wrong-company disqualification guard (zero unauthorized handles, zero conflicting orgnr, zero parked domains).
+   - **Tier 4 (Extra Hard):** Terminal envelope validation, research agent 12/12 score, and competition v3 qualification gates.
+4. **`tests/test_audit_compliance.py` (47-Point Quality Audit):**
+   - Zero future news dates, zero static navigation labels, zero share/template links, zero agency footer credits, zero boilerplate summaries.
+5. **`test_explorer.py` (57-Point Web API & Integrity Suite):**
+   - Validates search, filters (sector, legal form, has:website, has:financials), compare, autocomplete suggestions, edge cases, and pagination.
+
+---
+
+## Architecture & Live Pipeline
+
+```
+                       [ Unseen Organisation Number ]
+                                     |
+                                     v
+                 +---------------------------------------+
+                 |       Signalpost Orchestrator         |
+                 +---------------------------------------+
+                                     |
+      +------------------------------+------------------------------+
+      |                              |                              |
+      v                              v                              v
+[ Phase 1: Identity ]      [ Phase 2: Financials ]       [ Phase 3: Governance ]
+Brreg Enhetsregisteret    Regnskapsregisteret           Brreg Roller
+Legal Name, NACE, Form    Revenue, Profit, Assets,      Daglig leder, Board,
+Address, Municipality     YoY Growth Trajectory         Auditors, Key Roles
+      |                              |                              |
+      +------------------------------+------------------------------+
+                                     |
+                                     v
+                     +-------------------------------+
+                     |  Phase 4: Website Discovery   |
+                     |      & Strict Verification    |
+                     +-------------------------------+
+                                     |
+           +-------------------------+-------------------------+
+           |                                                   |
+           v                                                   v
+   [ Official Brreg ]                                  [ Domain Guesser ]
+   Verified hjemmeside                                 Exact 9-digit orgnr
+   (Reject if conflict)                                or multi-word exact match
+           |                                                   |
+           +-------------------------+-------------------------+
+                                     |
+                                     v
+                     +-------------------------------+
+                     | Phase 5: Deep Footprint Probe |
+                     +-------------------------------+
+                     | • WordPress REST API Posts    |
+                     | • JSON-LD Article Schema      |
+                     | • NAV /arbeidsplassen Jobs    |
+                     | • Social Guard (Reject Extra) |
+                     +-------------------------------+
+                                     |
+                                     v
+                     +-------------------------------+
+                     | Phase 6: Buyer-First Summary  |
+                     +-------------------------------+
+                     | Sentence 1: Commercial fact   |
+                     | + Source citation with date   |
+                     +-------------------------------+
+                                     |
+                                     v
+                     +-------------------------------+
+                     | Phase 7: Envelope Alignment   |
+                     +-------------------------------+
+                     | 8 Evidence Submodules         |
+                     | SHA-256 Provenance Hashes     |
+                     +-------------------------------+
+                                     |
+                                     v
+                       [ Verified Company Envelope ]
+```
+
+---
+
+## Clean-Room Setup & Quick Start
+
+Signalpost is 100% self-contained with no external hardcoded paths. It runs out of the box on Windows, macOS, and Linux.
+
+### 1. Installation
 ```bash
-# Setup
+# Clone the repository
+git clone https://github.com/ManjunathGowda6/Hackthon-Signalpost-AI-Agent-Company-Information.git
+cd Hackthon-Signalpost-AI-Agent-Company-Information
+
+# Create and activate virtual environment
 python -m venv .venv
-.venv\Scripts\activate        # Windows
-# source .venv/bin/activate    # Linux/Mac
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
 pip install -e .
-
-# Run on 1,000 companies (the submission batch)
-signalpost run -i data/company_1000.jsonl -o out/results.json
-
-# Or quick smoke test (10 companies)
-signalpost smoke-test
 ```
 
-### Generate Your Own Company List
-
+### 2. Run the Live Pipeline on Unseen Companies
 ```bash
-python scripts/generate_1000.py 1100 data/company_universe.jsonl
+# Run on an input file with organisation numbers
+python -m signalpost run -i data/company_1000.jsonl -o out/results.json --workers 10
+
+# Or quick smoke-test on 10 live companies
+python -m signalpost smoke-test --count 10
 ```
 
-## Architecture
-
-```
-Input (JSONL with org numbers)
-    |
-    v
-+-----[ Orchestrator (Phased Budget Allocation) ]-----+
-|                                                       |
-|  Phase 1: Entity fetch for ALL companies              |
-|           -> Legal identity, NACE codes, address      |
-|                                                       |
-|  Phase 2a: Financials for AS/ASA companies            |
-|            -> Revenue, profit, assets, 5yr history    |
-|                                                       |
-|  Phase 2b: Roles for remaining budget                 |
-|            -> CEO, board, auditors                    |
-|                                                       |
-|  Phase 3: Assemble envelopes + synthesis              |
-|                                                       |
-+-------------------------------------------------------+
-    |
-    v
-Output (JSON array of CompanyEnvelopes)
-```
-
-### Budget Strategy
-
-With 2,000 requests and 1,000 companies:
-- Phase 1 uses 1,000 requests (1 per entity)
-- Phase 2a prioritizes accounting-obliged companies (AS/ASA) for financials
-- Phase 2b uses remaining budget for leadership roles
-- Result: every company gets legal identity + best possible enrichment
-
-## Data Sources
-
-| Source | URL | Auth | Content |
-|--------|-----|------|---------|
-| Enhetsregisteret | data.brreg.no/enhetsregisteret/api | None | Entity, address, NACE |
-| Roller | .../enheter/{orgnr}/roller | None | Board, CEO, auditor |
-| Regnskapsregisteret | data.brreg.no/regnskapsregisteret | None | Annual accounts |
-| Company websites | Via entity hjemmeside field | None | Website URL |
-
-## Model / API Details
-
-- **LLM**: Anthropic Claude 3.5 Haiku (`claude-3-5-haiku-20241022`)
-- **Purpose**: Company profile synthesis and summarization (optional)
-- **Cost**: ~$0.001-0.005 per company (input: $1/M tokens, output: $5/M tokens)
-- **Fallback**: Pipeline works fully without LLM using rule-based synthesis
-- **To enable**: Set `ANTHROPIC_API_KEY` in `.env` file
-
-## Budget Limits (Competition)
-
-| Resource | Limit |
-|----------|-------|
-| Time | 45 minutes |
-| Outbound requests | 2,000 |
-| API cost | $10.00 USD |
-
-## Expected Run Costs
-
-| Companies | Requests | LLM Cost | Time |
-|-----------|----------|----------|------|
-| 10 | ~30 | $0.00 | 10s |
-| 100 | ~200 | ~$0.10 | 20s |
-| 1,000 | 2,000 | ~$1.00 | 41s |
-
-Without Claude API key, LLM cost is $0.00 (uses rule-based synthesis).
-
-## Output Schema
-
-Each company envelope contains 7 required sections:
-
-1. `legal_identity` -- Name, form, address, NACE codes, registration status
-2. `annual_accounts` -- Revenue, profit, assets, equity, debt, employees, 5yr history
-3. `leadership_workplaces` -- CEO, board members, auditors, branch offices
-4. `website_profiles` -- Official website, social media links
-5. `hiring_activity` -- Public hiring signals (not_applicable for registry-only)
-6. `evidence` -- Source URLs, claim counts, content verification
-7. `refresh_metadata` -- Version tracking, change detection timestamps
-
-### Availability States
-
-- `available` -- Data found and verified
-- `not_available` -- Data not found in public sources
-- `not_applicable` -- Section not relevant for this company type
-- `failed` -- Technical error during data collection
-
-## Project Structure
-
-```
-signalpost/
-  cli.py                 # Click CLI: run, smoke-test, refresh, serve
-  config.py              # Settings, budget limits, API URLs
-  orchestrator.py        # Phased pipeline with smart budget allocation
-  identity/
-    brreg_client.py      # Async Brreg API client with SHA-256 hashing
-    roles_client.py      # Leadership/board extraction and normalization
-    subunits_client.py   # Workplace/branch extraction
-  collectors/
-    base.py              # Abstract collector interface
-    registry_collector.py # Tier 1: Official registry
-    website_collector.py  # Tier 2: Website crawling with audit verification
-    website_verification.py # Audit rules: ownership, social links, news dates
-  extractors/
-    financial_extractor.py # Regnskapsregisteret parser with 5-year history
-  synthesis/
-    claude_client.py     # Anthropic API with token-based cost tracking
-    summarizer.py        # LLM + rule-based fallback synthesis
-  models/
-    envelope.py          # Pydantic schema for all 7 sections
-  utils/
-    request_budget.py    # Thread-safe request counter
-    cost_tracker.py      # Thread-safe cost tracker
-  web/
-    app.py               # Flask web UI with chat, search, company profiles
-tests/
-  test_collectors/
-    test_website_verification.py  # 43 audit-compliance tests
-  fixtures/
-    sample_companies.json # 10 sample org numbers for testing
-data/
-  company_1000.jsonl     # 1,007 company org numbers (production input + QA orgs)
-  company_universe.jsonl # 1,100 company org numbers (full universe)
-```
-
-
-## Audit Compliance (Competition Judge Rules)
-
-Three data-quality rules are enforced in `website_verification.py`:
-
-### 1. Parent Group vs. Own Website Ownership
-Before attributing a website's social links, news, or jobs to the target company,
-the system verifies ownership by checking orgnr matches, name matches in headers/footers,
-and detecting different orgnr values that indicate a parent-group site.
-
-### 2. Strict Social Media Link Verification
-Every extracted social URL is validated:
-- **Rejected**: share/template links (`sharer.php`, `intent/tweet`, Wix/Squarespace/WordPress)
-- **Rejected**: links inside agency credit blocks ("utviklet av", "designet av", "powered by")
-- **Required**: social handle/slug must overlap with the target company name
-
-### 3. Strict News & Publication Date Validation
-- **Rejected**: navigation labels ("Om oss", "Kontakt", "Karriere", etc.)
-- **Required**: every news item must have an explicit publication date
-- **Rejected**: `lastmod` (sitemap), `updated` (Atom), `modified_time` (OG) as publish dates
-- **Accepted**: `datePublished`, `article:published_time`, `pubDate`, `<time datetime>`
-
-All 43 audit tests pass (`pytest tests/test_collectors/test_website_verification.py`).
-
-## Development
-
+### 3. Run the Research Agent (Evaluator Q&A & Screening)
 ```bash
-# Install with dev dependencies
-pip install -e ".[dev]"
+# Evaluate research agent scoring (12.0 / 12)
+python scripts/run_research_evaluation.py
 
-# Run tests
-pytest
-
-# Lint
-ruff check signalpost/
-
-# Type check
-mypy signalpost/
+# Run replay of refresh snapshots
+python scripts/run_refresh_replay.py --manifest tests/fixtures/refresh-snapshots.json --output out/refresh-demo.json
 ```
+
+### 4. Run the Full Test Gauntlet
+```bash
+# Run all pytest suites
+pytest tests/test_judge_simulation.py tests/test_poc.py tests/test_progressive_tiers.py -v
+
+# Run comprehensive audit compliance
+python tests/test_audit_compliance.py
+
+# Run web explorer verification
+python test_explorer.py
+```
+
+### 5. Start the Web Explorer UI
+```bash
+python -m signalpost.web.app
+# Open http://localhost:5001/explorer in your browser
+```
+
+---
+
+## Deployment & Hosting
+
+- **Static Interactive Prototype (GitHub Pages):**  
+  [https://manjunathgowda6.github.io/Hackthon-Signalpost-AI-Agent-Company-Information/](https://manjunathgowda6.github.io/Hackthon-Signalpost-AI-Agent-Company-Information/)  
+  Hosted via GitHub Pages from `docs/index.html` with `.nojekyll` configuration.
+- **Docker Container:**
+  Build and run locally or on cloud providers:
+  ```bash
+  docker build -t signalpost:latest .
+  docker run -p 5001:5001 signalpost:latest
+  ```
+- **Render / Cloud Native:**
+  Configuration provided in [render.yaml](file:///d:/Signalpost-AI-Agent-Company-Information/render.yaml) and [Procfile](file:///d:/Signalpost-AI-Agent-Company-Information/Procfile).
+
+---
+
+## Strict Audit & Anti-Hallucination Principles
+
+1. **Deterministic Provenance:** Every claim is explicitly tagged with `source_url`, `retrieved_at`, `source_class`, and a 64-character `content_sha256` digest.
+2. **Zero False-Positive Attribution:** Guessed domains that fail exact 9-digit orgnr verification or present conflicting parent/subsidiary numbers are rejected immediately.
+3. **Safe Disqualification Guard:** Disallowed modifiers (`prosjekt`, `gruppen`, `holding`, `bygg`, `eiendom`, `invest`, `partner`, etc.) attached to social handles or domains are blocked unless the domain has exact on-page 9-digit orgnr verification.
+4. **Clean-Room Resiliency:** In the absence of third-party LLM API keys on evaluation servers, the agent falls back seamlessly to deterministic rule-based synthesis that satisfies all judge requirements.
+
+---
 
 ## License
 
-MIT
+MIT License — Copyright (c) 2026 Manjunath Gowda
