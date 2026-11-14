@@ -51,7 +51,7 @@ suite_path.write_text(json.dumps(suite, indent=2), encoding="utf-8")
 # Now run evaluate_research_agent.py
 cmd = [
     sys.executable,
-    str(STARTER_KIT / "scripts" / "evaluate_research_agent.py"),
+    str(ROOT / "scripts" / "evaluate_research_agent.py"),
     "--input", "out/profiles.jsonl",
     "--suite", str(suite_path),
     "--output", "out/research-report.json",
