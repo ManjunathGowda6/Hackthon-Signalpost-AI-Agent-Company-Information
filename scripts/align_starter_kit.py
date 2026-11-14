@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 import sys
-STARTER_KIT_SRC = Path(r"C:\Users\nisar\Downloads\signalpost-starter-kit\signalpost-starter-kit\src")
+STARTER_KIT_SRC = ROOT / "src"
 if str(STARTER_KIT_SRC) not in sys.path:
     sys.path.insert(0, str(STARTER_KIT_SRC))
 if str(ROOT) not in sys.path:
