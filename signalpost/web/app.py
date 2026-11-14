@@ -15,7 +15,7 @@ import json, re, httpx
 from difflib import SequenceMatcher
 from pathlib import Path
 from datetime import timedelta
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_file
 from signalpost.web.users import register_user, login_user, find_user
 
 app = Flask(
